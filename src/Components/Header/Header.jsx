@@ -177,7 +177,7 @@ const Header = () => {
   const getItemClass = (lng) => {
     return lng === selectedLanguage ? "selected-item" : "";
   };
-  console.log("permissions: ", permissions.permissions);
+  // console.log("permissions: ", permissions.permissions);
   return (
     <>
       {/* Navbar */}

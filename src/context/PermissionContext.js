@@ -18,7 +18,7 @@ export const PermissionsProvider = ({ children }) => {
   console.log("permissions",permissions)
 
   useEffect(() => {
-    if(roleID && token && permissions.length === 0){
+    if(roleID && token && permissions?.length === 0){
       fetch_permissions(roleID, token)
       .then((res) => {setPermissions(res.data)}).catch((e) => {console.log(e)})
     }
