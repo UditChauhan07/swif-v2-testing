@@ -57,17 +57,15 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
     }
 
     // Check if confirm password is provided
-  if (!formData.confirmPassword.trim()) {
-    setError(t("Confirm Password is required."));
-    return;
-  }
+    if (!formData.confirmPassword.trim()) {
+      setError(t("Confirm Password is required."));
+      return;
+    }
 
     if (formData.newPassword !== formData.confirmPassword) {
       setError(t("Passwords do not match. Please try again."));
       return;
     }
-
-    // Validate password: 8-16 characters, one uppercase, one number, one special character
 
     try {
       const finalData = {
@@ -97,7 +95,7 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
       show={show}
       onHide={handleClose}
       centered
-      backdropClassName="transparent-backdrop" 
+      backdropClassName="transparent-backdrop"
     >
       <Modal.Header
         closeButton

@@ -10,11 +10,9 @@ import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 
 const Companies = () => {
-  const { t } = useTranslation(); 
-
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [companyList, setCompanyList] = useState([]);
-  console.log("cascasc", companyList);
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,10 +22,8 @@ const Companies = () => {
     const fetchData = async () => {
       try {
         const response = await getCompanyListApi(token);
-        console.log("resss", response);
         if (response.status === true) {
           setCompanyList(response?.data || []);
-          console.log("ress", response);
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -39,34 +35,36 @@ const Companies = () => {
     fetchData();
   }, [token]);
 
-  // Handle page change (next/previous)
-  const handlePageChange = (direction) => {
-    if (
-      direction === "next" &&
-      currentPage * rowsPerPage < companyList.length
-    ) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === "previous" && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  // Get current rows to display based on pagination
+  // New pagination logic similar to Work Order List
+  const totalPages = Math.ceil(companyList.length / rowsPerPage);
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = companyList.slice(indexOfFirstRow, indexOfLastRow);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   function formatTimestamp(timestamp) {
     const { _seconds, _nanoseconds } = timestamp;
-
     const date = new Date(_seconds * 1000 + _nanoseconds / 1000000);
-
     const options = {
       day: "2-digit",
       month: "short",
       year: "numeric",
     };
-
-    // Format the date
     return date.toLocaleDateString("en-US", options).replace(",", "");
   }
 
@@ -79,8 +77,6 @@ const Companies = () => {
   };
 
   const hanldeDeleteCompany = async (item) => {
-    // console.log("dddddd", item);
-
     const result = await Swal.fire({
       title: t("Are you sure?"),
       text: t("You are about to delete this company"),
@@ -91,7 +87,6 @@ const Companies = () => {
     });
 
     if (!result.isConfirmed) {
-      console.log("Role creation was cancelled");
       return;
     }
 
@@ -109,7 +104,6 @@ const Companies = () => {
       Swal.close();
 
       if (response.status === true) {
-        // Remove the deleted company from the companyList state
         setCompanyList((prevList) =>
           prevList.filter((company) => company.company.id !== item)
         );
@@ -128,10 +122,8 @@ const Companies = () => {
         });
       }
     } catch (error) {
-      // Close SweetAlert loading spinner and show error
       Swal.close();
       console.error("API Error:", error);
-
       Swal.fire({
         title: t("API Error!"),
         text: t("Something went wrong. Please try again later."),
@@ -254,8 +246,8 @@ const Companies = () => {
                         <strong>{item.company.company_name}</strong>
                         <br />
                         <span style={{ color: "gray", fontSize: "0.9rem" }}>
-                          {item.company.address_line_1},
-                          {item.company.address_line_2},{item.company.city},
+                          {item.company.address_line_1},{" "}
+                          {item.company.address_line_2}, {item.company.city},{" "}
                           {item.company.zip_postal_code}
                         </span>
                       </td>
@@ -348,27 +340,42 @@ const Companies = () => {
                 )}
               </tbody>
             </Table>
-            <div className="d-flex justify-content-end mt-3">
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                className="me-2"
-                onClick={() => handlePageChange("previous")}
-                disabled={currentPage === 1}
-              >
-                &laquo; {t("Previous")}
-              </Button>
-              <Button variant="outline-secondary" size="sm" className="me-2">
-                {currentPage}
-              </Button>
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={() => handlePageChange("next")}
-                disabled={currentPage * rowsPerPage >= companyList.length}
-              >
-                {t("Next")} &raquo;
-              </Button>
+            {/* New Pagination UI */}
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <span>
+                Showing {companyList.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
+                {indexOfLastRow > companyList.length
+                  ? companyList.length
+                  : indexOfLastRow}{" "}
+                of {companyList.length} items
+              </span>
+              <div className="d-flex align-items-center">
+                <Button
+                  variant="light"
+                  className="me-1"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  &laquo;
+                </Button>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <Button
+                    key={index}
+                    variant={currentPage === index + 1 ? "secondary" : "light"}
+                    className="me-1"
+                    onClick={() => handlePageClick(index + 1)}
+                  >
+                    {index + 1}
+                  </Button>
+                ))}
+                <Button
+                  variant="light"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  &raquo;
+                </Button>
+              </div>
             </div>
           </div>
         </div>

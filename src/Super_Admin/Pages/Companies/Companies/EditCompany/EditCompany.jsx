@@ -1291,6 +1291,7 @@ const EditCompany = () => {
                   </Form.Group>
                 </Col>
               </Row>
+
               <Row>
                 <Col md={12}>
                   <Form.Group className="mb-3">
@@ -1341,6 +1342,30 @@ const EditCompany = () => {
                   </Form.Group>
                 </Col>
               </Row>
+              
+              <Button
+                variant="primary"
+                type="button"
+                className=" mb-2"
+                style={{
+                  background: "#6c757d",
+                  border: "none",
+                  color: "white",
+                }}
+                onClick={() => {
+                  const newCertification = { name: "", number: "" };
+                  const updatedCertifications = [
+                    ...(formData.additionalCertifications || []),
+                    newCertification,
+                  ];
+                  handleChange(
+                    "additionalCertifications",
+                    updatedCertifications
+                  );
+                }}
+              >
+                {t("Add More")}
+              </Button>
 
               <Row>
                 <Col md={6}>
@@ -1373,97 +1398,82 @@ const EditCompany = () => {
                 </Col>
               </Row>
 
-              <Button
-                variant="primary"
-                type="button"
-                className="mt-3"
-                style={{
-                  background: "#6c757d",
-                  border: "none",
-                  color: "white",
-                }}
-                onClick={() => {
-                  const newCertification = { name: "", number: "" };
-                  const updatedCertifications = [
-                    ...(formData.additionalCertifications || []),
-                    newCertification,
-                  ];
-                  handleChange(
-                    "additionalCertifications",
-                    updatedCertifications
-                  );
-                }}
-              >
-                {t("Add More")}
-              </Button>
+              
 
               {formData.additionalCertifications?.map((cert, index) => (
-                <Row key={index} className="mt-3">
-                  <Col md={5}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        {t("Additional Certification Name")}:
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder={t("Enter Additional Certification Name")}
-                        value={cert.name}
-                        maxLength={30}
-                        onChange={(e) => {
-                          const updatedCertifications = [
-                            ...formData.additionalCertifications,
-                          ];
-                          updatedCertifications[index].name = e.target.value;
-                          handleChange(
-                            "additionalCertifications",
-                            updatedCertifications
-                          );
-                        }}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={5}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        {t("Additional Certification Number")}:
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder={t("Enter Additional Certification Number")}
-                        value={cert.number}
-                        maxLength={20}
-                        onChange={(e) => {
-                          const updatedCertifications = [
-                            ...formData.additionalCertifications,
-                          ];
-                          updatedCertifications[index].number = e.target.value;
-                          handleChange(
-                            "additionalCertifications",
-                            updatedCertifications
-                          );
-                        }}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={2} className="d-flex align-items-center">
-                    <Button
-                      variant="danger"
-                      onClick={() => {
-                        const updatedCertifications =
-                          formData.additionalCertifications.filter(
-                            (_, i) => i !== index
-                          );
-                        handleChange(
-                          "additionalCertifications",
-                          updatedCertifications
-                        );
-                      }}
-                    >
-                      X
-                    </Button>
-                  </Col>
-                </Row>
-              ))}
+                              <Row key={index} className="mt-2">
+                                <Col md={6}>
+                                  <Form.Group className="mb-3">
+                                    <Form.Label>
+                                      {t("Additional Certification Name")}:
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      placeholder={t("Enter Additional Certification Name")}
+                                      value={cert.name}
+                                      maxLength={30}
+                                      onChange={(e) => {
+                                        const updatedCertifications = [
+                                          ...formData.additionalCertifications,
+                                        ];
+                                        updatedCertifications[index].name = e.target.value;
+                                        handleChange(
+                                          "additionalCertifications",
+                                          updatedCertifications
+                                        );
+                                      }}
+                                    />
+                                  </Form.Group>
+                                </Col>
+                                <Col
+                                  md={6}
+                                  className="d-flex justify-content-between align-items-center"
+                                >
+                                  <Form.Group className="mb-3" style={{ width: "90%" }}>
+                                    <Form.Label>
+                                      {t("Additional Certification Number")}:
+                                    </Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      placeholder={t("Enter Additional Certification Number")}
+                                      value={cert.number}
+                                      maxLength={20}
+                                      onChange={(e) => {
+                                        const updatedCertifications = [
+                                          ...formData.additionalCertifications,
+                                        ];
+                                        updatedCertifications[index].number = e.target.value;
+                                        handleChange(
+                                          "additionalCertifications",
+                                          updatedCertifications
+                                        );
+                                      }}
+                                    />
+                                  </Form.Group>
+                                  <Button
+                                    variant="danger"
+                                    style={{
+                                      width: "40px",
+                                      height: "40px",
+                                      padding: "0",
+                                      fontSize: "18px",
+                                    }}
+                                    onClick={() => {
+                                      const updatedCertifications =
+                                        formData.additionalCertifications.filter(
+                                          (_, i) => i !== index
+                                        );
+                                      handleChange(
+                                        "additionalCertifications",
+                                        updatedCertifications
+                                      );
+                                    }}
+                                  >
+                                    X
+                                  </Button>
+                                </Col>
+                              </Row>
+                            ))}
             </Form>
             <Form.Group className="mb-3">
               <Form.Check

@@ -13,8 +13,10 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
 import { changePasswordApi } from "../../../lib/store";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const ChangePassword = () => {
+  const navigate = useNavigate()
   const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     newPassword: "",
@@ -53,6 +55,12 @@ const ChangePassword = () => {
     setSuccess(null);
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+
+    if (!formData.newPassword.trim()) {
+      setError(t("Password is required."));
+      return;
+    }
+
     if (!passwordRegex.test(formData.newPassword)) {
       setError(
         t(
@@ -62,13 +70,18 @@ const ChangePassword = () => {
       return;
     }
 
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError("Passwords do not match. Please try again.");
-      return;
-    }
+    // Check if confirm password is provided
+  if (!formData.confirmPassword.trim()) {
+    setError(t("Confirm Password is required."));
+    return;
+  }
 
-    
+  if (formData.newPassword !== formData.confirmPassword) {
+    setError(t("Passwords do not match. Please try again."));
+    return;
+  }
 
+  
     try {
       const finalData = {
         id: userId,
@@ -127,7 +140,7 @@ const ChangePassword = () => {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          required
+                          
                         />
                         <Button
                           variant="link"
@@ -163,7 +176,7 @@ const ChangePassword = () => {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          required
+                          
                         />
                         <Button
                           variant="link"
@@ -195,7 +208,7 @@ const ChangePassword = () => {
                     >
                       {t("Save")}
                     </Button>
-                    <Button variant="secondary" type="button">
+                    <Button variant="secondary" type="button" onClick={()=>navigate("/dashboard")}>
                       {t("Cancel")}
                     </Button>
                   </div>

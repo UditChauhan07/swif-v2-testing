@@ -898,7 +898,7 @@ const CreateCompany = () => {
                       </Form.Text>
                     )}
                     <Form.Text className="text-muted">
-                      Only JPEG and PNG formats allowed.
+                      {t("Only JPEG and PNG formats allowed.")}
                     </Form.Text>
                   </Form.Group>
                 </Col>
