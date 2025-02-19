@@ -53,9 +53,13 @@ import CompanyWOreport from "./Admin/Pages/CompanyReports/WorkOrderReport/Compan
 import FieldUserAttenderReport from "./Super_Admin/Pages/Reports/FieldUserAttenderReport/FieldUserAttenderReport";
 import LoginLogoutReport from "./Super_Admin/Pages/Reports/LoginLogoutReport/LoginLogoutReport";
 import FieldUserAttendece from "./Admin/Pages/CompanyReports/Attedence/FieldUserAttendece";
-import { usePermissions } from "./context/PermissionContext";
-import { fetch_permissions } from "./lib/store";
-import { useEffect } from "react";
+import DefaultPricingStructure from "./Super_Admin/Pages/BillingSystem/PricingStructure/DefaultPricingStructure";
+import UsageLimitStrc from './Super_Admin/Pages/BillingSystem/UsageLimitStrc/UsageLimitStrc';
+import CurrencyMangment from './Super_Admin/Pages/BillingSystem/CurrencyManagment/CurrencyMangment';
+import CustomPricingOption from './Super_Admin/Pages/BillingSystem/PricingOption/CustomPricingOption';
+import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys/PackageCreateSys';
+import PackagesList from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/PackagesList";
+
 
 function App() {
 
@@ -89,6 +93,15 @@ function App() {
           <Route path="/reports/workorder" element={<WorkOrderReport />} />
           <Route path="/reports/fieldattendence" element={<FieldUserAttenderReport />} />
           <Route path="/reports/login-logout" element={<LoginLogoutReport />} />
+
+
+          {/* Billings System */}
+          <Route path="/billings/pricing-structure" element={<DefaultPricingStructure />} />
+          <Route path="/billings/usage-limit" element={<UsageLimitStrc />} />
+          <Route path="/billings/currency-management" element={<CurrencyMangment />} />
+          <Route path="/billings/pricing-option" element={<CustomPricingOption />} />
+          <Route path="/billings/package-creation" element={<PackageCreateSys />} />
+          <Route path="/billings/package-List" element={<PackagesList/>} />
 
                       {/* Admin */}
 
@@ -130,6 +143,7 @@ function App() {
           <Route path="/workorder/list/edit" element={<WorkOrderEdit />} />
           <Route path="/workorder/draft" element={<DraftWorkOrder />} />
           <Route path="/workorder/import" element={<WorkOrderImport />} />
+
 
 
           {/* Settings */}

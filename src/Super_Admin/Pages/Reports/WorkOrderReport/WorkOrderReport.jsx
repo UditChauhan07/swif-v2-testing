@@ -20,7 +20,7 @@ const WorkOrderReport = () => {
         const response = await workOrderReportAllCompany(token);
         if (response.status === true) {
           setWorkOrderData(response?.data || {});
-          setFilteredData(response?.data || {}); // Set filtered data initially as all data
+          setFilteredData(response?.data || {}); 
         }
       } catch (error) {
         console.error("API Error:", error);
