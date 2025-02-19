@@ -1729,5 +1729,7 @@
   "Company Work Order Time Module": "Módulo de Tiempo de Ordenes de Trabajo",
   "Company Language Change Module": "Módulo de Cambio de Idioma",
   "Company Work Order Report Module": "Módulo de Reporte de Ordenes de Trabajo",
-  "Company Field User Attendence Report Module": "Módulo de Reporte de Asistencia de Usuario de Campo"
+  "Company Field User Attendence Report Module": "Módulo de Reporte de Asistencia de Usuario de Campo",
+  "Confirm Password is required.":"Se requiere confirmar contraseña.",
+  "Select a country":"Seleccione un país"
 }

@@ -93,6 +93,19 @@ const CreateCompany = () => {
   }));
 
   const handleNext = () => {
+    // Check if there's an email error indicating a duplicate
+    if (
+      errors.email &&
+      errors.email.includes("User with this email already exists.")
+    ) {
+      Swal.fire({
+        title: t("Fix Error"),
+        text: t("Please change the email address before proceeding."),
+        icon: "warning",
+      });
+      return; // prevent advancing to the next step
+    }
+
     const currentErrors = validateStep(currentStep);
     if (Object.keys(currentErrors).length === 0) {
       setErrors({});
@@ -416,6 +429,16 @@ const CreateCompany = () => {
           }
           break;
 
+        case "workingDays":
+          if (!value || value.length < 1) {
+            newErrors.workingDays = t(
+              "Please select at least one working day."
+            );
+          } else {
+            delete newErrors.workingDays;
+          }
+          break;
+
         case "workOrderTime":
           if (!value.trim()) {
             newErrors.workOrderTime = t("Default Work Order Time is required.");
@@ -569,6 +592,10 @@ const CreateCompany = () => {
           newErrors.companyState = t(
             "State must be 2-60 characters, letters only."
           );
+        }
+
+        if (!formData.workingDays || formData.workingDays.length < 1) {
+          newErrors.workingDays = t("Please select at least one working day.");
         }
 
         if (
@@ -752,6 +779,16 @@ const CreateCompany = () => {
           navigate("/company/companies"); // Navigate after confirmation
         });
       } else {
+        if (
+          response.message &&
+          response.message.includes("User with this email already exists.")
+        ) {
+          handlePrevious();
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            email: t("User with this email already exists."),
+          }));
+        }
         Swal.fire({
           title: "Error!",
           text:
@@ -993,6 +1030,7 @@ const CreateCompany = () => {
                     <Form.Label>{t("Country")}:</Form.Label>
                     <Select
                       options={countryOptions}
+                      placeholder={t("Select a country")}
                       onChange={(selectedOption) =>
                         handleChange("country", selectedOption.value)
                       }
@@ -1326,10 +1364,39 @@ const CreateCompany = () => {
                       <Form.Text muted>
                         Default (mon, tue, wed, thr, fri)
                       </Form.Text>
+                      {errors.workingDays && (
+                        <div className="text-danger mt-1">
+                          {errors.workingDays}
+                        </div>
+                      )}
                     </div>
                   </Form.Group>
                 </Col>
               </Row>
+
+              <Button
+                variant="primary"
+                type="button"
+                className="mt-1 mb-2"
+                style={{
+                  background: "#6c757d",
+                  border: "none",
+                  color: "white",
+                }}
+                onClick={() => {
+                  const newCertification = { name: "", number: "" };
+                  const updatedCertifications = [
+                    ...(formData.additionalCertifications || []),
+                    newCertification,
+                  ];
+                  handleChange(
+                    "additionalCertifications",
+                    updatedCertifications
+                  );
+                }}
+              >
+                {t("Add More")}
+              </Button>
 
               <Row>
                 <Col md={6}>
@@ -1362,33 +1429,9 @@ const CreateCompany = () => {
                 </Col>
               </Row>
 
-              <Button
-                variant="primary"
-                type="button"
-                className="mt-3"
-                style={{
-                  background: "#6c757d",
-                  border: "none",
-                  color: "white",
-                }}
-                onClick={() => {
-                  const newCertification = { name: "", number: "" };
-                  const updatedCertifications = [
-                    ...(formData.additionalCertifications || []),
-                    newCertification,
-                  ];
-                  handleChange(
-                    "additionalCertifications",
-                    updatedCertifications
-                  );
-                }}
-              >
-                {t("Add More")}
-              </Button>
-
               {formData.additionalCertifications?.map((cert, index) => (
-                <Row key={index} className="mt-3">
-                  <Col md={5}>
+                <Row key={index} className="mt-2">
+                  <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>
                         {t("Additional Certification Name")}:
@@ -1411,8 +1454,11 @@ const CreateCompany = () => {
                       />
                     </Form.Group>
                   </Col>
-                  <Col md={5}>
-                    <Form.Group className="mb-3">
+                  <Col
+                    md={6}
+                    className="d-flex justify-content-between align-items-center"
+                  >
+                    <Form.Group className="mb-3" style={{ width: "90%" }}>
                       <Form.Label>
                         {t("Additional Certification Number")}:
                       </Form.Label>
@@ -1433,10 +1479,14 @@ const CreateCompany = () => {
                         }}
                       />
                     </Form.Group>
-                  </Col>
-                  <Col md={2} className="d-flex align-items-center">
                     <Button
                       variant="danger"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        padding: "0",
+                        fontSize: "18px",
+                      }}
                       onClick={() => {
                         const updatedCertifications =
                           formData.additionalCertifications.filter(
