@@ -15,39 +15,32 @@ import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../context/PermissionContext";
 import { useTranslation } from "react-i18next";
 
-
 const Login = () => {
-    const { i18n } = useTranslation();
-  
-  const {setPermissions}=usePermissions();
-  const Navigate = useNavigate();
-  const [isLoading, setisLoading] = useState(false);
-  console.log("isLoadinggg", isLoading);
-
+  const { i18n } = useTranslation();
+  const { setPermissions } = usePermissions();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("dasd", name);
     setFormData({ ...formData, [name]: value });
-    setError("");
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setisLoading(true);
-    // console.log("formData",formData)
+    setErrors({ email: "", password: "" });
+    setIsLoading(true);
     try {
       const response = await LoginApi(formData);
-      console.log("resss", response);
+      console.log("response", response);
       if (response.status === true) {
-        // Save user details in localStorage
         localStorage.setItem("UserToken", response.token);
         localStorage.setItem("userId", response.userId);
         localStorage.setItem("Role", response.user.role);
@@ -60,31 +53,48 @@ const Login = () => {
         localStorage.setItem("companyName", response.company_name);
         localStorage.setItem("companyLogo", response.company_logo);
         localStorage.setItem("defaultLanguage", response.company_language);
-        if (response.user.role === "Admin" || response.user.role === "SuperAdmin") {
-        localStorage.setItem("SessionId", response.sessionId);}
+        if (
+          response.user.role === "Admin" ||
+          response.user.role === "SuperAdmin"
+        ) {
+          localStorage.setItem("SessionId", response.sessionId);
+        }
 
         if (response.user.role === "SuperAdmin") {
           i18n.changeLanguage("en");
-        } else if(response.user.role === "Admin"){
+        } else if (response.user.role === "Admin") {
           i18n.changeLanguage(response.company_language);
         }
 
-        setPermissions(response.rolesPermissions||[])
-        setisLoading(false);
-        if (response.user.role === "Admin" || response.user.role === "office_Admin") {
-          Navigate("/dashboard/admin");
+        setPermissions(response.rolesPermissions || []);
+        setIsLoading(false);
+        if (
+          response.user.role === "Admin" ||
+          response.user.role === "office_Admin"
+        ) {
+          navigate("/dashboard/admin");
         } else {
-          Navigate("/dashboard");
+          navigate("/dashboard");
         }
-        
       } else {
-        setError(response.message);
+        // Assume the API returns a message that contains either "user" or "password" to indicate the field.
+        if (response.message.toLowerCase().includes("user")) {
+          setErrors({ email: response.message, password: "" });
+        } else if (response.message.toLowerCase().includes("password")) {
+          setErrors({ email: "", password: response.message });
+        } else {
+          // Fallback: assign the error to the email field.
+          setErrors({ email: response.message, password: "" });
+        }
       }
     } catch (apiError) {
       console.error("Login API Error:", apiError.message);
-      setError("A server error occurred. Please try again later.");
+      setErrors({
+        email: "A server error occurred. Please try again later.",
+        password: "",
+      });
     } finally {
-      setisLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +105,6 @@ const Login = () => {
           <div className="text-center mb-3">
             <img
               src="https://swif.truet.net/public/swifCompany/logo/logo.png"
-              // src="https://demos.creative-tim.com/material-dashboard/assets/img/logo-ct-dark.png"
               alt="Logo"
               width="80"
             />
@@ -104,6 +113,7 @@ const Login = () => {
           <h4 className="text-center fw-bold mb-4">Sign in to Your Account</h4>
 
           <Form onSubmit={handleSubmit}>
+            {/* Email Field */}
             <Form.Group className="mb-3" controlId="formEmail">
               <Form.Label>Email Address</Form.Label>
               <Form.Control
@@ -112,10 +122,17 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                isInvalid={!!errors.email}
                 required
               />
+              {errors.email && (
+                <Form.Control.Feedback type="invalid">
+                  {errors.email}
+                </Form.Control.Feedback>
+              )}
             </Form.Group>
 
+            {/* Password Field */}
             <Form.Group className="mb-3" controlId="formPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
@@ -124,13 +141,15 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                isInvalid={!!errors.password}
                 required
               />
+              {errors.password && (
+                <Form.Control.Feedback type="invalid">
+                  {errors.password}
+                </Form.Control.Feedback>
+              )}
             </Form.Group>
-
-            {error && (
-              <div className="text-danger mb-3 text-center">{error}</div>
-            )}
 
             <div className="d-grid">
               <Button
@@ -140,7 +159,10 @@ const Login = () => {
                 className="rounded-pill"
               >
                 {isLoading ? (
-                  <Spinner animation="border" size="sm" className="me-2" />
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Loading...
+                  </>
                 ) : (
                   "Login"
                 )}
@@ -148,7 +170,7 @@ const Login = () => {
             </div>
           </Form>
 
-          <div className="text-center mt-4">
+          {/* <div className="text-center mt-4">
             <small className="text-muted">
               By signing in or clicking "Login", you agree to our{" "}
               <a href="#terms" className="text-decoration-none">
@@ -160,7 +182,7 @@ const Login = () => {
               </a>
               .
             </small>
-          </div>
+          </div> */}
         </Card>
       </Container>
     </div>

@@ -79,6 +79,10 @@ const CreateCompany = () => {
     freeWorkOrders: "101",
     customerAddressFormat: "US",
   });
+  const [imageErrors, setImageErrors] = useState({
+    profilePicture: "",
+    companyLogo: "",
+  });
   const navigate = useNavigate();
   const [token, settoken] = useState(localStorage.getItem("UserToken"));
   // console.log("formData", formData);
@@ -120,12 +124,9 @@ const CreateCompany = () => {
 
       switch (field) {
         case "firstName":
-          if (
-            !value.trim() ||
-            value.length < 1 ||
-            value.length > 60 ||
-            !isAlpha.test(value)
-          ) {
+          if (!value.trim()) {
+            newErrors.firstName = t("First Name is required.");
+          } else if (value.length > 60 || !isAlpha.test(value)) {
             newErrors.firstName = t(
               "First Name must be 1-60 characters, letters only."
             );
@@ -135,12 +136,9 @@ const CreateCompany = () => {
           break;
 
         case "lastName":
-          if (
-            !value.trim() ||
-            value.length < 1 ||
-            value.length > 60 ||
-            !isAlpha.test(value)
-          ) {
+          if (!value.trim()) {
+            newErrors.lastName = t("Last Name is required.");
+          } else if (value.length > 60 || !isAlpha.test(value)) {
             newErrors.lastName = t(
               "Last Name must be 1-60 characters, letters only."
             );
@@ -171,7 +169,9 @@ const CreateCompany = () => {
           break;
 
         case "contactNumber":
-          if (!value.trim() || !isPhone.test(value)) {
+          if (!value.trim()) {
+            newErrors.contactNumber = t("Contact Number is required.");
+          } else if (!isPhone.test(value)) {
             newErrors.contactNumber = t(
               "Valid Contact Number (10-15 digits) is required."
             );
@@ -239,12 +239,9 @@ const CreateCompany = () => {
           break;
 
         case "companyName":
-          if (
-            !value.trim() ||
-            value.length < 1 ||
-            value.length > 60 ||
-            !isAlpha.test(value)
-          ) {
+          if (!value.trim()) {
+            newErrors.companyName = t("Company Name is required.");
+          } else if (value.length > 60 || !isAlpha.test(value)) {
             newErrors.companyName = t(
               "Company Name must be 1-60 characters, no numbers."
             );
@@ -315,7 +312,9 @@ const CreateCompany = () => {
           break;
 
         case "addressLine1":
-          if (!value.trim() || value.length < 5) {
+          if (!value.trim()) {
+            newErrors.addressLine1 = t("Address Line 1 is required.");
+          } else if (value.length < 5) {
             newErrors.addressLine1 = t(
               "Address Line 1 must be at least 5 characters."
             );
@@ -335,8 +334,9 @@ const CreateCompany = () => {
           break;
 
         case "contactCity":
-          if (
-            !value.trim() ||
+          if (!value.trim()) {
+            newErrors.contactCity = t("City is required.");
+          } else if (
             value.length < 2 ||
             value.length > 60 ||
             !isAlpha.test(value)
@@ -350,8 +350,9 @@ const CreateCompany = () => {
           break;
 
         case "companyState":
-          if (
-            !value.trim() ||
+          if (!value.trim()) {
+            newErrors.companyState = t("State is required.");
+          } else if (
             value.length < 2 ||
             value.length > 60 ||
             !isAlpha.test(value)
@@ -472,26 +473,29 @@ const CreateCompany = () => {
 
     switch (step) {
       case 1:
-        if (
-          !formData.firstName ||
-          !formData.firstName.trim() ||
-          formData.firstName.length < 1 ||
+        // First Name Validation
+        if (!formData.firstName || !formData.firstName.trim()) {
+          newErrors.firstName = t("First Name is required.");
+        } else if (
           formData.firstName.length > 60 ||
           !isAlpha.test(formData.firstName)
-        )
+        ) {
           newErrors.firstName = t(
             "First Name must be 1-60 characters, letters only."
           );
-        if (
-          !formData.lastName ||
-          !formData.lastName.trim() ||
-          formData.lastName.length < 1 ||
+        }
+
+        // Last Name Validation
+        if (!formData.lastName || !formData.lastName.trim()) {
+          newErrors.lastName = t("Last Name is required.");
+        } else if (
           formData.lastName.length > 60 ||
           !isAlpha.test(formData.lastName)
-        )
+        ) {
           newErrors.lastName = t(
             "Last Name must be 1-60 characters, letters only."
           );
+        }
         if (
           !formData.email ||
           !formData.email.trim() ||
@@ -508,14 +512,14 @@ const CreateCompany = () => {
           );
         }
 
-        if (
-          !formData.contactNumber ||
-          !formData.contactNumber.trim() ||
-          !isPhone.test(formData.contactNumber)
-        )
+        // Contact Number Validation
+        if (!formData.contactNumber || !formData.contactNumber.trim()) {
+          newErrors.contactNumber = t("Contact Number is required.");
+        } else if (!isPhone.test(formData.contactNumber)) {
           newErrors.contactNumber = t(
             "Valid Contact Number (10-15 digits) is required."
           );
+        }
 
         if (!formData.language) {
           newErrors.language = t("Language selection is required.");
@@ -524,48 +528,49 @@ const CreateCompany = () => {
         break;
 
       case 2:
-        if (
-          !formData.companyName ||
-          !formData.companyName.trim() ||
-          formData.companyName.length < 1 ||
+        if (!formData.companyName || !formData.companyName.trim()) {
+          newErrors.companyName = t("Company Name is required.");
+        } else if (
           formData.companyName.length > 60 ||
           !isAlpha.test(formData.companyName)
-        )
+        ) {
           newErrors.companyName = t(
             "Company Name must be 1-60 characters, no numbers."
           );
+        }
 
-        if (
-          !formData.addressLine1 ||
-          !formData.addressLine1.trim() ||
-          formData.addressLine1.length < 5
-        )
+        if (!formData.addressLine1 || !formData.addressLine1.trim()) {
+          newErrors.addressLine1 = t("Address Line 1 is required.");
+        } else if (formData.addressLine1.length < 5) {
           newErrors.addressLine1 = t(
             "Address Line 1 must be at least 5 characters."
           );
-        // if (formData.addressLine2 && formData.addressLine2.length < 5)
-        //   newErrors.addressLine2 =
-        //     "Address Line 2 must be at least 5 characters.";
-        if (
-          !formData.contactCity ||
-          !formData.contactCity.trim() ||
+        }
+
+        if (!formData.contactCity || !formData.contactCity.trim()) {
+          newErrors.contactCity = t("City is required.");
+        } else if (
           formData.contactCity.length < 2 ||
           formData.contactCity.length > 60 ||
           !isAlpha.test(formData.contactCity)
-        )
+        ) {
           newErrors.contactCity = t(
             "City must be 2-60 characters, letters only."
           );
-        if (
-          !formData.companyState ||
-          !formData.companyState.trim() ||
+        }
+
+        if (!formData.companyState || !formData.companyState.trim()) {
+          newErrors.companyState = t("State is required.");
+        } else if (
           formData.companyState.length < 2 ||
           formData.companyState.length > 60 ||
           !isAlpha.test(formData.companyState)
-        )
+        ) {
           newErrors.companyState = t(
             "State must be 2-60 characters, letters only."
           );
+        }
+
         if (
           !formData.contactZip ||
           !formData.contactZip.trim() ||
@@ -591,12 +596,27 @@ const CreateCompany = () => {
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file) => {
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/png"];
+      if (!allowedTypes.includes(file.type)) {
+        setImageErrors((prev) => ({
+          ...prev,
+          [field]: "Only JPEG and PNG formats are allowed.",
+        }));
+        return;
+      } else {
+        setImageErrors((prev) => ({
+          ...prev,
+          [field]: "",
+        }));
+      }
+
       const options = {
         maxSizeMB: 0.6,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
       };
+
       try {
         const compressedFile = await imageCompression(file, options);
         setFormData((prev) => ({
@@ -605,17 +625,11 @@ const CreateCompany = () => {
         }));
       } catch (error) {
         console.error("Error compressing image", error);
-        // Fallback to original file if compression fails
         setFormData((prev) => ({
           ...prev,
           [field]: file,
         }));
       }
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: file,
-      }));
     }
   };
 
@@ -835,11 +849,20 @@ const CreateCompany = () => {
                     <Form.Label>{t("Profile Picture")}:</Form.Label>
                     <Form.Control
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg, image/png"
                       onChange={(e) =>
                         handleImageChange("profilePicture", e.target.files[0])
                       }
+                      isInvalid={!!imageErrors.profilePicture}
                     />
+                    {imageErrors.profilePicture && (
+                      <Form.Text className="text-danger">
+                        {imageErrors.profilePicture}
+                      </Form.Text>
+                    )}
+                    <Form.Text className="text-muted">
+                      Only JPEG and PNG formats allowed.
+                    </Form.Text>
                   </Form.Group>
                 </Col>
                 <Col md={6}>
@@ -1081,11 +1104,20 @@ const CreateCompany = () => {
                     <Form.Label>{t("Company Logo")}:</Form.Label>
                     <Form.Control
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg, image/png"
                       onChange={(e) =>
                         handleImageChange("companyLogo", e.target.files[0])
                       }
+                      isInvalid={!!imageErrors.companyLogo}
                     />
+                    {imageErrors.companyLogo && (
+                      <Form.Text className="text-danger">
+                        {imageErrors.companyLogo}
+                      </Form.Text>
+                    )}
+                    <Form.Text className="text-muted">
+                      Only JPEG and PNG formats allowed.
+                    </Form.Text>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>

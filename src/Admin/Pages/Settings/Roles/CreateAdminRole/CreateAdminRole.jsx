@@ -7,13 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../../../context/PermissionContext";
 import { useTranslation } from "react-i18next";
 
-
 const CreateAdminRole = () => {
-    const { t } = useTranslation(); 
-  const {getRoles}=usePermissions();
-  const navigate = useNavigate()
+  const { t } = useTranslation();
+  const { getRoles } = usePermissions();
+  const navigate = useNavigate();
   const [permissions, setPermissions] = useState({});
-  const company_id=localStorage.getItem("companyId")||null;
+  const company_id = localStorage.getItem("companyId") || null;
   const [userId, setuserId] = useState(localStorage.getItem("userId"));
   const [token, settoken] = useState(localStorage.getItem("UserToken"));
   const [errors, setErrors] = useState({
@@ -23,8 +22,14 @@ const CreateAdminRole = () => {
   });
 
   const companyModules = [
-    { name: t("Company Office User Module"), actions: ["view", "create", "edit","delete"] },
-    { name: t("Company Field User Module"), actions: ["view", "create", "edit","delete"] },
+    {
+      name: t("Company Office User Module"),
+      actions: ["view", "create", "edit", "delete"],
+    },
+    {
+      name: t("Company Field User Module"),
+      actions: ["view", "create", "edit", "delete"],
+    },
     {
       name: t("Company Customers Module"),
       actions: ["view", "create", "edit", "delete"],
@@ -39,11 +44,11 @@ const CreateAdminRole = () => {
     },
     {
       name: t("Company Work Order Time Module"),
-      actions: ["view","edit"],
+      actions: ["view", "edit"],
     },
     {
       name: t("Company Language Change Module"),
-      actions: ["view","edit"],
+      actions: ["view", "edit"],
     },
     {
       name: t("Company Work Order Report Module"),
@@ -53,34 +58,46 @@ const CreateAdminRole = () => {
       name: t("Company Field User Attendence Report Module"),
       actions: ["view"],
     },
-    
-    
-    
   ];
 
   const handlePermissionChange = (module, action) => {
     setPermissions((prev) => {
-      const updatedPermissions = {
-        ...prev,
-        [module]: {
-          ...prev[module],
-          [action]: !prev[module]?.[action],
-          ...(["create", "edit", "delete"].includes(action) && {
-            view: true, // Automatically check view
-          }),
-        },
-      };
-
-      const permissionsSelected = Object.values(updatedPermissions).some(
-        (mod) => Object.values(mod).some((act) => act)
-      );
-
-      if (permissionsSelected) {
-        setErrors((prevErrors) => ({ ...prevErrors, permissions: "" }));
+      // For the two specific modules, tie the view and edit checkboxes together.
+      if (
+        module === t("Company Work Order Time Module") ||
+        module === t("Company Language Change Module")
+      ) {
+        const newValue = !prev[module]?.[action];
+        return {
+          ...prev,
+          [module]: {
+            view: newValue,
+            edit: newValue,
+          },
+        };
+      } else {
+        // For other modules, keep the existing logic
+        const newValue = !prev[module]?.[action];
+        return {
+          ...prev,
+          [module]: {
+            ...prev[module],
+            [action]: newValue,
+            ...(["create", "edit", "delete"].includes(action) && {
+              view: true, // Automatically check view if create, edit, or delete is checked
+            }),
+          },
+        };
       }
-
-      return updatedPermissions;
     });
+
+    // Optional: Clear any error messages if a permission is selected.
+    const permissionsSelected = Object.values(permissions).some((mod) =>
+      Object.values(mod).some((act) => act)
+    );
+    if (permissionsSelected) {
+      setErrors((prevErrors) => ({ ...prevErrors, permissions: "" }));
+    }
   };
 
   const renderModules = (modules) =>
@@ -95,11 +112,13 @@ const CreateAdminRole = () => {
               type="checkbox"
               onChange={() => handlePermissionChange(module.name, "view")}
               checked={permissions[module.name]?.view || false}
-              disabled={!!(
-                permissions[module.name]?.create ||
-                permissions[module.name]?.edit ||
-                permissions[module.name]?.delete
-              )} 
+              disabled={
+                !!(
+                  permissions[module.name]?.create ||
+                  permissions[module.name]?.edit ||
+                  permissions[module.name]?.delete
+                )
+              }
             />
           )}
           {module.actions.includes("create") && (
@@ -109,7 +128,6 @@ const CreateAdminRole = () => {
               type="checkbox"
               onChange={() => handlePermissionChange(module.name, "create")}
               checked={permissions[module.name]?.create || false}
-             
             />
           )}
           {module.actions.includes("edit") && (
@@ -175,7 +193,7 @@ const CreateAdminRole = () => {
     }
 
     const roleData = {
-      roleName:roleName.trim(),
+      roleName: roleName.trim(),
       roleDescription,
       roleLevel: "Company",
       permissions: Object.keys(permissions).map((moduleName) => {
@@ -183,10 +201,9 @@ const CreateAdminRole = () => {
           .filter((action) => permissions[moduleName][action])
           .map((action) => action.charAt(0).toUpperCase() + action.slice(1));
         return { moduleName, actions };
-      }),
+      }).filter((module) => module.actions.length > 0),
       created_by: createdBy,
       company_id: company_id,
-
     };
 
     const result = await Swal.fire({
@@ -213,7 +230,7 @@ const CreateAdminRole = () => {
     });
 
     try {
-      const response = await createUserRole(roleData,token);
+      const response = await createUserRole(roleData, token);
 
       Swal.close();
 
@@ -228,7 +245,7 @@ const CreateAdminRole = () => {
           icon: "success",
           confirmButtonText: t("OK"),
         }).then(() => {
-          getRoles(userId)
+          getRoles(userId);
           navigate("/settings/admin/roles"); // Navigate after confirmation
         });
       } else {

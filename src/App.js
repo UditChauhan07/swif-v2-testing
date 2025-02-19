@@ -53,6 +53,12 @@ import CompanyWOreport from "./Admin/Pages/CompanyReports/WorkOrderReport/Compan
 import FieldUserAttenderReport from "./Super_Admin/Pages/Reports/FieldUserAttenderReport/FieldUserAttenderReport";
 import LoginLogoutReport from "./Super_Admin/Pages/Reports/LoginLogoutReport/LoginLogoutReport";
 import FieldUserAttendece from "./Admin/Pages/CompanyReports/Attedence/FieldUserAttendece";
+import DefaultPricingStructure from "./Super_Admin/Pages/BillingSystem/PricingStructure/DefaultPricingStructure";
+import UsageLimitStrc from './Super_Admin/Pages/BillingSystem/UsageLimitStrc/UsageLimitStrc';
+import CurrencyMangment from './Super_Admin/Pages/BillingSystem/CurrencyManagment/CurrencyMangment';
+import CustomPricingOption from './Super_Admin/Pages/BillingSystem/PricingOption/CustomPricingOption';
+import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys/PackageCreateSys';
+
 
 function App() {
   return (
@@ -85,6 +91,14 @@ function App() {
           <Route path="/reports/workorder" element={<WorkOrderReport />} />
           <Route path="/reports/fieldattendence" element={<FieldUserAttenderReport />} />
           <Route path="/reports/login-logout" element={<LoginLogoutReport />} />
+
+
+          {/* Billings System */}
+          <Route path="/billings/pricing-structure" element={<DefaultPricingStructure />} />
+          <Route path="/billings/usage-limit" element={<UsageLimitStrc />} />
+          <Route path="/billings/currency-management" element={<CurrencyMangment />} />
+          <Route path="/billings/pricing-option" element={<CustomPricingOption />} />
+          <Route path="/billings/package-creation" element={<PackageCreateSys />} />
 
                       {/* Admin */}
 
@@ -126,6 +140,7 @@ function App() {
           <Route path="/workorder/list/edit" element={<WorkOrderEdit />} />
           <Route path="/workorder/draft" element={<DraftWorkOrder />} />
           <Route path="/workorder/import" element={<WorkOrderImport />} />
+
 
 
           {/* Settings */}
