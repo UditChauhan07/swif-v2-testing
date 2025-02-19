@@ -58,7 +58,7 @@ const CompanyDetails = () => {
                       alt="Logo"
                       fluid
                       rounded
-                      style={{height:"150px",width:"150px"}}
+                      style={{height:"150px",width:"150px",objectFit:"cover"}}
                     />
                   ) : (
                     <Image

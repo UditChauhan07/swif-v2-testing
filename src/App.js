@@ -70,93 +70,93 @@ function App() {
                           {/* Super Admin */}
           <Route path="/" element={<Login />} />
 
-          <Route path="/header" element={<Header />} />
+          {/* <Route path="/header" element={<Header />} /> */}
 
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} /> 
           {/* <Route path="/dashboard" element={<PrivateRoute element={Dashboard} />} /> */}
 
           {/* Companies */}
-          <Route path="/company/create" element={<CreateCompany />} />
-          <Route path="/company/companies" element={<Companies />} />
-          <Route path="/company/companies/details" element={<CompanyDetails />} />
-          <Route path="/company/companies/edit" element={<EditCompany />} />
-          <Route path="/company/access" element={<CompanyAccess />} />
+          <Route path="/company/create" element={<PrivateRoute element={<CreateCompany />} />} />
+          <Route path="/company/companies" element={<PrivateRoute element={<Companies />} />} />
+          <Route path="/company/companies/details" element={<PrivateRoute element={<CompanyDetails />} />} />
+          <Route path="/company/companies/edit" element={<PrivateRoute element={<EditCompany />} />} />
+          <Route path="/company/access" element={<PrivateRoute element={<CompanyAccess />} />} />
 
           {/* Settings */}
-          <Route path="/settings/roles" element={<Roles />} />
-          <Route path="/settings/roles/create" element={<CreateRole />} />
-          <Route path="/settings/roles/edit" element={<EditRoles />} />
+          <Route path="/settings/roles" element={<PrivateRoute element={<Roles />} /> } />
+          <Route path="/settings/roles/create" element={<PrivateRoute element={<CreateRole />} /> } />
+          <Route path="/settings/roles/edit" element={<PrivateRoute element={<EditRoles />} /> } />
 
           {/* Reports */}
-          <Route path="/reports/workorder" element={<WorkOrderReport />} />
-          <Route path="/reports/fieldattendence" element={<FieldUserAttenderReport />} />
-          <Route path="/reports/login-logout" element={<LoginLogoutReport />} />
+          <Route path="/reports/workorder" element={<PrivateRoute element={<WorkOrderReport />} />} />
+          <Route path="/reports/fieldattendence" element={<PrivateRoute element={<FieldUserAttenderReport />} />} />
+          <Route path="/reports/login-logout" element={<PrivateRoute element={<LoginLogoutReport />} />} />
 
 
           {/* Billings System */}
-          <Route path="/billings/pricing-structure" element={<DefaultPricingStructure />} />
-          <Route path="/billings/usage-limit" element={<UsageLimitStrc />} />
-          <Route path="/billings/currency-management" element={<CurrencyMangment />} />
-          <Route path="/billings/pricing-option" element={<CustomPricingOption />} />
-          <Route path="/billings/package-creation" element={<PackageCreateSys />} />
+          <Route path="/billings/pricing-structure" element={<PrivateRoute element={<DefaultPricingStructure />} />} />
+          <Route path="/billings/usage-limit" element={<PrivateRoute element={<UsageLimitStrc />} />} />
+          <Route path="/billings/currency-management" element={<PrivateRoute element={<CurrencyMangment />} />} />
+          <Route path="/billings/pricing-option" element={<PrivateRoute element={<CustomPricingOption />} />} />
+          <Route path="/billings/package-creation" element={<PrivateRoute element={<PackageCreateSys />} />} />
 
                       {/* Admin */}
 
           {/* DashBoard */}
           <Route path="/dashboard/admin" element={<PrivateRoute element={AdminDashboard} />} />
           {/* Admin Company Profile Detail */}
-          <Route path="/company/profile" element={<AdminProfile />} />
+          <Route path="/company/profile" element={<PrivateRoute element={<AdminProfile />} />} />
 
 
           {/* Users */}
           {/* Ofice */}
-          <Route path="/users/office/create" element={<Create />} />
-          <Route path="/users/office/super-admin" element={<SuperAdmin />} />
-          <Route path="/users/office/:roleName" element={<StaffAdmin />} />
-          <Route path="/users/office/list/view" element={<OfficeUserDetails/>} />
-          <Route path="/users/office/edit" element={<EditOfficeUser/>} />
-          <Route path="/users/office/human-resource" element={<HumanResource />} />
-          <Route path="/users/office/other-users" element={<OtherUsers />} />
+          <Route path="/users/office/create" element={<PrivateRoute element={<Create />} /> } />
+          <Route path="/users/office/super-admin" element={<PrivateRoute element={<SuperAdmin />} /> } />
+          <Route path="/users/office/:roleName" element={<PrivateRoute element={<StaffAdmin />} /> } />
+          <Route path="/users/office/list/view" element={<PrivateRoute element={<OfficeUserDetails/>} /> } />
+          <Route path="/users/office/edit" element={<PrivateRoute element={<EditOfficeUser/>} /> } />
+          <Route path="/users/office/human-resource" element={<PrivateRoute element={<HumanResource />} /> } />
+          <Route path="/users/office/other-users" element={<PrivateRoute element={<OtherUsers />} /> } />
           {/* Field */}
-          <Route path="/users/field/create" element={<CreateFieldUser />} />
-          <Route path="/users/field/list" element={<FieldUserList />} />
-          <Route path="/users/field/edit" element={<UpdateFieldUser/>} />
-          <Route path="/users/field/list/view" element={<FieldUserDetails/>} />
-          <Route path="/users/field/import" element={<ImportFieldUser />} />
+          <Route path="/users/field/create" element={<PrivateRoute element={<CreateFieldUser />} /> } />
+          <Route path="/users/field/list" element={<PrivateRoute element={<FieldUserList />} /> } />
+          <Route path="/users/field/edit" element={<PrivateRoute element={<UpdateFieldUser/>} /> } />
+          <Route path="/users/field/list/view" element={<PrivateRoute element={<FieldUserDetails/>} /> } />
+          <Route path="/users/field/import" element={<PrivateRoute element={<ImportFieldUser />} /> } />
 
           {/* Customers */}
-          <Route path="/customers/create" element={<CreateCustomer />} />
-          <Route path="/customers/list" element={<CustomerList />} />
-          <Route path="/customers/list/details" element={<CustomerDetails />} />
-          <Route path="/customers/list/edit" element={<CustomerEdit />} />
+          <Route path="/customers/create" element={<PrivateRoute element={<CreateCustomer />} />} />
+          <Route path="/customers/list" element={<PrivateRoute element={<CustomerList />} />} />
+          <Route path="/customers/list/details" element={<PrivateRoute element={<CustomerDetails />} />} />
+          <Route path="/customers/list/edit" element={<PrivateRoute element={<CustomerEdit />} />} />
           {/* <Route path="/customers/list/address" element={<CustomerList />} /> */}
-          <Route path="/customers/prospects" element={<ProspectsCustomer />} />
-          <Route path="/customers/import" element={<CustomerImport />} />
+          <Route path="/customers/prospects" element={<PrivateRoute element={<ProspectsCustomer />} />} />
+          <Route path="/customers/import" element={<PrivateRoute element={<CustomerImport />} />} />
 
           {/* Work Order */}
-          <Route path="/workorder/create" element={<CreateWorkOrder />} />
-          <Route path="/workorder/list" element={<WorkOrderList />} />
-          <Route path="/workorder/list/details" element={<WorkOrderDetails />} />
-          <Route path="/workorder/list/edit" element={<WorkOrderEdit />} />
-          <Route path="/workorder/draft" element={<DraftWorkOrder />} />
-          <Route path="/workorder/import" element={<WorkOrderImport />} />
+          <Route path="/workorder/create" element={<PrivateRoute element={<CreateWorkOrder />} />} />
+          <Route path="/workorder/list" element={<PrivateRoute element={<WorkOrderList />} />} />
+          <Route path="/workorder/list/details" element={<PrivateRoute element={<WorkOrderDetails />} />} />
+          <Route path="/workorder/list/edit" element={<PrivateRoute element={<WorkOrderEdit />} />} />
+          <Route path="/workorder/draft" element={<PrivateRoute element={<DraftWorkOrder />} />} />
+          <Route path="/workorder/import" element={<PrivateRoute element={<WorkOrderImport />} />} />
 
 
 
           {/* Settings */}
           {/* Roles */}
-          <Route path="/settings/admin/roles" element={<AdminRoles />} />
-          <Route path="/settings/admin/roles/create" element={<CreateAdminRole />} />
-          <Route path="/settings/admin/roles/edit" element={<EditAdminRole />} />
+          <Route path="/settings/admin/roles" element={<PrivateRoute element={<AdminRoles />} />} />
+          <Route path="/settings/admin/roles/create" element={<PrivateRoute element={<CreateAdminRole />} />} />
+          <Route path="/settings/admin/roles/edit" element={<PrivateRoute element={<EditAdminRole />} />} />
           {/* Work Order Time */}
-          <Route path="/settings/admin/workOrderTime" element={<WorkOrderTime />} />
+          <Route path="/settings/admin/workOrderTime" element={<PrivateRoute element={<WorkOrderTime />} />} />
           {/* Language Change */}
-          <Route path="/settings/admin/language" element={<LanguageChange />} />
+          <Route path="/settings/admin/language" element={<PrivateRoute element={<LanguageChange />} />} />
 
 
           {/* Reports */}
-          <Route path="/reports/company/workorder" element={<CompanyWOreport />} />
-          <Route path="/reports/company/fielduser-attendence" element={<FieldUserAttendece />} />
+          <Route path="/reports/company/workorder" element={<PrivateRoute element={<CompanyWOreport />} />} />
+          <Route path="/reports/company/fielduser-attendence" element={<PrivateRoute element={<FieldUserAttendece />} />} />
 
           
         </Routes>

@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Form } from "react-bootstrap";
 import Header from "../../../../Components/Header/Header";
-import {
-  delete_FieldUser,
-  fetch_FieldUserOfCompany,
-  fetchWorkOrderList,
-  workOrderDeleteApi,
-} from "../../../../lib/store";
+import { fetchWorkOrderList, workOrderDeleteApi } from "../../../../lib/store";
 import { FaInfoCircle, FaEdit, FaClipboardList } from "react-icons/fa";
 import { BeatLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "../../../../context/PermissionContext";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp"; // Adjust the path as needed
 
 const WorkOrderList = () => {
   const { hasPermission } = usePermissions();
@@ -26,6 +22,7 @@ const WorkOrderList = () => {
   const company_id = localStorage.getItem("companyId") || null;
   const navigate = useNavigate();
 
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -48,6 +45,7 @@ const WorkOrderList = () => {
     fetchData();
   }, []);
 
+  // Filter table data based on search query
   const filteredtable = tableData.filter((row) => {
     const idMatch = row.id
       .toString()
@@ -74,12 +72,12 @@ const WorkOrderList = () => {
     );
   });
 
-  console.log("dasdasd", filteredtable);
-
+  // Reset to page 1 on search query change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
+  // Calculate current items for display
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredtable.slice(indexOfFirstItem, indexOfLastItem);
@@ -90,7 +88,6 @@ const WorkOrderList = () => {
   };
 
   const handleDelete = async (id) => {
-    // Show confirmation modal
     const confirmResult = await Swal.fire({
       title: t("Are you sure?"),
       text: t("You won't be able to revert this!"),
@@ -103,7 +100,6 @@ const WorkOrderList = () => {
 
     if (confirmResult.isConfirmed) {
       try {
-        // Show loading modal
         Swal.fire({
           title: t("Deleting..."),
           allowOutsideClick: false,
@@ -112,14 +108,10 @@ const WorkOrderList = () => {
           },
         });
 
-        // Call the delete API
         const apiResult = await workOrderDeleteApi(id, token, company_id);
-
-        // Close the loading modal
         Swal.close();
 
         if (apiResult.status === true) {
-          // Show success message
           await Swal.fire(
             t("Deleted!"),
             t("Your work order has been deleted."),
@@ -129,11 +121,9 @@ const WorkOrderList = () => {
             prevList.filter((order) => order.id !== id)
           );
         } else {
-          // Show error message from API
           await Swal.fire("Error", apiResult.message, "error");
         }
       } catch (error) {
-        // Close loading modal and show generic error
         Swal.close();
         await Swal.fire("Error", t("An unexpected error occurred."), "error");
       }
@@ -148,20 +138,14 @@ const WorkOrderList = () => {
     setSearchQuery("");
   };
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
+  // Utility function to convert date format if needed
+  const convertToISOFormatIfNeeded = (dateString) => {
+    const regex = /^\d{2}-\d{2}-\d{4}$/;
+    if (regex.test(dateString)) {
+      const [day, month, year] = dateString.split("-");
+      return `${year}-${month}-${day}`;
     }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const handlePageClick = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    return dateString;
   };
 
   const tableHeaders = [
@@ -173,20 +157,6 @@ const WorkOrderList = () => {
     "Worker Name",
     "Action",
   ];
-
-  const convertToISOFormatIfNeeded = (dateString) => {
-    // Regular expression to match DD-MM-YYYY format
-    const regex = /^\d{2}-\d{2}-\d{4}$/;
-
-    // Check if the input matches the format
-    if (regex.test(dateString)) {
-      const [day, month, year] = dateString.split("-");
-      return `${year}-${month}-${day}`;
-    }
-
-    // Return the input unchanged if it doesn't match the expected format
-    return dateString;
-  };
 
   return (
     <>
@@ -253,7 +223,7 @@ const WorkOrderList = () => {
               ) : (
                 <tbody>
                   {currentItems?.length > 0 ? (
-                    currentItems?.map((row, index) => (
+                    currentItems.map((row, index) => (
                       <tr
                         key={index}
                         style={{
@@ -270,7 +240,7 @@ const WorkOrderList = () => {
                             color: "#4B5563",
                           }}
                         >
-                          <div>{row.id}</div>
+                          {row.id}
                         </td>
                         <td
                           style={{
@@ -352,13 +322,12 @@ const WorkOrderList = () => {
                               }}
                               onClick={() => handleToPreview(row)}
                             >
-                              <i className="bi bi-info-circle"></i>
                               <FaInfoCircle />
                             </Button>
                             {(userRole === "Admin" ||
                               hasPermission(
-                                `Company Work Order Module`,
-                                `Delete`
+                                "Company Work Order Module",
+                                "Delete"
                               )) && (
                               <Button
                                 variant="danger"
@@ -373,7 +342,6 @@ const WorkOrderList = () => {
                                   justifyContent: "center",
                                 }}
                               >
-                                <i className="bi bi-trash"></i>
                                 <FaClipboardList />
                               </Button>
                             )}
@@ -384,51 +352,20 @@ const WorkOrderList = () => {
                   ) : (
                     <tr>
                       <td colSpan="7" className="text-center py-5">
-                        No data found
+                        {t("No data found")}
                       </td>
                     </tr>
                   )}
                 </tbody>
               )}
             </Table>
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <span>
-                Showing {filteredtable.length === 0 ? 0 : indexOfFirstItem + 1}{" "}
-                to{" "}
-                {indexOfLastItem > filteredtable.length
-                  ? filteredtable.length
-                  : indexOfLastItem}{" "}
-                of {filteredtable.length} items
-              </span>
-              <div className="d-flex align-items-center">
-                <Button
-                  variant="light"
-                  className="me-1"
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                >
-                  &laquo;
-                </Button>
-                {/* Numbered page buttons */}
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Button
-                    key={index}
-                    variant={currentPage === index + 1 ? "primary" : "light"}
-                    className="me-1"
-                    onClick={() => handlePageClick(index + 1)}
-                  >
-                    {index + 1}
-                  </Button>
-                ))}
-                <Button
-                  variant="light"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                >
-                  &raquo;
-                </Button>
-              </div>
-            </div>
+            {/* Reusable Pagination Component */}
+            <PaginationComp
+              totalItems={filteredtable.length}
+              currentPage={currentPage}
+              rowsPerPage={itemsPerPage}
+              onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+            />
           </div>
         </div>
       </div>

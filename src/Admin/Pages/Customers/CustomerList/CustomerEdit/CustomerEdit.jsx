@@ -57,12 +57,17 @@ const CustomerEdit = () => {
       address: "",
     };
 
-    // Validate name
+    // Validate name: required, max length 15 and no numbers allowed.
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = t("Name is required");
+      isValid = false;
+    } else if (formData.name.length > 20) {
+      newErrors.name = t("Name must not exceed 20 characters");
+      isValid = false;
+    } else if (/\d/.test(formData.name)) {
+      newErrors.name = t("Name should not contain numbers");
       isValid = false;
     }
-
     // Validate email using a stricter regex
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";

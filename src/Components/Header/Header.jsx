@@ -259,7 +259,7 @@ const Header = () => {
                 }
                 alt="Company Logo"
                 className="logo"
-                style={{ height: "60px", width: "120px", objectFit: "cover" }}
+                style={{ maxHeight: "110px", width: "119px", objectFit: "cover", borderRadius:"20px" }}
               />
               {/* <span>Swif</span> */}
             </div>

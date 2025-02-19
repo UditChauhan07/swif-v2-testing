@@ -1733,5 +1733,7 @@
   "Select a country":"Seleccione un país",
   "Only JPEG and PNG formats allowed.":"Sólo se permiten los formatos JPEG y PNG.",
   "Select file":"Seleccionar archivo",
-  "Passwords do not match. Please try again.":"Las contraseñas no coinciden. Por favor inténtalo de nuevo."
+  "Passwords do not match. Please try again.":"Las contraseñas no coinciden. Por favor inténtalo de nuevo.",
+  "Skip Tutorial":"Saltar tutorial",
+  "Number of Users":"Numero de usuarias"
 }

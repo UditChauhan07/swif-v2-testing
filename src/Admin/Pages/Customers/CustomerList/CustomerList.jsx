@@ -5,35 +5,33 @@ import { BeatLoader } from "react-spinners";
 import Header from "../../../../Components/Header/Header";
 import { DeleteCustomerApi, getCustomerList } from "../../../../lib/store";
 import { IoIosInformationCircle } from "react-icons/io";
-import { FaAddressBook } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "../../../../context/PermissionContext";
-
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp"
 
 const CustomerList = () => {
-  const {hasPermission}=usePermissions();
-    const userRole=localStorage.getItem('Role')
-  const { t } = useTranslation(); 
-  
+  const { hasPermission } = usePermissions();
+  const userRole = localStorage.getItem("Role");
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
   const [customers, setCustomers] = useState([]);
-  // console.log("cussss", customers);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [companyId, setCompanyId] = useState(localStorage.getItem("companyId"));
-  const [token, settoken] = useState(localStorage.getItem("UserToken"));
+  const companyId = localStorage.getItem("companyId");
+  const token = localStorage.getItem("UserToken");
   const rowsPerPage = 4;
 
   useEffect(() => {
     const fetchCustomers = async () => {
       setIsLoading(true);
       try {
-        const response = await getCustomerList(companyId, token); // Fetch customers from API
-        console.log("resss", response);
+        const response = await getCustomerList(companyId, token);
+        console.log("Customer response", response);
         setCustomers(response?.customers || []);
       } catch (error) {
         console.error("Error fetching customers:", error);
@@ -43,19 +41,7 @@ const CustomerList = () => {
     };
 
     fetchCustomers();
-  }, []);
-
-  // Handle pagination
-  const handlePageChange = (direction) => {
-    if (
-      direction === "next" &&
-      currentPage * rowsPerPage < filteredCustomers.length
-    ) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === "previous" && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  }, [companyId, token]);
 
   // Filter customers based on search query
   const filteredCustomers = customers.filter(
@@ -64,7 +50,7 @@ const CustomerList = () => {
       customer.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Pagination logic
+  // Calculate current rows based on pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredCustomers.slice(indexOfFirstRow, indexOfLastRow);
@@ -78,8 +64,6 @@ const CustomerList = () => {
   };
 
   const hanldeDeleteCustomer = async (item) => {
-    // console.log("dddddd", item);
-
     const result = await Swal.fire({
       title: t("Are you sure?"),
       text: t("You are about to delete this Customer"),
@@ -95,7 +79,7 @@ const CustomerList = () => {
     }
 
     Swal.fire({
-      title: t("Deletingg..."),
+      title: t("Deleting..."),
       text: t("Deleting Customer, please wait."),
       allowOutsideClick: false,
       didOpen: () => {
@@ -104,11 +88,10 @@ const CustomerList = () => {
     });
 
     try {
-      const response = await DeleteCustomerApi(item, token,companyId);
+      const response = await DeleteCustomerApi(item, token, companyId);
       Swal.close();
 
       if (response.status === true) {
-        // Remove the deleted company from the companyList state
         setCustomers((prevList) =>
           prevList.filter((customer) => customer.id !== item)
         );
@@ -120,17 +103,15 @@ const CustomerList = () => {
         });
       } else {
         Swal.fire({
-          title: "Error!",
+          title: t("Error!"),
           text: response.message || t("There was an error Deleting Customer."),
           icon: "error",
-          confirmButtonText: "Try Again",
+          confirmButtonText: t("Try Again"),
         });
       }
     } catch (error) {
-      // Close SweetAlert loading spinner and show error
       Swal.close();
       console.error("API Error:", error);
-
       Swal.fire({
         title: t("API Error!"),
         text: t("Something went wrong. Please try again later."),
@@ -140,9 +121,9 @@ const CustomerList = () => {
     }
   };
 
-  const handleClear = ()=>{
-    setSearchQuery("")
-  }
+  const handleClear = () => {
+    setSearchQuery("");
+  };
 
   return (
     <>
@@ -231,7 +212,7 @@ const CustomerList = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-5">
+                  <td colSpan="6" className="text-center py-5">
                     <BeatLoader
                       size={12}
                       color={"#3C3C3C"}
@@ -242,7 +223,7 @@ const CustomerList = () => {
                 </tr>
               ) : currentRows.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-4">
+                  <td colSpan="6" className="text-center py-4">
                     {t("No customers found")}.
                   </td>
                 </tr>
@@ -252,7 +233,6 @@ const CustomerList = () => {
                     <td
                       style={{
                         textAlign: "left",
-                        // padding: "15px",
                         fontSize: "0.9rem",
                         color: "#4B5563",
                       }}
@@ -262,7 +242,6 @@ const CustomerList = () => {
                     <td
                       style={{
                         textAlign: "left",
-                        // padding: "15px",
                         fontSize: "0.9rem",
                         color: "#4B5563",
                       }}
@@ -272,7 +251,6 @@ const CustomerList = () => {
                     <td
                       style={{
                         textAlign: "left",
-                        // padding: "15px",
                         fontSize: "0.9rem",
                         color: "#4B5563",
                       }}
@@ -282,7 +260,6 @@ const CustomerList = () => {
                     <td
                       style={{
                         textAlign: "left",
-                        // padding: "15px",
                         fontSize: "0.9rem",
                         color: "#4B5563",
                       }}
@@ -292,7 +269,6 @@ const CustomerList = () => {
                     <td
                       style={{
                         textAlign: "left",
-                        // padding: "15px",
                         fontSize: "0.9rem",
                         color: "#4B5563",
                       }}
@@ -316,45 +292,42 @@ const CustomerList = () => {
                         >
                           <IoIosInformationCircle />
                         </Button>
-                        {(userRole == "Admin" || hasPermission("Company Customers Module", "Edit")) &&(
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          style={{
-                            borderRadius: "50%",
-                            width: "35px",
-                            height: "35px",
-                          }}
-                          onClick={() => handleEditCustomerClick(customer)}
-                        >
-                          <FaUserEdit />
-                        </Button>
+                        {(userRole === "Admin" ||
+                          hasPermission(
+                            "Company Customers Module",
+                            "Edit"
+                          )) && (
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            style={{
+                              borderRadius: "50%",
+                              width: "35px",
+                              height: "35px",
+                            }}
+                            onClick={() => handleEditCustomerClick(customer)}
+                          >
+                            <FaUserEdit />
+                          </Button>
                         )}
-                        {/* <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          style={{
-                            borderRadius: "50%",
-                            width: "35px",
-                            height: "35px",
-                          }}
-                        >
-                          <FaAddressBook />
-                        </Button> */}
-                        {(userRole == "Admin" || hasPermission("Company Customers Module", "Delete")) &&(
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          style={{
-                            borderRadius: "50%",
-                            width: "35px",
-                            height: "35px",
-                          }}
-                          onClick={() => hanldeDeleteCustomer(customer.id)}
-                        >
-                          <MdDelete />
-                        </Button>
-                       )}
+                        {(userRole === "Admin" ||
+                          hasPermission(
+                            "Company Customers Module",
+                            "Delete"
+                          )) && (
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            style={{
+                              borderRadius: "50%",
+                              width: "35px",
+                              height: "35px",
+                            }}
+                            onClick={() => hanldeDeleteCustomer(customer.id)}
+                          >
+                            <MdDelete />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -363,28 +336,13 @@ const CustomerList = () => {
             </tbody>
           </Table>
 
-          <div className="d-flex justify-content-end mt-3">
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              className="me-2"
-              onClick={() => handlePageChange("previous")}
-              disabled={currentPage === 1}
-            >
-              &laquo; {t("Previous")}
-            </Button>
-            <Button variant="outline-secondary" size="sm" className="me-2">
-              {currentPage}
-            </Button>
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={() => handlePageChange("next")}
-              disabled={currentPage * rowsPerPage >= filteredCustomers.length}
-            >
-              {t("Next")} &raquo;
-            </Button>
-          </div>
+          {/* Reusable Pagination Component */}
+          <PaginationComp
+            totalItems={filteredCustomers.length}
+            currentPage={currentPage}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+          />
         </div>
       </div>
     </>

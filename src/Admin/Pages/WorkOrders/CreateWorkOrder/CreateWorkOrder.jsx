@@ -197,8 +197,14 @@ const CreateWorkOrder = () => {
       workItems.length === 0 ||
       workItems.some((row) => !row.workItem.trim() || !row.itemDesc.trim())
     ) {
-      newErrors.workItems =
-        t("At least one Work Item and Description are required.");
+      newErrors.workItems = t("At least one Work Item and Description are required.");
+    }
+    // Validate maximum character length for each work item and description
+    if (workItems.some((row) => row.workItem.length > 20)) {
+      newErrors.workItems = t("Work Item must not exceed 20 characters");
+    }
+    if (workItems.some((row) => row.itemDesc.length > 40)) {
+      newErrors.workItems = t("Item Description must not exceed 40 characters");
     }
 
     setErrors(newErrors);
@@ -505,14 +511,14 @@ const CreateWorkOrder = () => {
             {/* Workorder Details Table */}
             <Card className="mb-4">
               <Card.Header className="bg-purple text-white d-flex justify-content-between align-items-center">
-                <span>{t("Workorder Details")}</span>
+                <span>{t("Workorder Details")} </span>
               </Card.Header>
               <Card.Body>
                 <Table bordered responsive>
                   <thead>
                     <tr className="bg-light">
-                      <th>{t("Work Item")}</th>
-                      <th>{t("Item Description")}</th>
+                      <th>{t("Work Item")} <span className="text-danger">*</span></th>
+                      <th>{t("Item Description")} <span className="text-danger">*</span></th>
                       <th className="text-center">
                         <Button
                           variant="success"
