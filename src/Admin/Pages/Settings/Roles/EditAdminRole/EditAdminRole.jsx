@@ -15,22 +15,27 @@ const EditAdminRole = () => {
   const { role } = location.state || {};
   console.log("role", role);
 
-  // Get role details from the role object
   const roleName = role?.roleName || "";
   const roleDescription = role?.roleDescription || "";
-  // Note: permissions is coming as an array from your API, so we default to an empty array
   const permissions = role?.permissions || [];
   console.log("permissions", permissions);
 
-  // Company modules data
   const companyModules = [
     // {
     //   originalName: "Company Office User Module",
     //   name: t("Company Office User Module"), // Translated name
     //   actions: ["view", "create", "edit"],
     // },
-    {originalName:"Company Office User Module", name: t("Company Office User Module"), actions: ["view", "create", "edit","delete"] },
-    {originalName:"Company Field User Module", name: t("Company Field User Module"), actions: ["view", "create", "edit","delete"] },
+    {
+      originalName: "Company Office User Module",
+      name: t("Company Office User Module"),
+      actions: ["view", "create", "edit", "delete"],
+    },
+    {
+      originalName: "Company Field User Module",
+      name: t("Company Field User Module"),
+      actions: ["view", "create", "edit", "delete"],
+    },
     {
       originalName: "Company Customers Module",
       name: t("Company Customers Module"), // Translated name
@@ -41,19 +46,42 @@ const EditAdminRole = () => {
       name: t("Company Work Order Module"), // Translated name
       actions: ["view", "create", "edit", "delete"],
     },
+    {
+      originalName: "Company Roles Module",
+      name: t("Company Roles Module"),
+      actions: ["view", "create"],
+    },
+    {
+      originalName: "Company Work Order Time Module",
+      name: t("Company Work Order Time Module"),
+      actions: ["view", "edit"],
+    },
+    {
+      originalName: "Company Language Change Module",
+      name: t("Company Language Change Module"),
+      actions: ["view", "edit"],
+    },
+    {
+      originalName: "Company Work Order Report Module",
+      name: t("Company Work Order Report Module"),
+      actions: ["view"],
+    },
+    {
+      originalName: "Company Field User Attendence Report Module",
+      name: t("Company Field User Attendence Report Module"),
+      actions: ["view"],
+    },
   ];
 
-  // Render each module row with checkboxes disabled and checked based on permissions
   const renderModules = (modules) =>
     modules.map((module, index) => {
-      // Find the permission for this module by matching the original English name
       const modulePermission = permissions.find(
         (p) => p.moduleName === module.originalName
       );
 
       return (
         <tr key={index}>
-          <td>{module.name}</td> {/* Show translated name */}
+          <td>{module.name}</td> 
           <td>
             {module.actions.includes("view") && (
               <Form.Check
@@ -142,15 +170,9 @@ const EditAdminRole = () => {
               borderRadius: "8px",
             }}
           >
-            <h4 className="mb-0">{t("View Staff Role Details")}</h4>
+            <h4 className="mb-0">{t("Role Details")}</h4>
           </div>
-          <Alert variant="danger" className="text-center fw-bold">
-            ⚠️{" "}
-            {t(
-              "You can't Edit! Default Role. You can create a new Role or contact Admin"
-            )}
-            .
-          </Alert>
+          
           <Form>
             <Row>
               <Col md={6}>

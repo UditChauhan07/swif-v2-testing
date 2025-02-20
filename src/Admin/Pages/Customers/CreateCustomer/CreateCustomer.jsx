@@ -291,7 +291,7 @@ const CreateCustomer = () => {
                   type="button"
                   onClick={() => navigate("/customers/list")}
                 >
-                  {t("Back to Customer List")}
+                  {t("Back")}
                 </Button>
               </div>
             </Form>

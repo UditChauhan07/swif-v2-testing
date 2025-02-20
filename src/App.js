@@ -58,6 +58,7 @@ import UsageLimitStrc from './Super_Admin/Pages/BillingSystem/UsageLimitStrc/Usa
 import CurrencyMangment from './Super_Admin/Pages/BillingSystem/CurrencyManagment/CurrencyMangment';
 import CustomPricingOption from './Super_Admin/Pages/BillingSystem/PricingOption/CustomPricingOption';
 import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys/PackageCreateSys';
+import TaxationSetting from "./Super_Admin/Pages/TaxationSetting/TaxationSetting";
 
 
 function App() {
@@ -91,6 +92,9 @@ function App() {
           <Route path="/reports/workorder" element={<PrivateRoute element={WorkOrderReport } />} />
           <Route path="/reports/fieldattendence" element={<PrivateRoute element={FieldUserAttenderReport} />} />
           <Route path="/reports/login-logout" element={<PrivateRoute element={LoginLogoutReport} />} />
+
+          {/* Taxation Setting */}
+          <Route path="/taxation-setting" element={<PrivateRoute element={TaxationSetting} />} />
 
 
           {/* Billings System */}
