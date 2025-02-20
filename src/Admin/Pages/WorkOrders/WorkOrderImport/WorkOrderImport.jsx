@@ -229,7 +229,7 @@ const WorkOrderImport = () => {
               icon: "success",
               title: t("Upload Successful"),
               html: `
-                <p>${t("Message")}: ${response.message}</p>
+                <p>${response.message}</p>
                 <p><strong>${t("Inserted Work Orders")}</strong>: ${response.insertedWorkOrders}</p>
                 <p><strong>${t("Failed Work Orders")}</strong>: ${response.failedWorkOrders.length}</p>
               `,

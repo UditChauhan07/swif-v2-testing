@@ -1,12 +1,19 @@
 
 
     import React, { useState } from "react";
-    import { Container, Row, Col, Image, Card } from "react-bootstrap";
+    import { Container, Row, Col, Image, Card,Button} from "react-bootstrap";
     import { useLocation } from "react-router-dom";
     import Header from "../../../../Components/Header/Header";
+
+    import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import BackButton from "../../../../utils/BackButton/BackButton";
     
     const OfficeUserDetails = () => {
         const location = useLocation();
+          const { t } = useTranslation();
+        
+          const navigate = useNavigate();
         const { row } = location.state || {};
         console.log(row);
       return (
@@ -18,7 +25,7 @@
               <Container className="mt-4">
               <Row className="p-3">
                     <Col md={3} className="fw-bold">
-                      Name:
+                     First Name:
                     </Col>
                     <Col>{row.first_name
                     }</Col>
@@ -91,7 +98,17 @@
                     <Col>{row.contact_number}</Col>
                </Row>
              
-            
+               {/* <Button
+              variant="primary"
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(-1); // Replace "/home" with your desired URL
+              }}
+            >
+              {t("Back")}
+            </Button> */}
+              <BackButton/>
               </Container>
             </div>
           </div>  

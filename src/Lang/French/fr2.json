@@ -214,7 +214,7 @@
     "Import Customer" : "Importer un client",
     "Customer Import" : "Importation client",
     "Drag & drop any file here" : "Faites glisser et déposez n\"importe quel fichier ici",
-    "browse file" : "parcourir le fichier",
+    "Browse file" : "parcourir le fichier",
     "from device" : "depuis l\"appareil",
     "Error" : "Erreur",
     "Please select a file first" : "Veuillez d\"abord sélectionner un fichier",
@@ -1440,6 +1440,15 @@
     "Prospects & Leads":"Perspectives et pistes",
     "Submitted QT":"QT soumis",
     "Approved QT":"QT approuvé",
-    "Draft QT":"Brouillon QT"
+    "Draft QT":"Brouillon QT",
+    "Invalid File Type": "Tipo de archivo no válido",
+    "Please upload a valid .xlsx file.": "Por favor, suba un archivo .xlsx válido.",
+    "Invalid File Headers": "Encabezados de archivo no válidos",
+    "Missing Headers": "Encabezados faltantes",
+    "Unexpected Headers": "Encabezados inesperados",
+    "File Uploaded": "Archivo subido",
+    "Headers matched successfully!": "¡Los encabezados coinciden correctamente!",
+    "Empty File": "Archivo vacío",
+    "The uploaded file is empty or invalid.": "El archivo subido está vacío o no es válido."
 
 }

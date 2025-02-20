@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Table, Button, Row } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Row, Form } from "react-bootstrap";
 import { FaUserEdit } from "react-icons/fa";
 import { formatTimestamp } from "../../../utils/TimeStampConverter";
 import { BeatLoader } from "react-spinners";
@@ -9,7 +9,6 @@ import { FaInfoCircle, FaEdit, FaClipboardList } from "react-icons/fa";
 import { delete_OfficeUser } from "../../../lib/store";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "../../../context/PermissionContext";
-
 
 const UsersTabelComp = ({
   tableData,
@@ -21,14 +20,18 @@ const UsersTabelComp = ({
   const token = localStorage.getItem("UserToken");
   const company_id = localStorage.getItem("companyId") || null;
   const navigate = useNavigate();
-        const { t } = useTranslation(); 
-  
+  const { t } = useTranslation();
+  const itemsPerPage = 1;
+  const [currentPage, setCurrentPage] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [userRole, setuserRole] = useState(localStorage.getItem("Role"));
+console.log('tableData:', tableData);
 
   const handleToPreview = async (row) => {
     navigate("/users/office/list/view", { state: { row } });
-  };  
-  const {hasPermission}=usePermissions();
+  };
+  const { hasPermission } = usePermissions();
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -41,7 +44,7 @@ const UsersTabelComp = ({
       reverseButtons: true, // Reverse the order of the buttons (Cancel left, Confirm right)
     }).then((result) => {
       if (result.isConfirmed) {
-        delete_OfficeUser(id, token,company_id).then((result) => {
+        delete_OfficeUser(id, token, company_id).then((result) => {
           console.log("tableData", result);
           if (result.status === true) {
             fetchData();
@@ -65,9 +68,58 @@ const UsersTabelComp = ({
     navigate("/users/office/edit", { state: { row } });
   };
 
+
+    const filteredtable = tableData?.filter(
+     (item) =>
+       item?.first_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+       item?.email?.toLowerCase()?.includes(searchQuery?.toLowerCase())
+   );
+
+   console.log('filteredtable',searchQuery,filteredtable);
+   
+  // Calculate pagination indices and current items to display
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = tableData?.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(tableData?.length / itemsPerPage);
+  console.log(totalPages, indexOfLastItem, indexOfFirstItem, currentItems);
+
+  // Pagination handlers
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleClear = () => {
+    setSearchQuery("");
+  };
+
   return (
     <>
       <div className="">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4 className="mb-0">{roleName} User's</h4>
+          <div className="d-flex gap-2">
+            <Form.Control
+              type="text"
+              placeholder={t("Search...")}
+              className="me-2"
+              style={{ width: "200px" }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button variant="secondary" onClick={handleClear}>
+              {t("Clear")}
+            </Button>
+          </div>
+        </div>
         <Table hover responsive className="align-middle">
           <thead>
             <tr style={{ backgroundColor: "#E7EAF3", color: "#3C3C3C" }}>
@@ -102,8 +154,8 @@ const UsersTabelComp = ({
           ) : (
             <>
               <tbody>
-                {tableData.length > 0 ? (
-                  tableData?.map((row, rowIndex) => (
+                {filteredtable.length > 0 ? (
+                  filteredtable?.map((row, rowIndex) => (
                     <tr
                       key={rowIndex}
                       style={{
@@ -115,7 +167,9 @@ const UsersTabelComp = ({
                       <td>
                         {" "}
                         <div>
-                          <strong>{row?.first_name}</strong>
+                          <strong>
+                            {row?.first_name} {row?.last_name}
+                          </strong>
                           <br />
                           {row?.city}
                         </div>
@@ -145,48 +199,50 @@ const UsersTabelComp = ({
                             <FaInfoCircle />
                           </Button>
                           {(userRole == "Admin" ||
-                              hasPermission(
-                                "Company Office User Module", "Edit"
-                              )) && (
-                          <Button
-                            variant="warning"
-                            size="sm"
-                            onClick={() => handleEdit(row)}
-                            style={{
-                              borderRadius: "50%",
-                              width: "35px",
-                              height: "35px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <i className="bi bi-pencil"></i>
-                            <FaEdit />
-                          </Button>
-                              )}
+                            hasPermission(
+                              "Company Office User Module",
+                              "Edit"
+                            )) && (
+                            <Button
+                              variant="warning"
+                              size="sm"
+                              onClick={() => handleEdit(row)}
+                              style={{
+                                borderRadius: "50%",
+                                width: "35px",
+                                height: "35px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <i className="bi bi-pencil"></i>
+                              <FaEdit />
+                            </Button>
+                          )}
 
-                        {(userRole == "Admin" ||
-                        hasPermission(
-                          "Company Office User Module", "Delete"
-                        )) && (
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDelete(row.id)}
-                            style={{
-                              borderRadius: "50%",
-                              width: "35px",
-                              height: "35px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <i className="bi bi-trash"></i>
-                            <FaClipboardList />
-                          </Button>
-                        )}
+                          {(userRole == "Admin" ||
+                            hasPermission(
+                              "Company Office User Module",
+                              "Delete"
+                            )) && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDelete(row.id)}
+                              style={{
+                                borderRadius: "50%",
+                                width: "35px",
+                                height: "35px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <i className="bi bi-trash"></i>
+                              <FaClipboardList />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -200,6 +256,43 @@ const UsersTabelComp = ({
             </>
           )}
         </Table>
+        {/* Pagination Controls */}
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <span>
+            Showing {filteredtable?.length === 0 ? 0 : indexOfFirstItem + 1} to{" "}
+            {indexOfLastItem > filteredtable?.length
+              ? tableData?.length
+              : indexOfLastItem}{" "}
+            of {tableData?.length} items
+          </span>
+          <div className="d-flex align-items-center">
+            <Button
+              variant="light"
+              className="me-1"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              &laquo;
+            </Button>
+            {Array.from({ length: totalPages }, (_, index) => (
+              <Button
+                key={index}
+                variant={currentPage === index + 1 ? "primary" : "light"}
+                className="me-1"
+                onClick={() => handlePageClick(index + 1)}
+              >
+                {index + 1}
+              </Button>
+            ))}
+            <Button
+              variant="light"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              &raquo;
+            </Button>
+          </div>
+        </div>
       </div>
     </>
   );

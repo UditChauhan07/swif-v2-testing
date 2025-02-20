@@ -126,10 +126,8 @@ const CreateFieldUser = () => {
                     <Form.Label>
                       {t("Email")}
                       <span className="text-danger">*</span>
+
                     </Form.Label>
-                    <Form.Text className="d-block mb-1 text-muted">
-                      {t("Field User can login via this Email")}
-                    </Form.Text>
                     <Form.Control
                       type="email"
                       placeholder={t("Enter Email")}
@@ -142,6 +140,9 @@ const CreateFieldUser = () => {
                     <Form.Control.Feedback type="invalid">
                       {formik.errors.email}
                     </Form.Control.Feedback>
+                    <Form.Text className="d-block mb-1 text-muted">
+                   {t("Field User can login via this Email")}
+                    </Form.Text>
                   </Form.Group>
                 </Col>
 
@@ -177,9 +178,7 @@ const CreateFieldUser = () => {
                       {t("Password")}
                       <span className="text-danger">*</span>
                     </Form.Label>
-                    <Form.Text className="d-block mb-1 text-muted">
-                      {t("Field User can login via this Password")}
-                    </Form.Text>
+                    
                     <Form.Control
                       type="password"
                       placeholder={t("Enter Password")}
@@ -194,11 +193,14 @@ const CreateFieldUser = () => {
                     <Form.Control.Feedback type="invalid">
                       {formik.errors.password}
                     </Form.Control.Feedback>
+                    <Form.Text className="d-block mb-1 text-muted">
+                      {t("Field User can login via this Password")}
+                    </Form.Text>
                   </Form.Group>
                 </Col>
 
                 <Col md={6}>
-                  <Form.Group className="mb-3" controlId="formContactNumber">
+                  <Form.Group className="mb-4" controlId="formContactNumber">
                     <Form.Label>
                       {t("Contact Number")}
                       <span className="text-danger">*</span>
@@ -233,7 +235,7 @@ const CreateFieldUser = () => {
                 </Col> */}
 
                 <Col md={6}>
-                  <Form.Group className="mb-3" controlId="formCountry">
+                  <Form.Group className="mb-4" controlId="formCountry">
                     <Form.Label>
                       {t("Country")}
                       <span className="text-danger">*</span>

@@ -35,17 +35,20 @@ const AdminDashboard = () => {
   const token = localStorage.getItem("UserToken");
   const userid = localStorage.getItem("userId");
   const companyId = localStorage.getItem("companyId");
-  const [showTour, setShowTour] = useState(
-    localStorage.getItem("guidlines") === "active"
-  );
+  const [showTour, setShowTour] = useState(false);
+  
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      setShowTour(localStorage.getItem("guidlines") === "active");
-    };
+    const skipTour=localStorage.getItem("guidlines");
+    if(skipTour=='active') {
+      setShowTour(true);
+    }
+  //   const handleStorageChange = () => {
+  //     setShowTour(localStorage.getItem("guidlines") === "active");
+  //   };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+  //   window.addEventListener("storage", handleStorageChange);
+  //   return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // State for dashboard data
@@ -100,13 +103,18 @@ const AdminDashboard = () => {
           dashboardData[selectedCategory].thisWeek,
           dashboardData[selectedCategory].thisMonth,
         ],
-        borderColor: selectedCategory === "scheduled" ? "#2e2e32" : "grey",
-        backgroundColor: selectedCategory === "scheduled" ? "#2e2e32" : "grey",
+        // Always use black (or your desired color)
+        borderColor: "#2e2e32",
+        backgroundColor: "#2e2e32",
         fill: true,
         tension: 0.4, // Smooth curve
       },
     ],
   };
+
+  const dataValues = chartData.datasets[0].data;
+  const computedMax = Math.ceil(Math.max(...dataValues));
+  const maxY = computedMax < 5 ? 5 : computedMax;
 
   const chartOptions = {
     responsive: true,
@@ -114,7 +122,18 @@ const AdminDashboard = () => {
       legend: { display: false },
     },
     scales: {
-      y: { beginAtZero: true },
+      y: {
+        beginAtZero: true,
+        min: 0,
+        max: maxY, // use computed max ensuring a minimum of 5
+        ticks: {
+          stepSize: 1,
+          precision: 0, // force whole numbers
+          callback: function (value) {
+            return Number(value).toFixed(0);
+          },
+        },
+      },
     },
   };
 

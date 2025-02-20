@@ -3,11 +3,17 @@ import Header from "../../../../Components/Header/Header";
 import UsersTabelComp from "../../../Components/User_Table/UsersTabelComp";
 import { useParams ,useLocation} from 'react-router-dom';
 import { fetch_officeUsersByRoleId } from "../../../../lib/store";
+import { useTranslation } from "react-i18next";
+import { Table, Button, Form } from "react-bootstrap";
 
 const StaffAdmin = () => {
   const [tableData, setTableData] = React.useState([]);
   console.log("tableDaataa",tableData)
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState(1);
+  
 
   const token = localStorage.getItem("UserToken");
   // const companyId = localStorage.getItem("UserToken");
@@ -41,17 +47,23 @@ const StaffAdmin = () => {
     .finally(() => {setIsLoading(false)});
    }
 
+   const handleClear = () => {
+    setSearchQuery("");
+  };
+
    useEffect(() =>{
      setIsLoading(true);
      fetchData()
    },[location,id]);
+
+
 
   return (
     <>
       <Header />
       <div className="main-header-box mt-4">
         <div className="pages-box">
-        <div
+        {/* <div
               className="form-header mb-4"
               style={{
                 backgroundColor: "#2e2e32",
@@ -62,9 +74,26 @@ const StaffAdmin = () => {
               }}
             >
               <h4 className="mb-0">{roleName}</h4>
-            </div>
+        </div> */}
+             {/* <div className="d-flex justify-content-between align-items-center mb-3">
+              <h4 className="mb-0">{roleName} User's</h4>
+              <div className="d-flex gap-2">
+                <Form.Control
+                  type="text"
+                  placeholder={t("Search...")}
+                  className="me-2"
+                  style={{ width: "200px" }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button variant="secondary" onClick={handleClear}>
+                  {t("Clear")}
+                </Button>
+              </div>
+            </div> */}
           {/* Pass props to TableComponent */}
           <UsersTabelComp
+          
             tableHeaders={tableHeaders}
             tableData={tableData}
             roleName={roleName}

@@ -394,6 +394,8 @@ const Create = () => {
                         <Form.Label>{t("Country")}*</Form.Label>
                         <Select
                           options={countryOptions}
+                          placeholder={t("Select a country")}
+
                           onChange={(selectedOption) =>
                             setFieldValue("country", selectedOption.value)
                           }

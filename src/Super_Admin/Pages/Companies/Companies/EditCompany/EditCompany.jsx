@@ -33,8 +33,11 @@ const EditCompany = () => {
   const [companyId, setcompanyId] = useState(state?.company?.company.id);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passChangeId, setpassChangeId] = useState();
-  const [userId, setuserId] = useState(state?.company?.user.id)
-  
+  const [userId, setuserId] = useState(state?.company?.user.id);
+  const [imageErrors, setImageErrors] = useState({
+      profilePicture: "",
+      companyLogo: "",
+    });
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -120,10 +123,10 @@ const EditCompany = () => {
         certificationName: company.certificates?.[0]?.name || "",
         certificationNumber: company.certificates?.[0]?.number || "",
         // Only show additional certifications if there are more than one.
-      additionalCertifications:
-      company.certificates && company.certificates.length > 1
-        ? company.certificates.slice(1)
-        : [],
+        additionalCertifications:
+          company.certificates && company.certificates.length > 1
+            ? company.certificates.slice(1)
+            : [],
 
         // Step 3: Contact Information
         addressLine1: company.address_line_1 || "",
@@ -620,12 +623,27 @@ const EditCompany = () => {
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file) => {
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/png"];
+      if (!allowedTypes.includes(file.type)) {
+        setImageErrors((prev) => ({
+          ...prev,
+          [field]: "Only JPEG and PNG formats are allowed.",
+        }));
+        return;
+      } else {
+        setImageErrors((prev) => ({
+          ...prev,
+          [field]: "",
+        }));
+      }
+
       const options = {
         maxSizeMB: 0.6,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
       };
+
       try {
         const compressedFile = await imageCompression(file, options);
         setFormData((prev) => ({
@@ -634,17 +652,11 @@ const EditCompany = () => {
         }));
       } catch (error) {
         console.error("Error compressing image", error);
-        // Fallback to original file if compression fails
         setFormData((prev) => ({
           ...prev,
           [field]: file,
         }));
       }
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: file,
-      }));
     }
   };
   const fileToBase64 = (file) => {
@@ -1124,11 +1136,20 @@ const EditCompany = () => {
                     <Form.Label>{t("Company Logo")}:</Form.Label>
                     <Form.Control
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg, image/png"
                       onChange={(e) =>
                         handleImageChange("companyLogo", e.target.files[0])
                       }
+                      isInvalid={!!imageErrors.companyLogo}
                     />
+                    {imageErrors.companyLogo && (
+                      <Form.Text className="text-danger">
+                        {imageErrors.companyLogo}
+                      </Form.Text>
+                    )}
+                    <Form.Text className="text-muted">
+                      Only JPEG and PNG formats allowed.
+                    </Form.Text>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>
@@ -1291,6 +1312,7 @@ const EditCompany = () => {
                   </Form.Group>
                 </Col>
               </Row>
+
               <Row>
                 <Col md={12}>
                   <Form.Group className="mb-3">
@@ -1342,6 +1364,30 @@ const EditCompany = () => {
                 </Col>
               </Row>
 
+              <Button
+                variant="primary"
+                type="button"
+                className=" mb-2"
+                style={{
+                  background: "#6c757d",
+                  border: "none",
+                  color: "white",
+                }}
+                onClick={() => {
+                  const newCertification = { name: "", number: "" };
+                  const updatedCertifications = [
+                    ...(formData.additionalCertifications || []),
+                    newCertification,
+                  ];
+                  handleChange(
+                    "additionalCertifications",
+                    updatedCertifications
+                  );
+                }}
+              >
+                {t("Add More")}
+              </Button>
+
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -1373,33 +1419,9 @@ const EditCompany = () => {
                 </Col>
               </Row>
 
-              <Button
-                variant="primary"
-                type="button"
-                className="mt-3"
-                style={{
-                  background: "#6c757d",
-                  border: "none",
-                  color: "white",
-                }}
-                onClick={() => {
-                  const newCertification = { name: "", number: "" };
-                  const updatedCertifications = [
-                    ...(formData.additionalCertifications || []),
-                    newCertification,
-                  ];
-                  handleChange(
-                    "additionalCertifications",
-                    updatedCertifications
-                  );
-                }}
-              >
-                {t("Add More")}
-              </Button>
-
               {formData.additionalCertifications?.map((cert, index) => (
-                <Row key={index} className="mt-3">
-                  <Col md={5}>
+                <Row key={index} className="mt-2">
+                  <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>
                         {t("Additional Certification Name")}:
@@ -1422,8 +1444,11 @@ const EditCompany = () => {
                       />
                     </Form.Group>
                   </Col>
-                  <Col md={5}>
-                    <Form.Group className="mb-3">
+                  <Col
+                    md={6}
+                    className="d-flex justify-content-between align-items-center"
+                  >
+                    <Form.Group className="mb-3" style={{ width: "90%" }}>
                       <Form.Label>
                         {t("Additional Certification Number")}:
                       </Form.Label>
@@ -1444,10 +1469,14 @@ const EditCompany = () => {
                         }}
                       />
                     </Form.Group>
-                  </Col>
-                  <Col md={2} className="d-flex align-items-center">
                     <Button
                       variant="danger"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        padding: "0",
+                        fontSize: "18px",
+                      }}
                       onClick={() => {
                         const updatedCertifications =
                           formData.additionalCertifications.filter(

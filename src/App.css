@@ -29,7 +29,8 @@ button[type="submit"].btn-primary:hover {
 }
 
 ::-webkit-scrollbar {
-  width: 7px; 
+  width: 7px;
+  height: 6px; 
 }
 
 ::-webkit-scrollbar-track {

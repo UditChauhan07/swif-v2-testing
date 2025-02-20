@@ -49,7 +49,12 @@ const Login = () => {
         localStorage.setItem("name", response.user.first_name);
         localStorage.setItem("companyId", response.company_id);
         localStorage.setItem("language", "en");
-        localStorage.setItem("guidlines", "active");
+        if(response.skipTutorial || response.skipTutorial=='true'){
+          localStorage.setItem("guidlines", "unactive");
+        }
+        else{
+          localStorage.setItem("guidlines", "active");
+        }
         localStorage.setItem("companyName", response.company_name);
         localStorage.setItem("companyLogo", response.company_logo);
         localStorage.setItem("defaultTimezone", response.company_timezone);

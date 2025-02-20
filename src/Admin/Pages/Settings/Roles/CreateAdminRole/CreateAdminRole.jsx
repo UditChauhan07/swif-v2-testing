@@ -13,8 +13,8 @@ const CreateAdminRole = () => {
   const navigate = useNavigate();
   const [permissions, setPermissions] = useState({});
   const company_id = localStorage.getItem("companyId") || null;
-  const [userId, setuserId] = useState(localStorage.getItem("userId"));
-  const [token, settoken] = useState(localStorage.getItem("UserToken"));
+  const [userId] = useState(localStorage.getItem("userId"));
+  const [token] = useState(localStorage.getItem("UserToken"));
   const [errors, setErrors] = useState({
     roleName: "",
     roleDescription: "",
@@ -91,7 +91,7 @@ const CreateAdminRole = () => {
       }
     });
 
-    // Optional: Clear any error messages if a permission is selected.
+    // Clear error messages if any permission is selected.
     const permissionsSelected = Object.values(permissions).some((mod) =>
       Object.values(mod).some((act) => act)
     );
@@ -112,13 +112,11 @@ const CreateAdminRole = () => {
               type="checkbox"
               onChange={() => handlePermissionChange(module.name, "view")}
               checked={permissions[module.name]?.view || false}
-              disabled={
-                !!(
-                  permissions[module.name]?.create ||
-                  permissions[module.name]?.edit ||
-                  permissions[module.name]?.delete
-                )
-              }
+              disabled={!!(
+                permissions[module.name]?.create ||
+                permissions[module.name]?.edit ||
+                permissions[module.name]?.delete
+              )}
             />
           )}
           {module.actions.includes("create") && (
@@ -166,14 +164,24 @@ const CreateAdminRole = () => {
     let isValid = true;
     let newErrors = { roleName: "", roleDescription: "", permissions: "" };
 
-    if (!roleName) {
+    // Validate Role Name: if empty, show "required" error; if not empty but length out of range, show range error.
+    if (!roleName || !roleName.trim()) {
       newErrors.roleName = t("Role Name is required");
+      isValid = false;
+      window.scroll(0, 0);
+    } else if (roleName.trim().length > 15) {
+      newErrors.roleName = t("Role Name should be between 1 to 15 characters");
       isValid = false;
       window.scroll(0, 0);
     }
 
-    if (!roleDescription) {
+    // Validate Role Description: if empty, show "required" error; if not empty but length out of range, show range error.
+    if (!roleDescription || !roleDescription.trim()) {
       newErrors.roleDescription = t("Role Description is required");
+      isValid = false;
+      window.scroll(0, 0);
+    } else if (roleDescription.trim().length > 60) {
+      newErrors.roleDescription = t("Role Description should be between 1 to 60 characters");
       isValid = false;
       window.scroll(0, 0);
     }
@@ -196,12 +204,16 @@ const CreateAdminRole = () => {
       roleName: roleName.trim(),
       roleDescription,
       roleLevel: "Company",
-      permissions: Object.keys(permissions).map((moduleName) => {
-        const actions = Object.keys(permissions[moduleName])
-          .filter((action) => permissions[moduleName][action])
-          .map((action) => action.charAt(0).toUpperCase() + action.slice(1));
-        return { moduleName, actions };
-      }).filter((module) => module.actions.length > 0),
+      permissions: Object.keys(permissions)
+        .map((moduleName) => {
+          const actions = Object.keys(permissions[moduleName])
+            .filter((action) => permissions[moduleName][action])
+            .map(
+              (action) => action.charAt(0).toUpperCase() + action.slice(1)
+            );
+          return { moduleName, actions };
+        })
+        .filter((module) => module.actions.length > 0),
       created_by: createdBy,
       company_id: company_id,
     };
@@ -246,10 +258,9 @@ const CreateAdminRole = () => {
           confirmButtonText: t("OK"),
         }).then(() => {
           getRoles(userId);
-          navigate("/settings/admin/roles"); // Navigate after confirmation
+          navigate("/settings/admin/roles");
         });
       } else {
-        // Show error message if response is not successful
         await Swal.fire({
           title: "Error!",
           text: response.message || t("There was an error creating the role."),
@@ -298,30 +309,38 @@ const CreateAdminRole = () => {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>{t("Role Name")}</Form.Label>
+                  <Form.Label>
+                    {t("Role Name")} <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
                     type="text"
                     placeholder={t("Enter Role Name")}
+                    maxLength={15}
                     onChange={() => handleOnChange("roleName")}
                     isInvalid={!!errors.roleName}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.roleName}
                   </Form.Control.Feedback>
+                  
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>{t("Role Description")}</Form.Label>
+                  <Form.Label>
+                    {t("Role Description")} <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
                     type="text"
                     placeholder={t("Enter Role Description")}
+                    maxLength={60}
                     onChange={() => handleOnChange("roleDescription")}
                     isInvalid={!!errors.roleDescription}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.roleDescription}
                   </Form.Control.Feedback>
+                  
                 </Form.Group>
               </Col>
             </Row>

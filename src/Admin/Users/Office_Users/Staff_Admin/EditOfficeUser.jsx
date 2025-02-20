@@ -439,7 +439,7 @@ const EditOfficeUser = () => {
                     >
                       Save
                     </Button>
-                    <Button variant="secondary" type="reset">
+                    <Button variant="secondary" type="reset" onClick={()=>navigate(-1)}>
                       Cancel
                     </Button>
                   </div>

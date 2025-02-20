@@ -4,9 +4,7 @@ import "./GuideTour.css";
 import { useTranslation } from "react-i18next";
 
 const GuideTour = ({ onClose }) => {
-  const [companyName, setCompanyName] = useState(
-    localStorage.getItem("companyName")
-  );
+  const [companyName] = useState(localStorage.getItem("companyName"));
   const { t } = useTranslation();
 
   const steps = [
@@ -132,7 +130,14 @@ Buffer Time: Add extra time for flexibility in scheduling.`
         <Button
           variant="link"
           onClick={onClose}
-          style={{ position: "absolute", top: 10, right: 10,background:"grey",color:"white",textDecoration:"none" }}
+          style={{
+            position: "absolute",
+            bottom: "22px",
+            right: 10,
+            background: "grey",
+            color: "white",
+            textDecoration: "none",
+          }}
         >
           {t("Skip Tutorial")}
         </Button>
@@ -143,11 +148,8 @@ Buffer Time: Add extra time for flexibility in scheduling.`
           {currentStepHasSlides && (
             <div className="d-flex align-items-center justify-content-center image-slider">
               <Button
-                style={{
-                  background: "#00000012",
-                  color: "black",
-                  border: "none",
-                }}
+              variant="secondary"
+                className="slider-button left"
                 onClick={handlePrev}
                 disabled={slideIndex === 0}
               >
@@ -160,11 +162,8 @@ Buffer Time: Add extra time for flexibility in scheduling.`
                 style={{ width: "80%", margin: "0 10px" }}
               />
               <Button
-                style={{
-                  background: "#00000012",
-                  color: "black",
-                  border: "none",
-                }}
+              variant="secondary"
+                className="slider-button right"
                 onClick={handleNext}
                 disabled={slideIndex === steps[currentStep].slides.length - 1}
               >
@@ -174,6 +173,7 @@ Buffer Time: Add extra time for flexibility in scheduling.`
           )}
           <p className="mt-3">{renderDescription(description)}</p>
         </div>
+
         <div className="guide-buttons">
           {(currentStep > 0 || (currentStepHasSlides && slideIndex > 0)) && (
             <Button variant="secondary" onClick={handlePrev}>

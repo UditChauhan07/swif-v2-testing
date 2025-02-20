@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import Header from "../../../../../Components/Header/Header";
-import { Container, Row, Col, Image, Card } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
+import { Container, Row, Col, Image, Card,Button } from "react-bootstrap";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 
 const CustomerDetails = () => {
   const { t } = useTranslation(); 
+  const navigate = useNavigate()
   
   const location = useLocation();
   const { customer } = location.state || {};
@@ -79,6 +80,11 @@ const CustomerDetails = () => {
                 <Col>{formatTimestamp(customer.created_at)}</Col>
               </Row>
             </Card>
+            <div className="mt-4 text-center">
+              <Button variant="secondary" onClick={() => navigate("/customers/list")}>
+                {t("Back")}
+              </Button>
+            </div>
           </Container>
         </div>
       </div>

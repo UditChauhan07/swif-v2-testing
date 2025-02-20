@@ -1514,7 +1514,6 @@
   "Enter new password": "Ingrese una nueva contraseña",
   "Password updated successfully!": "¡Contraseña actualizada exitosamente!",
   "Failed to change password. Please try again.": "No se pudo cambiar la contraseña. Por favor inténtalo de nuevo.",
-  "Passwords do not match. Please try again.": "Las contraseñas no coinciden. Por favor inténtalo de nuevo.",
   "Yes, create it!": "¡Sí, créalo!",
   "Processing...": "Tratamiento...",
   "Creating company, please wait.": "Creando empresa, por favor espere.",
@@ -1729,5 +1728,12 @@
   "Company Work Order Time Module": "Módulo de Tiempo de Ordenes de Trabajo",
   "Company Language Change Module": "Módulo de Cambio de Idioma",
   "Company Work Order Report Module": "Módulo de Reporte de Ordenes de Trabajo",
-  "Company Field User Attendence Report Module": "Módulo de Reporte de Asistencia de Usuario de Campo"
+  "Company Field User Attendence Report Module": "Módulo de Reporte de Asistencia de Usuario de Campo",
+  "Confirm Password is required.":"Se requiere confirmar contraseña.",
+  "Select a country":"Seleccione un país",
+  "Only JPEG and PNG formats allowed.":"Sólo se permiten los formatos JPEG y PNG.",
+  "Select file":"Seleccionar archivo",
+  "Passwords do not match. Please try again.":"Las contraseñas no coinciden. Por favor inténtalo de nuevo.",
+  "Skip Tutorial":"Saltar tutorial",
+  "Number of Users":"Numero de usuarias"
 }

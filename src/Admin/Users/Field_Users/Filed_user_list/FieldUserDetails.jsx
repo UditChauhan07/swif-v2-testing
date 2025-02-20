@@ -3,6 +3,7 @@ import { Container, Row, Col, Image, Card } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
+import BackButton from "../../../../utils/BackButton/BackButton";
 
 
 const FieldUserDetails = () => {
@@ -59,7 +60,7 @@ const FieldUserDetails = () => {
                 </Col>
                 <Col>{row.username}</Col>
            </Row>
-        
+          <BackButton/>
           </Container>
         </div>
       </div>  

@@ -41,6 +41,12 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
     setSuccess(null);
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+
+    if (!formData.newPassword.trim()) {
+      setError(t("Password is required."));
+      return;
+    }
+
     if (!passwordRegex.test(formData.newPassword)) {
       setError(
         t(
@@ -50,12 +56,16 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
       return;
     }
 
+    // Check if confirm password is provided
+    if (!formData.confirmPassword.trim()) {
+      setError(t("Confirm Password is required."));
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
       setError(t("Passwords do not match. Please try again."));
       return;
     }
-
-    // Validate password: 8-16 characters, one uppercase, one number, one special character
 
     try {
       const finalData = {
@@ -85,7 +95,7 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
       show={show}
       onHide={handleClose}
       centered
-      backdropClassName="transparent-backdrop" // custom class if you want to tweak backdrop styling
+      backdropClassName="transparent-backdrop"
     >
       <Modal.Header
         closeButton
@@ -110,7 +120,6 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  required
                 />
                 <Button
                   variant="link"
@@ -136,7 +145,6 @@ const ChangePasswordModal = ({ show, handleClose, userId }) => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  required
                 />
                 <Button
                   variant="link"

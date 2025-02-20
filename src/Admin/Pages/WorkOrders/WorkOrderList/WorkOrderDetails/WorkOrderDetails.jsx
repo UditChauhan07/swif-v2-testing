@@ -1,11 +1,12 @@
 import React from "react";
 import Header from "../../../../../Components/Header/Header";
-import { Container, Row, Col, Card } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
+import { Container, Row, Col, Card,Button } from "react-bootstrap";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const WorkOrderDetails = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate()
   const location = useLocation();
   const { workOrder } = location.state || {};
   console.log(workOrder);
@@ -262,6 +263,11 @@ const WorkOrderDetails = () => {
               </Row>
             </Card.Body>
           </Card>
+          <div className="mt-3 text-center">
+              <Button variant="secondary" onClick={() => navigate("/workorder/list")}>
+                {t("Back")}
+              </Button>
+            </div>
         </Container>
       </div>
     </>

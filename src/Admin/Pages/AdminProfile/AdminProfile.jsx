@@ -193,7 +193,7 @@ const AdminProfile = () => {
                 }}
               >
                 <div>
-                  <h4 className="mb-0 text-white">{t("Work Order Time")}</h4>
+                  <h4 className="mb-0 text-white">{t("Company Profile")}</h4>
                 </div>
                 <Button
                   variant="secondary"

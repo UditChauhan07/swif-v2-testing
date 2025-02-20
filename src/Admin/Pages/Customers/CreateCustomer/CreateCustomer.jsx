@@ -58,13 +58,19 @@ const CreateCustomer = () => {
       phone: "",
       address: "",
     };
-  
-    // Validate name
+
+    // Validate name: required, max length 15 and no numbers allowed.
     if (!formData.name.trim()) {
       newErrors.name = t("Name is required");
       isValid = false;
+    } else if (formData.name.length > 20) {
+      newErrors.name = t("Name must not exceed 20 characters");
+      isValid = false;
+    } else if (/\d/.test(formData.name)) {
+      newErrors.name = t("Name should not contain numbers");
+      isValid = false;
     }
-  
+
     // Validate email using a stricter regex
     if (!formData.email.trim()) {
       newErrors.email = t("Email is required");
@@ -73,7 +79,7 @@ const CreateCustomer = () => {
       newErrors.email = t("Email is invalid");
       isValid = false;
     }
-  
+
     // Validate phone: it must be a number and exactly 10 to 15 digits.
     if (formData.phone === "" || formData.phone === null) {
       newErrors.phone = t("Phone is required");
@@ -82,17 +88,17 @@ const CreateCustomer = () => {
       newErrors.phone = t("Phone must contain between 10 and 15 digits");
       isValid = false;
     }
-  
+
     // Validate address
     if (!formData.address.trim()) {
       newErrors.address = t("Address is required");
       isValid = false;
     }
-  
+
     setErrors(newErrors);
     return isValid;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -149,7 +155,8 @@ const CreateCustomer = () => {
       } else {
         Swal.fire({
           title: "Error!",
-          text: response.message || t("There was an error creating the Customer."),
+          text:
+            response.message || t("There was an error creating the Customer."),
           icon: "error",
           confirmButtonText: t("Try Again"),
         });
@@ -196,6 +203,7 @@ const CreateCustomer = () => {
                       placeholder={t("Enter Name")}
                       name="name"
                       value={formData.name}
+                      max={20}
                       onChange={handleInputChange}
                       isInvalid={!!errors.name}
                     />
