@@ -1,8 +1,8 @@
 import axios from "axios";
 // export const Url = "http://localhost:2525";
-export const Url = "https://apiv4-hl3bjt37ia-uc.a.run.app/";
+// export const Url = "https://apiv4-hl3bjt37ia-uc.a.run.app/";
 // export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/test"
-// export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/apiv4"
+export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/apiv4"
 
 // Admin Login APi
 export const LoginApi = async (formData) => {
@@ -782,6 +782,24 @@ export const getFieldUserAttendenceApi = async (companyId, token) => {
   }
 };
 
+// Get Taxation Country Details
+export const getTaxationDetails = (async(token)=>{
+  try {
+    const response = await axios.get(`${Url}/jhs29ksl2s`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    // console.log(response.data, "login api data");
+    return response;
+  } catch (error) {
+      if (error.response) {
+        return error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
+)
 
 
 

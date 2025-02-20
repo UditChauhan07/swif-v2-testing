@@ -1756,5 +1756,10 @@
   "An error occurred while uploading the file.": "Ocurrió un error al subir el archivo.",
   "Yes, upload valid rows":"Sí, sube filas válidas",
   "Only 1 out of 2 rows are valid. 1 row(s) will be skipped. Do you want to continue?":"Sólo 1 de 2 filas es válida. Se omitirán 1 fila(s). ¿Quieres continuar?",
-  "Work orders imported successfully":"Órdenes de trabajo importadas exitosamente"
+  "Work orders imported successfully":"Órdenes de trabajo importadas exitosamente",
+  "Showing {{start}} to {{end}} of {{total}} items": "Mostrando {{start}} a {{end}} de {{total}} elementos",
+  "Taxation Settings":"Configuración de impuestos",
+  "Tax Rate":"Tasa impositiva",
+  "Search Country...":"Buscar país..."
+
 }
