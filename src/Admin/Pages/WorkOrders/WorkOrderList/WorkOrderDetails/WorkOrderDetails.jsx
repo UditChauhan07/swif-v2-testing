@@ -1,12 +1,12 @@
 import React from "react";
 import Header from "../../../../../Components/Header/Header";
-import { Container, Row, Col, Card,Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const WorkOrderDetails = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
   const { workOrder } = location.state || {};
   console.log(workOrder);
@@ -152,24 +152,36 @@ const WorkOrderDetails = () => {
           {/* Work Order Items */}
           <Card className="p-3 shadow-lg mb-4 border-0">
             <Card.Header
-              className=" text-white fw-bold"
+              className="text-white fw-bold"
               style={{ background: "#2e2e32" }}
             >
               {t("Work Order Details")}
             </Card.Header>
             <Card.Body>
               {workOrder.workorderDetails &&
-              workOrder.workorderDetails?.length > 0 ? (
+              workOrder.workorderDetails.length > 0 ? (
                 workOrder.workorderDetails.map((item, index) => (
-                  <Row key={index} className="mb-2 border-bottom pb-2">
-                    <Col md={4} className="fw-bold">
-                      {t("Work Item")}:
+                  <Row key={index} className="mb-1">
+                    <Col md={6}>
+                      <div
+                        className="p-2 border rounded"
+                        style={{ background: "#f7f7f7", minHeight: "50px" }}
+                      >
+                        <div className="fw-bold mb-1">{t("Work Item")}:</div>
+                        <div>{item.workItem || "--"}</div>
+                      </div>
                     </Col>
-                    <Col>{item.workItem || "--"}</Col>
-                    <Col md={4} className="fw-bold">
-                      {t("Work Description")}:
+                    <Col md={6}>
+                      <div
+                        className="p-2 border rounded"
+                        style={{ background: "#f7f7f7", minHeight: "50px" }}
+                      >
+                        <div className="fw-bold mb-1">
+                          {t("Work Description")}:
+                        </div>
+                        <div>{item.workDescription || "--"}</div>
+                      </div>
                     </Col>
-                    <Col>{item.workDescription || "--"}</Col>
                   </Row>
                 ))
               ) : (
@@ -264,10 +276,13 @@ const WorkOrderDetails = () => {
             </Card.Body>
           </Card>
           <div className="mt-3 text-center">
-              <Button variant="secondary" onClick={() => navigate("/workorder/list")}>
-                {t("Back")}
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              onClick={() => navigate("/workorder/list")}
+            >
+              {t("Back")}
+            </Button>
+          </div>
         </Container>
       </div>
     </>

@@ -15,6 +15,8 @@ import Swal from "sweetalert2";
 import { usePermissions } from "../../context/PermissionContext";
 import { MdDashboard } from "react-icons/md";
 import { FaFileInvoiceDollar } from "react-icons/fa6";
+import { TbTax } from "react-icons/tb";
+
 
 
 import {
@@ -360,6 +362,17 @@ const Header = () => {
                     </Link>
                   </div>
                 </div>
+
+                {/* Taxation Setting */}
+                <Link
+                  to="/taxation-setting"
+                  className="dropdown dropdown-title"
+                  activeClassName="active"
+                  style={{ textDecoration: "none" }}
+                >
+                  {t("Taxation Setting")}
+                  <TbTax size={20} />
+                </Link>
 
                 {/* Billing System Dropdown */}
                 <div

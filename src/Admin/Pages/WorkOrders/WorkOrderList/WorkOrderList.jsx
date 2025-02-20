@@ -81,13 +81,24 @@ const WorkOrderList = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredtable.slice(indexOfFirstItem, indexOfLastItem);
+  console.log("dasddad", currentItems);
   const totalPages = Math.ceil(filteredtable.length / itemsPerPage);
 
   const handleToPreview = async (workOrder) => {
     navigate("/workorder/list/details", { state: { workOrder } });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (row) => {
+    if (row.status === "In Progress") {
+      Swal.fire({
+        title: t("Error"),
+        text: t("You cannot delete a work order once it has started."),
+        icon: "error",
+        confirmButtonText: t("OK"),
+      });
+      return;
+    }
+
     const confirmResult = await Swal.fire({
       title: t("Are you sure?"),
       text: t("You won't be able to revert this!"),
@@ -108,7 +119,7 @@ const WorkOrderList = () => {
           },
         });
 
-        const apiResult = await workOrderDeleteApi(id, token, company_id);
+        const apiResult = await workOrderDeleteApi(row.id, token, company_id);
         Swal.close();
 
         if (apiResult.status === true) {
@@ -118,7 +129,7 @@ const WorkOrderList = () => {
             "success"
           );
           setTableData((prevList) =>
-            prevList.filter((order) => order.id !== id)
+            prevList.filter((order) => order.id !== row.id)
           );
         } else {
           await Swal.fire("Error", apiResult.message, "error");
@@ -278,15 +289,23 @@ const WorkOrderList = () => {
                         >
                           {row?.workorderDetails
                             .slice(0, 2)
-                            .map((item, index) => (
-                              <span key={index}>
-                                {item.workItem}
-                                {index < 1 && row?.workorderDetails.length > 2
-                                  ? ", ..."
-                                  : ""}
-                              </span>
-                            ))}
+                            .map((item, index) => {
+                              const truncatedText =
+                                item.workItem.length > 20
+                                  ? item.workItem.slice(0, 20) + "..."
+                                  : item.workItem;
+
+                              return (
+                                <span key={index}>
+                                  {truncatedText}
+                                  {index < 1 && row?.workorderDetails.length > 2
+                                    ? ", ..."
+                                    : ""}
+                                </span>
+                              );
+                            })}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -332,7 +351,7 @@ const WorkOrderList = () => {
                               <Button
                                 variant="danger"
                                 size="sm"
-                                onClick={() => handleDelete(row.id)}
+                                onClick={() => handleDelete(row)}
                                 style={{
                                   borderRadius: "50%",
                                   width: "35px",

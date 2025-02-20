@@ -6,6 +6,7 @@ import Header from "../../../../Components/Header/Header";
 import { useNavigate } from "react-router-dom";
 import { getRoles } from "../../../../lib/store";
 import { useTranslation } from "react-i18next";
+import { IoMdInformationCircle } from "react-icons/io";
 import PaginationComp from "../../../../Components/PaginationComp/PaginationComp"; // Adjust the path as needed
 
 const AdminRoles = () => {
@@ -164,7 +165,7 @@ const AdminRoles = () => {
                           }}
                           onClick={() => handleEditAdminRoleClick(role)}
                         >
-                          <FaEdit />
+                          <IoMdInformationCircle  />
                         </Button>
                       </td>
                     </tr>

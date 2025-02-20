@@ -55,6 +55,7 @@ const CreateWorkOrder = () => {
     const options = [];
     for (let i = 1; i <= 24; i++) {
       const totalMinutes = baseMinutes + i * intervalMinutes;
+      if (totalMinutes > 720) break; // 720 minutes is 12:00 PM
       options.push(convertMinutesToTimeString(totalMinutes));
     }
     return options;
@@ -71,7 +72,7 @@ const CreateWorkOrder = () => {
   );
   const [startTime, setStartTime] = useState(getCurrentTimeHHMM());
   const [expectedTime, setExpectedTime] = useState("00:00");
-  console.log("timeeee",expectedTime)
+  console.log("timeeee", expectedTime);
   const [selectedWorkers, setSelectedWorkers] = useState("");
   const [selectedWorkerId, setSelectedWorkerId] = useState("");
 
@@ -157,9 +158,22 @@ const CreateWorkOrder = () => {
   };
 
   const handleWorkItemChange = (id, field, value) => {
-    setWorkItems(
-      workItems.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    const updatedWorkItems = workItems.map((row) =>
+      row.id === id ? { ...row, [field]: value } : row
     );
+    setWorkItems(updatedWorkItems);
+
+    // Clear the error if all work items and descriptions are non-empty and within length limits
+    const allValid = updatedWorkItems.every(
+      (row) =>
+        row.workItem.trim() &&
+        row.itemDesc.trim() &&
+        row.workItem.length <= 100 &&
+        row.itemDesc.length <= 200
+    );
+    if (allValid) {
+      clearError("workItems");
+    }
   };
 
   const clearError = (field) => {
@@ -186,7 +200,8 @@ const CreateWorkOrder = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!selectedCustomer) newErrors.selectedCustomer = t("Customer is required");
+    if (!selectedCustomer)
+      newErrors.selectedCustomer = t("Customer is required");
     if (!startDate) newErrors.startDate = t("Start Date is required");
     if (!startTime) newErrors.startTime = t("Start Time is required");
     if (!expectedTime) newErrors.expectedTime = t("Expected Time is required");
@@ -197,14 +212,18 @@ const CreateWorkOrder = () => {
       workItems.length === 0 ||
       workItems.some((row) => !row.workItem.trim() || !row.itemDesc.trim())
     ) {
-      newErrors.workItems = t("At least one Work Item and Description are required.");
+      newErrors.workItems = t(
+        "At least one Work Item and Description are required."
+      );
     }
     // Validate maximum character length for each work item and description
-    if (workItems.some((row) => row.workItem.length > 20)) {
-      newErrors.workItems = t("Work Item must not exceed 20 characters");
+    if (workItems.some((row) => row.workItem.length > 100)) {
+      newErrors.workItems = t("Work Item must not exceed 100 characters");
     }
-    if (workItems.some((row) => row.itemDesc.length > 40)) {
-      newErrors.workItems = t("Item Description must not exceed 40 characters");
+    if (workItems.some((row) => row.itemDesc.length > 200)) {
+      newErrors.workItems = t(
+        "Item Description must not exceed 200 characters"
+      );
     }
 
     setErrors(newErrors);
@@ -511,19 +530,31 @@ const CreateWorkOrder = () => {
             {/* Workorder Details Table */}
             <Card className="mb-4">
               <Card.Header className="bg-purple text-white d-flex justify-content-between align-items-center">
-                <span>{t("Workorder Details")} </span>
+                <span>{t("Workorder Details")}</span>
               </Card.Header>
               <Card.Body>
                 <Table bordered responsive>
                   <thead>
                     <tr className="bg-light">
-                      <th>{t("Work Item")} <span className="text-danger">*</span></th>
-                      <th>{t("Item Description")} <span className="text-danger">*</span></th>
+                      <th>
+                        {t("Work Item")} <span className="text-danger">*</span>
+                      </th>
+                      <th>
+                        {t("Item Description")}{" "}
+                        <span className="text-danger">*</span>
+                      </th>
                       <th className="text-center">
                         <Button
                           variant="success"
                           size="sm"
                           onClick={addWorkItemRow}
+                          disabled={
+                            workItems.length === 0 ||
+                            !(
+                              workItems[workItems.length - 1].workItem.trim() &&
+                              workItems[workItems.length - 1].itemDesc.trim()
+                            )
+                          }
                         >
                           {t("Add More")}
                         </Button>
@@ -531,7 +562,7 @@ const CreateWorkOrder = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {workItems.map((row) => (
+                    {workItems.map((row, index) => (
                       <tr key={row.id}>
                         <td>
                           <Form.Control
@@ -562,13 +593,15 @@ const CreateWorkOrder = () => {
                           />
                         </td>
                         <td className="text-center">
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => removeWorkItemRow(row.id)}
-                          >
-                            ✖
-                          </Button>
+                          {index > 0 && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => removeWorkItemRow(row.id)}
+                            >
+                              ✖
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}

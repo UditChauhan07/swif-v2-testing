@@ -59,6 +59,7 @@ import CurrencyMangment from './Super_Admin/Pages/BillingSystem/CurrencyManagmen
 import CustomPricingOption from './Super_Admin/Pages/BillingSystem/PricingOption/CustomPricingOption';
 import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys/PackageCreateSys';
 import PackagesList from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/PackagesList";
+import TaxationSetting from "./Super_Admin/Pages/TaxationSetting/TaxationSetting";
 
 
 function App() {
@@ -93,6 +94,9 @@ function App() {
           <Route path="/reports/workorder" element={<PrivateRoute element={WorkOrderReport } />} />
           <Route path="/reports/fieldattendence" element={<PrivateRoute element={FieldUserAttenderReport} />} />
           <Route path="/reports/login-logout" element={<PrivateRoute element={LoginLogoutReport} />} />
+
+          {/* Taxation Setting */}
+          <Route path="/taxation-setting" element={<PrivateRoute element={TaxationSetting} />} />
 
 
           {/* Billings System */}

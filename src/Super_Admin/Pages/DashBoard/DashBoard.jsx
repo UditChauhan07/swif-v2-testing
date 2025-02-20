@@ -9,19 +9,24 @@ import {
 } from "../../../lib/store";
 import { useTranslation } from "react-i18next";
 
+// Helper function to truncate text with a custom maximum length
+const truncateText = (text, maxLength) => {
+  if (!text) return "";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+};
+
 const DashBoard = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  const [totalCompanies, settotalCompanies] = useState();
-  const [totalWorkOrders, settotalWorkOrders] = useState();
-
+  const [totalCompanies, setTotalCompanies] = useState();
+  const [totalWorkOrders, setTotalWorkOrders] = useState();
   const [companyList, setCompanyList] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("UserToken");
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true); // Show loader while fetching data
+    const fetchCompanies = async () => {
+      setLoading(true);
       try {
         const response = await getCompanyListApi(token);
         if (response.status === true) {
@@ -30,33 +35,28 @@ const DashBoard = () => {
       } catch (error) {
         console.error("API Error:", error);
       } finally {
-        setLoading(false); // Hide loader after fetching data
+        setLoading(false);
       }
     };
 
-    fetchData();
+    fetchCompanies();
   }, [token]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true); 
+    const fetchDashboardDetails = async () => {
       try {
         const response = await getSuperAdminDashboardDetails(token);
         if (response.success === true) {
-          settotalCompanies(response?.totalCompanies || []);
-          settotalWorkOrders(response?.totalWorkOrders || []);
+          setTotalCompanies(response?.totalCompanies || 0);
+          setTotalWorkOrders(response?.totalWorkOrders || 0);
         }
       } catch (error) {
         console.error("API Error:", error);
-      } finally {
-        // setLoading(false); 
       }
     };
 
-    fetchData();
+    fetchDashboardDetails();
   }, [token]);
-  
-  
 
   return (
     <>
@@ -69,7 +69,7 @@ const DashBoard = () => {
               <Col md={6}>
                 <Card className="stats-card">
                   <Card.Body>
-                    <h3>{totalCompanies||0}</h3>
+                    <h3>{totalCompanies || 0}</h3>
                     <p>{t("Total Companies")}</p>
                   </Card.Body>
                 </Card>
@@ -77,7 +77,7 @@ const DashBoard = () => {
               <Col md={6}>
                 <Card className="stats-card">
                   <Card.Body>
-                    <h3>{totalWorkOrders||0}</h3>
+                    <h3>{totalWorkOrders || 0}</h3>
                     <p>{t("Total Work Orders")}</p>
                   </Card.Body>
                 </Card>
@@ -97,7 +97,7 @@ const DashBoard = () => {
             ) : (
               <Row>
                 {companyList.map((company) => (
-                  <Col md={3} key={company.id}>
+                  <Col md={4} key={company.id}>
                     <Card className="company-card">
                       <Card.Img
                         className="company-logo"
@@ -108,46 +108,45 @@ const DashBoard = () => {
                         }
                         alt={`${company.company.company_name} logo`}
                       />
-
                       <Card.Body>
                         <Card.Title
                           style={{ textAlign: "center", color: "black" }}
                         >
-                          <strong>{company?.company.company_name}</strong>
+                          <strong>
+                            {truncateText(company?.company.company_name, 15)}
+                          </strong>
                         </Card.Title>
                         <Card.Text
                           style={{ textAlign: "center", minHeight: "50px" }}
                         >
-                          {company.company.address_line_1} ,
-                          {company.company.address_line_2} ,
-                          {company.company.companyState} ,
-                          {company.company.zip_postal_code} ,
-                          {company.company.country}
+                          {truncateText(
+                            `${company.company.address_line_1}, ${company.company.address_line_2}, ${company.company.companyState}, ${company.company.zip_postal_code}, ${company.company.country}`,
+                            45
+                          )}
                         </Card.Text>
-
                         <div
                           className="company-stats d-flex justify-content-around border rounded"
-                          style={{
-                            margin: "0px -16px 10px -16px",
-                          }}
+                          style={{ margin: "0px -16px 10px -16px" }}
                         >
                           <div className="stat-item text-center border-end">
-                            <strong>{company?.user_counts.totalCustomers || "0"}</strong>
+                            <strong>
+                              {company?.user_counts.totalCustomers || "0"}
+                            </strong>
                             <div>{t("Total Customer")}</div>
                           </div>
-                          {/* <div className="stat-item text-center border-end">
-                            <strong>{company.quotations || "0"}</strong>
-                            <div>{t("Quotations")}</div>
-                          </div> */}
                           <div className="stat-item text-center">
-                            <strong>{company?.user_counts.totalWorkOrders || "0"}</strong>
+                            <strong>
+                              {company?.user_counts.totalWorkOrders || "0"}
+                            </strong>
                             <div>{t("Work Orders")}</div>
                           </div>
                         </div>
-
                         <Card.Text>
                           <strong>{t("Admin")}:</strong>{" "}
-                          {company?.user?.first_name} {company?.user?.last_name}
+                          {truncateText(
+                            `${company?.user?.first_name} ${company?.user?.last_name}`,
+                            20
+                          )}
                         </Card.Text>
                       </Card.Body>
                     </Card>
