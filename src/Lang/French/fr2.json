@@ -1449,6 +1449,7 @@
     "File Uploaded": "Archivo subido",
     "Headers matched successfully!": "¡Los encabezados coinciden correctamente!",
     "Empty File": "Archivo vacío",
-    "The uploaded file is empty or invalid.": "El archivo subido está vacío o no es válido."
-
+    "The uploaded file is empty or invalid.": "El archivo subido está vacío o no es válido.",
+     "The following Field User Registered Succesfully": "Los siguientes datos del usuario de campo se registraron correctamente",
+"Username {name}, email {email}": "Nombre de usuario {name}, correo electrónico {email}"
 }

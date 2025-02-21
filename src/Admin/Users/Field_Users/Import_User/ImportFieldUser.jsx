@@ -6,7 +6,7 @@ import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { importFieldAgent } from "../../../../lib/store";
 import { useNavigate } from "react-router-dom";
-
+import BackButton from "./../../../../utils/BackButton/BackButton";
 const ImportFieldUser = () => {
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
@@ -427,32 +427,32 @@ const ImportFieldUser = () => {
       console.log("Response:", response);
       if (response.success === true) {
         let message = response.message || t("File uploaded successfully!");
-        if (validData && validData.length > 0) {
-          // message +=
-          //   response.failedUsers
-          //     .map((f) => `${f.email}: ${f.error}`)
-          //     .join("\n");
-          const successData = validData
-            .map(
-              (item) => `<li>Username  ${item.name}, email ${item.email}</li>`
-            )
-            .join("");
-          console.log("Success insider data", successData);
+        const successData = validData .map(
+          (item) => `<li>Username  ${item.name}, email ${item.email}</li>`
+        )
+        .join("");
+
+        if (validData && validData.length > 0 && invalidData.length > 0) {
+ 
+           
           Swal.close();
           await Swal.fire({
             icon: "warning",
             title: t("Partial Success"),
             html: `
-            <p><strong>${t("The following User Data Saved in DB")}</strong></p>
+            <p><strong>${t("The following Field User Registered Succesfully")}</strong></p>
             <ul>${successData}</ul>`,
           }).then(() => {
             navigate("/users/field/list");
           });
         } else {
-          Swal.fire({
+          Swal.close();
+         await Swal.fire({
             icon: "success",
             title: t("Success"),
-            text: message,
+            html:  `
+            <p><strong>${t("The following Field User Registered Succesfully")}</strong></p>
+            <ul>${successData}</ul>`,
           }).then(() => {
             navigate("/users/field/list");
           });
@@ -670,6 +670,7 @@ const ImportFieldUser = () => {
               </Table>
             </div>
           )}
+          <BackButton/>
         </div>
       </div>
     </>

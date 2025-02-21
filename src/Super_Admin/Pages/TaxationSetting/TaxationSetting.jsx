@@ -4,6 +4,7 @@ import { Table, Button, Form, Modal } from "react-bootstrap";
 import { FaEdit } from "react-icons/fa";
 import PaginationComp from "../../../Components/PaginationComp/PaginationComp";
 import { useTranslation } from "react-i18next";
+
 // 
 const initialTaxData = [
   { id: 1, country: "USA", taxName: "Federal Tax", taxPrice: "$10.00" },
