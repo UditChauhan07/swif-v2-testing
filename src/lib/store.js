@@ -15,7 +15,7 @@ export const LoginApi = async (formData) => {
     // console.log(response.data, "login api data");
     return response.data;
   } catch (error) {
-    if (error.response) {u
+    if (error.response) {
       return error.response.data;
     }
     throw new Error("An unexpected error occurred");
