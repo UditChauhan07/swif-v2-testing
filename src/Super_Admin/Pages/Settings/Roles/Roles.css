@@ -1,0 +1,16 @@
+.roles-container {
+    padding: 20px;
+  }
+  
+  .roles-container h2 {
+    color: #800080;
+  }
+  
+  .table th {
+    text-align: center;
+  }
+  
+  .table td {
+    vertical-align: middle;
+  }
+  

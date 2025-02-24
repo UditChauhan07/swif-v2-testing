@@ -1,0 +1,11 @@
+/* Left side image styling */
+.login-left {
+    background: url('../../../public//images//image.png') no-repeat center center;
+    background-size: cover;
+  }
+  
+  /* Right side form alignment */
+  .login-container {
+    height: 100vh;
+  }
+  

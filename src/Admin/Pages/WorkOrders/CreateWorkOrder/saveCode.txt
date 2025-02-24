@@ -1,0 +1,823 @@
+import React, { useState } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Table,
+} from "react-bootstrap";
+import Header from "../../../../Components/Header/Header";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./CreateWorkOrder.css";
+
+const CreateWorkOrder = () => {
+  // Service & Workorder Details state
+  const [selectedService, setSelectedService] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  // Customer Detail Section state
+  const [customerType, setCustomerType] = useState("Existing");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedCustomerAddress, setSelectedCustomerAddress] = useState("");
+  const [selectedBillingAddress, setSelectedBillingAddress] = useState("");
+  const [sendNotification, setSendNotification] = useState("Yes");
+
+  // Basic Workorder Details state
+  const [startDate, setStartDate] = useState("2025-02-03");
+  const [startTime, setStartTime] = useState("09:00");
+  const [expectedTime, setExpectedTime] = useState("04:00");
+  const [file, setFile] = useState(null);
+  const [salesPerson, setSalesPerson] = useState("Super Admin");
+  const [salesPersonContact, setSalesPersonContact] = useState("");
+  const [leadWorker, setLeadWorker] = useState("");
+  const [selectedWorkers, setSelectedWorkers] = useState("");
+
+  // Service Items state (part of Workorder Details)
+  const [serviceItems, setServiceItems] = useState([]);
+
+  // Additional Service Details for "Service Custom (One Time)"
+  const [customServiceName, setCustomServiceName] = useState("");
+  const [customServicePrice, setCustomServicePrice] = useState("");
+  const [customServiceDescription, setCustomServiceDescription] = useState("");
+
+  // Additional Service Details for "All service list"
+  const [allServiceDescription, setAllServiceDescription] = useState("");
+  const [allServiceOneTime, setAllServiceOneTime] = useState(false);
+
+  // Errors state for validations
+  const [errors, setErrors] = useState({});
+
+  // Utility: Remove error for a field
+  const clearError = (field) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  };
+
+  // Handle changes for service selection
+  const handleServiceChange = (e) => {
+    setSelectedService(e.target.value);
+    clearError("selectedService");
+    // Reset additional service details when switching service type.
+    setCustomServiceName("");
+    setCustomServicePrice("");
+    setCustomServiceDescription("");
+    setAllServiceDescription("");
+    setAllServiceOneTime(false);
+  };
+
+  // When category changes, reset the service select as well.
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    clearError("selectedCategory");
+    // Reset the service selection when category changes.
+    setSelectedService("");
+    clearError("selectedService");
+  };
+
+  const handleAddItem = () => {
+    setServiceItems([
+      ...serviceItems,
+      { subItem: "", price: "", quantity: 1, amount: 0, remarks: "" },
+    ]);
+  };
+
+  const handleRemoveItem = (index) => {
+    setServiceItems(serviceItems.filter((_, i) => i !== index));
+  };
+
+  const handleInputChange = (e, index, field) => {
+    const updatedServiceItems = [...serviceItems];
+    updatedServiceItems[index][field] = e.target.value;
+
+    // Recalculate total amount if price or quantity changes
+    if (field === "price" || field === "quantity") {
+      const price = parseFloat(updatedServiceItems[index].price) || 0;
+      const quantity = parseInt(updatedServiceItems[index].quantity, 10) || 1;
+      updatedServiceItems[index].amount = price * quantity;
+    }
+
+    setServiceItems(updatedServiceItems);
+    // Remove error for the service item field if valid
+    clearError(`serviceItems_${index}_${field}`);
+  };
+
+  // Validate all required fields
+  const validate = () => {
+    const newErrors = {};
+    // Customer Detail Section
+    if (!selectedCustomer) newErrors.selectedCustomer = "Customer is required";
+    if (!selectedCustomerAddress)
+      newErrors.selectedCustomerAddress = "Customer address is required";
+    if (!selectedBillingAddress)
+      newErrors.selectedBillingAddress = "Billing address is required";
+
+    // Basic Workorder
+    if (!startDate) newErrors.startDate = "Start Date is required";
+    if (!startTime) newErrors.startTime = "Start Time is required";
+    if (!expectedTime) newErrors.expectedTime = "Expected Time is required";
+    if (!salesPerson) newErrors.salesPerson = "Sales Person is required";
+    if (!leadWorker) newErrors.leadWorker = "Lead Worker is required";
+
+    if (!selectedCategory)
+      newErrors.selectedCategory = "Service category is required";
+    if (!selectedService) newErrors.selectedService = "Service is required";
+
+    if (selectedService === "Service Custom (One Time)") {
+      if (!customServiceName)
+        newErrors.customServiceName = "Service Name is required";
+      if (!customServicePrice)
+        newErrors.customServicePrice = "Service Price is required";
+    }
+    if (selectedService === "All service list") {
+      if (!allServiceDescription)
+        newErrors.allServiceDescription = "Service Description is required";
+    }
+
+    serviceItems.forEach((item, index) => {
+      if (!item.subItem)
+        newErrors[`serviceItems_${index}_subItem`] = "Item name is required";
+      if (!item.price)
+        newErrors[`serviceItems_${index}_price`] = "Item price is required";
+      if (!item.quantity)
+        newErrors[`serviceItems_${index}_quantity`] =
+          "Item quantity is required";
+    });
+    return newErrors;
+  };
+
+  const handleSubmitWorkOrder = () => {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    const finalData = {
+      // Customer Detail Section
+      customerDetailSection: {
+        customerType,
+        selectedCustomer,
+        selectedCustomerAddress,
+        selectedBillingAddress,
+        sendNotification,
+      },
+      // Basic Workorder Details
+      basicWorkorderDetails: {
+        startDate,
+        startTime,
+        expectedTime,
+        file,
+        salesPerson,
+        salesPersonContact,
+        leadWorker,
+        selectedWorkers,
+      },
+      // Workorder Details
+      workorderDetails: {
+        selectedCategory,
+        selectedService,
+        serviceItems,
+        ...(selectedService === "Service Custom (One Time)" && {
+          serviceName: customServiceName,
+          servicePrice: customServicePrice,
+          serviceDescription: customServiceDescription,
+        }),
+        ...(selectedService === "All service list" && {
+          serviceDescription: allServiceDescription,
+          oneTimeSubscription: {
+            selected: allServiceOneTime,
+            price: "100.00",
+          },
+        }),
+      },
+    };
+
+    console.log("Final Data:", finalData);
+    alert("Workorder submitted successfully!");
+  };
+
+  return (
+    <>
+      <Header />
+      <div className="main-header-box mt-4">
+        <div className="pages-box">
+          <Container>
+            {/* Customer Detail Section */}
+            <Card className="mb-4">
+              <Card.Header className="bg-purple text-white">
+                Customer Detail Section
+              </Card.Header>
+              <Card.Body>
+                <Form>
+                  {/* Customer Type */}
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column sm={3} className="required-label">
+                      Customer Type:
+                    </Form.Label>
+                    <Col sm={9}>
+                      <Form.Check
+                        type="radio"
+                        label="New"
+                        name="customerType"
+                        id="customerNew"
+                        inline
+                        onChange={() => setCustomerType("New")}
+                        checked={customerType === "New"}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="Existing"
+                        name="customerType"
+                        id="customerExisting"
+                        inline
+                        onChange={() => setCustomerType("Existing")}
+                        checked={customerType === "Existing"}
+                      />
+                    </Col>
+                  </Form.Group>
+
+                  {/* Select Customer */}
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column sm={3} className="required-label">
+                      Select Customer:
+                    </Form.Label>
+                    <Col sm={9}>
+                      <Form.Select
+                        value={selectedCustomer}
+                        onChange={(e) => {
+                          setSelectedCustomer(e.target.value);
+                          if (e.target.value) clearError("selectedCustomer");
+                        }}
+                      >
+                        <option value="">Select Customer</option>
+                        <option value="customer1">Customer 1</option>
+                        <option value="customer2">Customer 2</option>
+                      </Form.Select>
+                      {errors.selectedCustomer && (
+                        <div className="text-danger">
+                          {errors.selectedCustomer}
+                        </div>
+                      )}
+                    </Col>
+                  </Form.Group>
+
+                  {/* Select Customer Address */}
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column sm={3} className="required-label">
+                      Select Customer Address:
+                    </Form.Label>
+                    <Col sm={9}>
+                      <Form.Select
+                        value={selectedCustomerAddress}
+                        onChange={(e) => {
+                          setSelectedCustomerAddress(e.target.value);
+                          if (e.target.value)
+                            clearError("selectedCustomerAddress");
+                        }}
+                        disabled={!selectedCustomer}
+                        style={
+                          !selectedCustomer ? { cursor: "not-allowed" } : {}
+                        }
+                      >
+                        <option value="">Select Address</option>
+                        <option value="Mohali">Mohali</option>
+                        <option value="Chandigarh">Chandigarh</option>
+                      </Form.Select>
+                      {errors.selectedCustomerAddress && (
+                        <div className="text-danger">
+                          {errors.selectedCustomerAddress}
+                        </div>
+                      )}
+                    </Col>
+                  </Form.Group>
+
+                  {/* Select Billing Address */}
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column sm={3} className="required-label">
+                      Select Billing Address:
+                    </Form.Label>
+                    <Col sm={9}>
+                      <Form.Select
+                        value={selectedBillingAddress}
+                        onChange={(e) => {
+                          setSelectedBillingAddress(e.target.value);
+                          if (e.target.value)
+                            clearError("selectedBillingAddress");
+                        }}
+                        disabled={!selectedCustomer}
+                        style={
+                          !selectedCustomer ? { cursor: "not-allowed" } : {}
+                        }
+                      >
+                        <option value="">Select Billing Address</option>
+                        <option value="Mohali">Mohali</option>
+                        <option value="Chandigarh">Chandigarh</option>
+                      </Form.Select>
+                      {errors.selectedBillingAddress && (
+                        <div className="text-danger">
+                          {errors.selectedBillingAddress}
+                        </div>
+                      )}
+                    </Col>
+                  </Form.Group>
+
+                  {/* Send Notification */}
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column sm={3} className="required-label">
+                      Send Notification to Customer?
+                    </Form.Label>
+                    <Col sm={9}>
+                      <Form.Check
+                        type="radio"
+                        label="Yes"
+                        name="sendNotification"
+                        id="notificationYes"
+                        inline
+                        onChange={() => setSendNotification("Yes")}
+                        checked={sendNotification === "Yes"}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="No"
+                        name="sendNotification"
+                        id="notificationNo"
+                        inline
+                        onChange={() => setSendNotification("No")}
+                        checked={sendNotification === "No"}
+                      />
+                    </Col>
+                  </Form.Group>
+                </Form>
+              </Card.Body>
+            </Card>
+
+            {/* Basic Workorder Details */}
+            <Card className="mb-4">
+              <Card.Header className="bg-purple text-white">
+                Basic Workorder Details
+              </Card.Header>
+              <Card.Body>
+                <Form>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Start Date:
+                        </Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => {
+                            setStartDate(e.target.value);
+                            if (e.target.value) clearError("startDate");
+                          }}
+                        />
+                        {errors.startDate && (
+                          <div className="text-danger">{errors.startDate}</div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Start Time:
+                        </Form.Label>
+                        <Form.Control
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => {
+                            setStartTime(e.target.value);
+                            if (e.target.value) clearError("startTime");
+                          }}
+                        />
+                        {errors.startTime && (
+                          <div className="text-danger">{errors.startTime}</div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Expected Time Required:
+                        </Form.Label>
+                        <Form.Control
+                          type="time"
+                          value={expectedTime}
+                          onChange={(e) => {
+                            setExpectedTime(e.target.value);
+                            if (e.target.value) clearError("expectedTime");
+                          }}
+                        />
+                        {errors.expectedTime && (
+                          <div className="text-danger">
+                            {errors.expectedTime}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Files:</Form.Label>
+                        <Form.Control
+                          type="file"
+                          onChange={(e) => setFile(e.target.files[0])}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Sales Person:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={salesPerson}
+                          onChange={(e) => {
+                            setSalesPerson(e.target.value);
+                            if (e.target.value) clearError("salesPerson");
+                          }}
+                        />
+                        {errors.salesPerson && (
+                          <div className="text-danger">
+                            {errors.salesPerson}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Sales Person Contact:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={salesPersonContact}
+                          onChange={(e) =>
+                            setSalesPersonContact(e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Lead Worker:
+                        </Form.Label>
+                        <Form.Select
+                          value={leadWorker}
+                          onChange={(e) => {
+                            setLeadWorker(e.target.value);
+                            if (e.target.value) clearError("leadWorker");
+                          }}
+                        >
+                          <option value="">Select Lead Worker</option>
+                          <option value="FU">FU</option>
+                        </Form.Select>
+                        {errors.leadWorker && (
+                          <div className="text-danger">{errors.leadWorker}</div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Select Workers:</Form.Label>
+                        <Form.Select
+                          value={selectedWorkers}
+                          onChange={(e) => setSelectedWorkers(e.target.value)}
+                        >
+                          <option value="">Select Workers</option>
+                          <option value="worker1">Worker 1</option>
+                          <option value="worker2">Worker 2</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Form>
+              </Card.Body>
+            </Card>
+
+            {/* Workorder Details */}
+            <Card className="mb-4">
+              <Card.Header className="bg-purple text-white">
+                Workorder Details
+              </Card.Header>
+              <Card.Body>
+                <Form>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Service Category:
+                        </Form.Label>
+                        <Form.Select
+                          onChange={handleCategoryChange}
+                          value={selectedCategory}
+                        >
+                          <option value="">Select</option>
+                          <option value="all">All service category</option>
+                        </Form.Select>
+                        {errors.selectedCategory && (
+                          <div className="text-danger">
+                            {errors.selectedCategory}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="required-label">
+                          Select Service:
+                        </Form.Label>
+                        <Form.Select
+                          onChange={handleServiceChange}
+                          value={selectedService}
+                          disabled={!selectedCategory}
+                          style={
+                            !selectedCategory ? { cursor: "not-allowed" } : {}
+                          }
+                        >
+                          <option value="">Select</option>
+                          <option value="Service Custom (One Time)">
+                            Service Custom (One Time)
+                          </option>
+                          <option value="All service list">
+                            All service list
+                          </option>
+                        </Form.Select>
+                        {errors.selectedService && (
+                          <div className="text-danger">
+                            {errors.selectedService}
+                          </div>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  {/* Conditionally render additional service details */}
+                  {selectedService === "Service Custom (One Time)" && (
+                    <>
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="required-label">
+                              Service Name:
+                            </Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Service Name"
+                              value={customServiceName}
+                              onChange={(e) => {
+                                setCustomServiceName(e.target.value);
+                                if (e.target.value)
+                                  clearError("customServiceName");
+                              }}
+                            />
+                            {errors.customServiceName && (
+                              <div className="text-danger">
+                                {errors.customServiceName}
+                              </div>
+                            )}
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="required-label">
+                              Service Price:
+                            </Form.Label>
+                            <Form.Control
+                              type="number"
+                              placeholder="Service Price"
+                              value={customServicePrice}
+                              onChange={(e) => {
+                                setCustomServicePrice(e.target.value);
+                                if (e.target.value)
+                                  clearError("customServicePrice");
+                              }}
+                            />
+                            {errors.customServicePrice && (
+                              <div className="text-danger">
+                                {errors.customServicePrice}
+                              </div>
+                            )}
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Service Description:</Form.Label>
+                            <Form.Control
+                              as="textarea"
+                              rows={3}
+                              placeholder="Service Description"
+                              value={customServiceDescription}
+                              onChange={(e) =>
+                                setCustomServiceDescription(e.target.value)
+                              }
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
+
+                  {selectedService === "All service list" && (
+                    <>
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Service Description:</Form.Label>
+                            <Form.Control
+                              as="textarea"
+                              rows={3}
+                              placeholder="Service Description"
+                              value={allServiceDescription}
+                              onChange={(e) => {
+                                setAllServiceDescription(e.target.value);
+                                if (e.target.value)
+                                  clearError("allServiceDescription");
+                              }}
+                            />
+                            {errors.allServiceDescription && (
+                              <div className="text-danger">
+                                {errors.allServiceDescription}
+                              </div>
+                            )}
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Table bordered>
+                              <thead>
+                                <tr>
+                                  <th>Subscriptions</th>
+                                  <th>Standard</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>One Time</td>
+                                  <td>
+                                    <Form.Check
+                                      type="checkbox"
+                                      label="100.00 / One time"
+                                      inline
+                                      checked={allServiceOneTime}
+                                      onChange={(e) =>
+                                        setAllServiceOneTime(e.target.checked)
+                                      }
+                                    />
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </Table>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
+
+                  {(selectedService === "Service Custom (One Time)" ||
+                    selectedService === "All service list") && (
+                    <>
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Service Items:</Form.Label>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Table bordered>
+                        <thead>
+                          <tr>
+                            <th>Sub Items</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total Amount</th>
+                            <th>Remarks</th>
+                            <th style={{ width: "10%" }}>
+                              <Button
+                                variant="outline-primary"
+                                onClick={handleAddItem}
+                              >
+                                <span>+</span> Add
+                              </Button>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {serviceItems.map((item, index) => (
+                            <tr key={index}>
+                              <td>
+                                <Form.Control
+                                  type="text"
+                                  placeholder="Item Name"
+                                  value={item.subItem}
+                                  onChange={(e) =>
+                                    handleInputChange(e, index, "subItem")
+                                  }
+                                />
+                                {errors[`serviceItems_${index}_subItem`] && (
+                                  <div className="text-danger">
+                                    {errors[`serviceItems_${index}_subItem`]}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <Form.Control
+                                  type="number"
+                                  placeholder="Item Price"
+                                  value={item.price}
+                                  onChange={(e) =>
+                                    handleInputChange(e, index, "price")
+                                  }
+                                />
+                                {errors[`serviceItems_${index}_price`] && (
+                                  <div className="text-danger">
+                                    {errors[`serviceItems_${index}_price`]}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <Form.Control
+                                  type="number"
+                                  placeholder="Quantity"
+                                  value={item.quantity}
+                                  onChange={(e) =>
+                                    handleInputChange(e, index, "quantity")
+                                  }
+                                />
+                                {errors[`serviceItems_${index}_quantity`] && (
+                                  <div className="text-danger">
+                                    {errors[`serviceItems_${index}_quantity`]}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <Form.Control
+                                  type="number"
+                                  placeholder="Total Amount"
+                                  value={item.amount}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <Form.Control
+                                  type="text"
+                                  placeholder="Remarks"
+                                  value={item.remarks}
+                                  onChange={(e) =>
+                                    handleInputChange(e, index, "remarks")
+                                  }
+                                />
+                              </td>
+                              <td>
+                                <Button
+                                  variant="danger"
+                                  onClick={() => handleRemoveItem(index)}
+                                >
+                                  X
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </>
+                  )}
+                </Form>
+              </Card.Body>
+            </Card>
+
+            {/* Submit Workorder */}
+            <div className="text-center mb-4">
+              <Button
+                variant="primary"
+                onClick={handleSubmitWorkOrder}
+                disabled={!selectedCategory || !selectedService}
+              >
+                Submit Workorder
+              </Button>
+            </div>
+          </Container>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default CreateWorkOrder;
