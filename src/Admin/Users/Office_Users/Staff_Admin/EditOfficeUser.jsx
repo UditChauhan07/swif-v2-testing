@@ -105,7 +105,7 @@ const EditOfficeUser = () => {
       city: values.city,
       state: values.state,
       zip_code: values.zip,
-      address: values.address,
+      Address: values.address,
       country: values.country,
       roleID: values.role,
       isActive: values.activateUser,
@@ -317,6 +317,7 @@ const EditOfficeUser = () => {
                           rows={2}
                           name="address"
                           maxLength={200}
+                          onChange={(e) => setFieldValue('address', e.target.value)}
                         />
                       </Form.Group>
                     </Col>
@@ -375,21 +376,21 @@ const EditOfficeUser = () => {
                       <Form.Group className="mb-3">
                         <Form.Label>Country*</Form.Label>
                         <Select
-      options={countryOptions}
-      onChange={(selectedOption) =>
-        setFieldValue("country", selectedOption.value)
-      }
-      value={countryOptions.find(
-        (option) => option.value === values.country
-      )}
-      styles={{
-        menuList: (provided) => ({
-          ...provided,
-          maxHeight: "150px", // Limits dropdown height
-          overflowY: "auto",
-        }),
-      }}
-    />
+                      options={countryOptions}
+                      onChange={(selectedOption) =>
+                        setFieldValue("country", selectedOption.value)
+                      }
+                      value={countryOptions.find(
+                        (option) => option.value === values.country
+                      )}
+                      styles={{
+                        menuList: (provided) => ({
+                          ...provided,
+                          maxHeight: "150px", // Limits dropdown height
+                          overflowY: "auto",
+                        }),
+                      }}
+                    />
                         <ErrorMessage
                           name="country"
                           component="div"

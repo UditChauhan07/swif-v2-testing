@@ -22,44 +22,44 @@ const FieldUserDetails = () => {
                 <Col md={3} className="fw-bold">
                   {t("Agent Id")}:
                 </Col>
-                <Col>{row.id}</Col>
+                <Col>{row?.id ? row.id:'--'}</Col>
            </Row>
           <Row className="p-3">
                 <Col md={3} className="fw-bold">
                   {t("Name")}:
                 </Col>
-                <Col>{row.name}</Col>
+                <Col>{row?.name ? row.name:'--'}</Col>
+           </Row>
+           <Row className="p-3">
+                <Col md={3} className="fw-bold">
+                  {t("Username")}:
+                </Col>
+                <Col>{row?.username ?row.username:'--'}</Col>
+           </Row>
+           <Row className="p-3">
+                <Col md={3} className="fw-bold">
+                  {t("Contact")}:
+                </Col>
+                <Col>{row?.contact_number ? row.contact_number :'--'}</Col>
+           </Row>
+           <Row className="p-3">
+                <Col md={3} className="fw-bold">
+                  {t("Email")}:
+                </Col>
+                <Col>{row?.email ? row.email :'--'}</Col>
            </Row>
           <Row className="p-3">
                 <Col md={3} className="fw-bold">
                   {t("Address")}:
                 </Col>
-                <Col>{row.address}</Col>
+                <Col>{row?.address ? row.address :'--'}</Col>
            </Row>
           <Row className="p-3">
                 <Col md={3} className="fw-bold">
                   {t("Country")}:
                 </Col>
-                <Col>{row.country}</Col>
-           </Row>
-          <Row className="p-3">
-                <Col md={3} className="fw-bold">
-                  {t("Email")}:
-                </Col>
-                <Col>{row.email}</Col>
-           </Row>
-          <Row className="p-3">
-                <Col md={3} className="fw-bold">
-                  {t("Contact")}:
-                </Col>
-                <Col>{row.contact_number}</Col>
-           </Row>
-          <Row className="p-3">
-                <Col md={3} className="fw-bold">
-                  {t("Username")}:
-                </Col>
-                <Col>{row.username}</Col>
-           </Row>
+                <Col>{row.country ? row.country :'--'}</Col>
+           </Row>          
           <BackButton/>
           </Container>
         </div>

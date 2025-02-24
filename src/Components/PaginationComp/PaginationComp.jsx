@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 
 const PaginationComp = ({
   totalItems,
@@ -7,6 +8,7 @@ const PaginationComp = ({
   rowsPerPage,
   onPageChange,
 }) => {
+    const { t } = useTranslation();
   const totalPages = Math.ceil(totalItems / rowsPerPage);
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -26,9 +28,11 @@ const PaginationComp = ({
   return (
     <div className="d-flex justify-content-between align-items-center mt-3">
       <span>
-        Showing {totalItems === 0 ? 0 : indexOfFirstRow + 1} to{" "}
-        {indexOfLastRow > totalItems ? totalItems : indexOfLastRow} of{" "}
-        {totalItems} items
+        {t("Showing {{start}} to {{end}} of {{total}} items", {
+          start: totalItems === 0 ? 0 : indexOfFirstRow + 1,
+          end: indexOfLastRow > totalItems ? totalItems : indexOfLastRow,
+          total: totalItems,
+        })}
       </span>
       <div className="d-flex align-items-center">
         <Button

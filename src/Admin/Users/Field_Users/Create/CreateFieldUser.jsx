@@ -114,6 +114,9 @@ const CreateFieldUser = () => {
                       value={formik.values.name}
                       onChange={formik.handleChange}
                       isInvalid={formik.touched.name && formik.errors.name}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                    }}
                     />
                     <Form.Control.Feedback type="invalid">
                       {formik.errors.name}

@@ -1440,16 +1440,8 @@
     "Prospects & Leads":"Perspectives et pistes",
     "Submitted QT":"QT soumis",
     "Approved QT":"QT approuvé",
-    "Draft QT":"Brouillon QT",
-    "Invalid File Type": "Tipo de archivo no válido",
-    "Please upload a valid .xlsx file.": "Por favor, suba un archivo .xlsx válido.",
-    "Invalid File Headers": "Encabezados de archivo no válidos",
-    "Missing Headers": "Encabezados faltantes",
-    "Unexpected Headers": "Encabezados inesperados",
-    "File Uploaded": "Archivo subido",
-    "Headers matched successfully!": "¡Los encabezados coinciden correctamente!",
-    "Empty File": "Archivo vacío",
-    "The uploaded file is empty or invalid.": "El archivo subido está vacío o no es válido.",
-     "The following Field User Registered Succesfully": "Los siguientes datos del usuario de campo se registraron correctamente",
-"Username {name}, email {email}": "Nombre de usuario {name}, correo electrónico {email}"
+    "Draft QT":"Brouillon QT"
+    
+
+
 }

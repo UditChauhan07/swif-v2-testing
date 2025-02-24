@@ -1,5 +1,4 @@
 
-
     import React, { useState } from "react";
     import { Container, Row, Col, Image, Card,Button} from "react-bootstrap";
     import { useLocation } from "react-router-dom";
@@ -27,14 +26,13 @@ import BackButton from "../../../../utils/BackButton/BackButton";
                     <Col md={3} className="fw-bold">
                      First Name:
                     </Col>
-                    <Col>{row.first_name
-                    }</Col>
+                    <Col>{row?.first_name  ?row.first_name:'--'           }</Col>
                </Row>
               <Row className="p-3">
                     <Col md={3} className="fw-bold">
                       Last Name:
                     </Col>
-                    <Col>{row.last_name
+                    <Col>{row?.last_name ? row.last_name :'--'
                     }</Col>
                </Row>
                   <Row className="p-3">
@@ -42,7 +40,7 @@ import BackButton from "../../../../utils/BackButton/BackButton";
                     User Profile:
                   </Col>
                   <Col>
-                    {row.profile_picture ? (
+                    {row?.profile_picture ? (
                       <Image
                         src={row.profile_picture}
                         alt="Logo"
@@ -61,42 +59,43 @@ import BackButton from "../../../../utils/BackButton/BackButton";
                     )}
                   </Col>
                 </Row>
-              <Row className="p-3">
-                    <Col md={3} className="fw-bold">
-                      Address:
-                    </Col>
-                    <Col>{row.Address ? row.Address : row.Address}</Col>
-               </Row>
-              <Row className="p-3">
-                    <Col md={3} className="fw-bold">
-                      State:
-                    </Col>
-                    <Col>{row.Address ? row.state : row.state}</Col>
-               </Row>
-              <Row className="p-3">
-                    <Col md={3} className="fw-bold">
-                      Country:
-                    </Col>
-                    <Col>{row.country}</Col>
-               </Row>
-               <Row className="p-3">
-                    <Col md={3} className="fw-bold">
-                    Zip_code:
-                    </Col>
-                    <Col>{row.zip_code}</Col>
-               </Row>
-              <Row className="p-3">
+                <Row className="p-3">
                     <Col md={3} className="fw-bold">
                       Email:
                     </Col>
-                    <Col>{row.email}</Col>
+                    <Col>{row?.email ? row.email : '--'}</Col>
                </Row>
               <Row className="p-3">
                     <Col md={3} className="fw-bold">
                       Contact:
                     </Col>
-                    <Col>{row.contact_number}</Col>
+                    <Col>{row?.contact_number ? row.contact_number : '--'}</Col>
                </Row>
+              <Row className="p-3">
+                    <Col md={3} className="fw-bold">
+                      Address:
+                    </Col>
+                    <Col>{row.Address ? row.Address : '--'}</Col>
+               </Row>
+              <Row className="p-3">
+                    <Col md={3} className="fw-bold">
+                      State:
+                    </Col>
+                    <Col>{row.state ? row.state : '--'}</Col>
+               </Row>
+              <Row className="p-3">
+                    <Col md={3} className="fw-bold">
+                      Country:
+                    </Col>
+                    <Col>{row.country ? row.country :'--'}</Col>
+               </Row>
+               <Row className="p-3">
+                    <Col md={3} className="fw-bold">
+                    Zip_code:
+                    </Col>
+                    <Col>{row.zip_code ? row.zip_code :'--'}</Col>
+               </Row>
+            
              
                {/* <Button
               variant="primary"

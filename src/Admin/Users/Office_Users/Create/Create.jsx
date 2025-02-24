@@ -234,6 +234,9 @@ const Create = () => {
                           type="text"
                           name="firstName"
                           maxLength={40}
+                          onInput={(e) => {
+                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                        }}
                         />
                         <ErrorMessage
                           name="firstName"
@@ -251,6 +254,9 @@ const Create = () => {
                           type="text"
                           name="lastName"
                           maxLength={40}
+                          onInput={(e) => {
+                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                        }}
                         />
                         <ErrorMessage
                           name="lastName"

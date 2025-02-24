@@ -53,6 +53,7 @@ const Header = () => {
   // console.log("dasasas", selectedLanguage);
   //
   const { roles, hasPermission, permissions, getRoles } = usePermissions();
+  console.log("asdasd",roles)
 
   const toggleDropdown = (dropdown) => {
     setExpandedDropdown(expandedDropdown === dropdown ? "" : dropdown);
@@ -182,6 +183,10 @@ const Header = () => {
 
   const getItemClass = (lng) => {
     return lng === selectedLanguage ? "selected-item" : "";
+  };
+
+  const trimText = (text, maxLength) => {
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
   // console.log("permissions: ", permissions.permissions);
   return (
@@ -519,7 +524,7 @@ const Header = () => {
                                     to={`/users/office/${permission.roleName}?id=${permission.id}`}
                                     className="sidebar-link"
                                   >
-                                    {permission.roleName}
+                                    {trimText(permission.roleName, 30)}
                                     {/* {t("Staff Admin")} */}
                                   </Link>
                                 ))}
