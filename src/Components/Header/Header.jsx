@@ -398,7 +398,7 @@ const Header = () => {
                 </div>
 
                 {/* Taxation Setting */}
-                {/* <Link
+                <Link
                   to="/taxation-setting"
                   className="dropdown dropdown-title"
                   activeClassName="active"
@@ -406,10 +406,10 @@ const Header = () => {
                 >
                   {t("Taxation Setting")}
                   <TbTax size={20} />
-                </Link> */}
+                </Link>
 
-                {/* Billing System Dropdowns */}
-                {/* <div
+                {/* Billing System Dropdown */}
+                <div
                   className={`dropdown ${
                     expandedDropdown === "billings" ? "expanded" : ""
                   }`}
@@ -462,7 +462,7 @@ const Header = () => {
                       ▣ {t("Package Creation System")}
                     </Link>
                   </div>
-                </div> */}
+                </div>
               </>
             ) : (
               <>

@@ -23,7 +23,7 @@ const DefaultPricingStructure = () => {
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
   const [loading, setLoading] = useState(false);
 
-  // Fetch API when component mounts
+  // Fetch API when component mountss
   useEffect(() => {
     fetchPricingData();
   }, []);
