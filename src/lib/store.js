@@ -679,7 +679,7 @@ export const LanguageCompanyUpdateApi = async (companyId, token, language) => {
   try {
     const response = await axios.post(
       `${Url}/dlg2m8ui5r/${companyId}`,
-      { language },
+      {language}, 
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -713,7 +713,7 @@ export const workOrderReportAllCompany = async (token) => {
 };
 
 // Work Order Report Single Company
-export const workOrderReportSingleCompany = async (token, companyId) => {
+export const workOrderReportSingleCompany = async (token,companyId) => {
   try {
     const response = await axios.get(`${Url}/csr4m32we4/${companyId}`, {
       headers: {
@@ -730,7 +730,7 @@ export const workOrderReportSingleCompany = async (token, companyId) => {
 };
 
 // Login/Logout Records, Session Records Get
-export const getLoginLogoutRecords = async (token) => {
+export const getLoginLogoutRecords = async ( token) => {
   try {
     const response = await axios.get(`${Url}/h12kd1dks1/`, {
       headers: {
@@ -748,16 +748,13 @@ export const getLoginLogoutRecords = async (token) => {
 };
 
 // Logout Api For Login/Logout Update
-export const LogoutRecordUpdateAPi = async (sessionId, userId, token) => {
+export const LogoutRecordUpdateAPi = async (sessionId,userId, token) => {
   try {
-    const response = await axios.get(
-      `${Url}/stn54m7d9s?sessionID=${sessionId}&userId=${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${Url}/stn54m7d9s?sessionID=${sessionId}&userId=${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     // console.log(response.data, "login api data");
     return response.data;
   } catch (error) {
@@ -787,51 +784,78 @@ export const getFieldUserAttendenceApi = async (companyId, token) => {
 };
 
 // Get Taxation Country Details
-export const getTaxationDetails = async (token) => {
+export const getTaxationDetails = (async(token)=>{
   try {
-    const response = await axios.get(`${Url}/jhs29ksl2s`, {
+    const response = await axios.get(`${Url}/jhs29ksl2s`,{
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    });
+    })
     // console.log(response.data, "login api data");
     return response;
   } catch (error) {
-    if (error.response) {
-      return error.response.data;
-    }
-    throw new Error("An unexpected error occurred");
-  }
-};
-
-//Update
-export const UpdateCountryTaxationDetails = async (payload, token) => {
-  try {
-    const response = await axios.put(`${Url}/ljsec12bwk`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // console.log(response.data, "login api data");
-    return response;
-  } catch (error) {
-    if (error.response) {
-      return error.response.data;
-    }
-    throw new Error("An unexpected error occurred");
-  }
-};
-
-export const fetch_permissions = async (roleID, token) => {
-  try {
-    const response = await axios.get(
-      `${Url}/rls1283sd1?roleID=${encodeURIComponent(roleID)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      if (error.response) {
+        return error.response.data;
       }
-    );
+      throw new Error("An unexpected error occurred");
+    }
+  }
+)
+
+//Update 
+export const UpdateCountryTaxationDetails = (async(payload,token)=>{
+  try {
+    const response = await axios.put(`${Url}/ljsec12bwk`,payload,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    // console.log(response.data, "login api data");
+    return response;
+  } catch (error) {
+      if (error.response) {
+        return error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const fetch_permissions = async(roleID, token) =>{
+  try {
+    const response = await axios.get(`${Url}/rls1283sd1?roleID=${encodeURIComponent(roleID)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     // console.log(response.data, "login api data");
     return response.data;
   } catch (error) {
@@ -840,25 +864,16 @@ export const fetch_permissions = async (roleID, token) => {
     }
     throw new Error("An unexpected error occurred");
   }
-};
+}
 
 // country currency conversion
-export const convertToSelectedCurrency = async (
-  countryName,
-  currencyCode,
-  token
-) => {
+export const convertToSelectedCurrency = async(countryName, currencyCode,token) =>{
   try {
-    const response = await axios.get(
-      `${Url}/87funjqs31?countryName=${encodeURIComponent(
-        countryName
-      )}&currencyCode=${encodeURIComponent(currencyCode)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${Url}/87funjqs31?countryName=${encodeURIComponent(countryName)}&currencyCode=${encodeURIComponent(currencyCode)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     // console.log(response.data, "login api data");
     return response.data;
   } catch (error) {

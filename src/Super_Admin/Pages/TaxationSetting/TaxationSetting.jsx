@@ -33,7 +33,8 @@ const TaxationSetting = () => {
       const response = await getTaxationDetails(token);
       if (response.status === 200) {
         const array = Object.values(response?.data?.data);
-        setCountryData(array || []);
+        const sortedArray = array.sort((a, b) =>a.countryName.localeCompare(b.countryName));
+        setCountryData(sortedArray || []);
       }
       
     } catch (error) {

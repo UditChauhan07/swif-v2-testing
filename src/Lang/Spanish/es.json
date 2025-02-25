@@ -1754,6 +1754,9 @@
   "Failed Work Orders": "Órdenes de Trabajo Fallidas",
   "Upload Failed": "Subida Fallida",
   "An error occurred while uploading the file.": "Ocurrió un error al subir el archivo.",
+  "Account Deleted": "Cuenta eliminada",
+  "Your account has been permanently removed by the administrator.": "El administrador ha eliminado permanentemente su cuenta.",
+  "Confirm Button": "Botón Confirmar",
   "Yes, upload valid rows": "Sí, sube filas válidas",
   "Only 1 out of 2 rows are valid. 1 row(s) will be skipped. Do you want to continue?": "Sólo 1 de 2 filas es válida. Se omitirán 1 fila(s). ¿Quieres continuar?",
   "Work orders imported successfully": "Órdenes de trabajo importadas exitosamente",
@@ -1776,8 +1779,5 @@
   "The tax details have been updated successfully.": "Los detalles del impuesto se han actualizado correctamente.",
   "Update Failed": "Error de actualización",
   "There was an error updating the tax details. Please try again.": "Hubo un error al actualizar los detalles del impuesto. Inténtalo de nuevo.",
-  "Update Tax": "Actualizar impuesto",
-  "Account Deleted":"Cuenta eliminada",
-  "Your account has been permanently removed by the administrator.":"El administrador ha eliminado permanentemente su cuenta.",
-  "Confirm Button":"Botón Confirmar"
+  "Update Tax": "Actualizar impuesto"
 }
