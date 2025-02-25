@@ -25,4 +25,4 @@ yarn-error.log*
 
 src/swif-v2-firebase-adminsdk-fbsvc-cb40a8d1a8.json
 
-.env.env
+.env
