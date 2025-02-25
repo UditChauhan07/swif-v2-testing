@@ -60,6 +60,7 @@ import CustomPricingOption from './Super_Admin/Pages/BillingSystem/PricingOption
 import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys/PackageCreateSys';
 import PackagesList from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/PackagesList";
 import TaxationSetting from "./Super_Admin/Pages/TaxationSetting/TaxationSetting";
+import EditPackage from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/EditPackage ";
 
 
 function App() {
@@ -106,6 +107,7 @@ function App() {
           <Route path="/billings/pricing-option" element={<CustomPricingOption />} />
           <Route path="/billings/package-creation" element={<PackageCreateSys />} />
           <Route path="/billings/package-List" element={<PackagesList/>} />
+          <Route path="/billings/package-edit" element={<EditPackage/>} />
 
           {/*----------- Admin */}
 

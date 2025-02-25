@@ -409,7 +409,7 @@ const Header = () => {
                 </Link>
 
                 {/* Billing System Dropdown */}
-                {/* <div
+                <div
                   className={`dropdown ${
                     expandedDropdown === "billings" ? "expanded" : ""
                   }`}
@@ -462,7 +462,7 @@ const Header = () => {
                       ▣ {t("Package Creation System")}
                     </Link>
                   </div>
-                </div> */}
+                </div>
               </>
             ) : (
               <>

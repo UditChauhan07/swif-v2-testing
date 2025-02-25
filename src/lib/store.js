@@ -1,8 +1,8 @@
 import axios from "axios";
 // export const Url = "http://localhost:2525";
-export const Url = "https://apiv4-hl3bjt37ia-uc.a.run.app/";
+// export const Url = "https://apiv4-hl3bjt37ia-uc.a.run.app/";
 // export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/test"
-// export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/apiv4"
+export const Url = "http://127.0.0.1:5001/swif-v2/us-central1/apiv4"
 
 // Admin Login APi
 export const LoginApi = async (formData) => {
@@ -945,3 +945,70 @@ export const updatePricingStructure = async (token, finaldata, pricingId) => {
     throw new Error("An unexpected error occurred");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//create subscription package
+export const CreateSubscriptionPackage = async (token, finaldata) => {
+
+  try {
+    const response = await axios.post(
+      `${Url}/3ddfhhdu2`,
+      finaldata,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    // console.log("package response Data",response);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
+
+
+//list subscription package
+export const getSubscriptionPackagesList = async (token) => {
+  try {
+    const response = await axios.get(
+      `${Url}/widnr27d4`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("package list response Data",response);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
