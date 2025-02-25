@@ -7,19 +7,10 @@ import { useTranslation } from "react-i18next";
 import { getTaxationDetails, UpdateCountryTaxationDetails } from "../../../lib/store";
 import LoadingComp from "../../../Components/Loader/LoadingComp";
 import Swal from "sweetalert2"
-// Optional fallback data in case the API is not available
-const initialTaxData = [
-  { id: 1, country: "USA", taxName: "Federal Tax", taxRate: "$10.00" },
-  { id: 2, country: "Spain", taxName: "VAT", taxRate: "21%" },
-  { id: 3, country: "India", taxName: "GST", taxRate: "18%" },
-  { id: 4, country: "Germany", taxName: "VAT", taxRate: "19%" },
-  { id: 5, country: "UK", taxName: "VAT", taxRate: "20%" },
-  { id: 6, country: "Canada", taxName: "GST/HST", taxRate: "13%" },
-];
+
 
 const TaxationSetting = () => {
   const { t } = useTranslation();
-  // Use API data (or fallback initialTaxData until API loads)
   const [countryData, setCountryData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

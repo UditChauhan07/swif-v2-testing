@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Row,
@@ -11,7 +11,7 @@ import {
 } from "react-bootstrap";
 import Header from "../../../../Components/Header/Header";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { createCompanyApi } from "../../../../lib/store";
+import { createCompanyApi, getTaxationDetails } from "../../../../lib/store";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
@@ -24,6 +24,26 @@ const CreateCompany = () => {
   const { t, i18n } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [countryListDetails, setcountryListDetails] = useState();
+  console.log("countryListDetails", countryListDetails);
+
+  useEffect(() => {
+    const fetchCountry = async () => {
+      try {
+        const response = await getTaxationDetails(token);
+        if (response.status === 200) {
+          const array = Object.values(response?.data?.data);
+          const sortedArray = array.sort((a, b) =>
+            a?.countryName.localeCompare(b?.countryName)
+          );
+          setcountryListDetails(sortedArray || []);
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+      }
+    };
+    fetchCountry();
+  }, []);
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -46,7 +66,12 @@ const CreateCompany = () => {
     addressLine1: "",
     contactCity: "",
     companyState: "",
+    //  Country details
     contactCountry: "",
+    taxName: "",
+    taxPercentage: "",
+    countryName: "",
+    // ss
     contactZip: "",
     contactPerson: "",
     contactPhone: "",
@@ -79,6 +104,7 @@ const CreateCompany = () => {
     freeWorkOrders: "101",
     customerAddressFormat: "US",
   });
+  console.log("dsada", formData);
   const [imageErrors, setImageErrors] = useState({
     profilePicture: "",
     companyLogo: "",
@@ -90,6 +116,11 @@ const CreateCompany = () => {
   const countryOptions = getNames().map((country) => ({
     value: country,
     label: country,
+  }));
+
+  const countryOptions2 = countryListDetails?.map((country) => ({
+    value: country.countryName,
+    label: country.countryName,
   }));
 
   const handleNext = () => {
@@ -120,10 +151,26 @@ const CreateCompany = () => {
   };
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      let updatedFormData = { ...prev, [field]: value };
+
+      if (field === "contactCountry") {
+        const selectedCountry = countryListDetails.find(
+          (country) => country.countryName === value
+        );
+        updatedFormData.countryName = selectedCountry
+          ? selectedCountry.alphaCode
+          : "";
+        updatedFormData.taxName = selectedCountry
+          ? selectedCountry.taxName
+          : "-";
+        updatedFormData.taxPercentage = selectedCountry
+          ? selectedCountry.taxPercentage
+          : "-";
+      }
+
+      return updatedFormData;
+    });
 
     setErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
@@ -724,6 +771,11 @@ const CreateCompany = () => {
         companyStatus: formData.companyStatus,
         companyState: formData.companyState,
         language: languageCode,
+
+        alphaCode: formData.countryName,
+        companyCountryName: formData.contactCountry,
+        taxName: formData.taxName,
+        taxPercentage: formData.taxPercentage,
       };
 
       const userdata = {
@@ -737,7 +789,7 @@ const CreateCompany = () => {
         email: formData.email,
         password: formData.password,
         zip_code: formData.zip,
-        profile_picture: profilePictureBase64, // ✅ Store as Base64
+        profile_picture: profilePictureBase64,
       };
 
       console.log("Final Data:", companyData, userdata);
@@ -1273,16 +1325,17 @@ const CreateCompany = () => {
                     </Form.Control.Feedback>
                   </Form.Group>
 
+                  {/* Countryy */}
                   <Form.Group className="mb-3">
                     <Form.Label>
                       <span className="text-danger">*</span> {t("Country")}:
                     </Form.Label>
                     <Select
-                      options={countryOptions}
+                      options={countryOptions2}
                       onChange={(selectedOption) =>
                         handleChange("contactCountry", selectedOption.value)
                       }
-                      value={countryOptions.find(
+                      value={countryOptions2.find(
                         (option) => option.value === formData.contactCountry
                       )}
                       styles={{
@@ -1297,6 +1350,54 @@ const CreateCompany = () => {
                       {errors.contactCountry}
                     </Form.Control.Feedback>
                   </Form.Group>
+
+                  {/* Country Tax Details */}
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <span className="text-danger">*</span>{" "}
+                      {t("Country Tax Name")}:{" "}
+                      <Form.Control
+                        type="text"
+                        value={formData.taxName || ""}
+                        disabled
+                        style={{
+                          display: "inline-block",
+                          width: "auto",
+                          marginLeft: "10px",
+                          backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
+                          border: "1px solid #ced4da",
+                          fontWeight: "bold",
+                        }}
+                      />
+                    </Form.Label>
+                    <br />
+                    <Form.Group className="mb-3">
+                      {/* Country Tax Percentage */}
+                      <Form.Label>
+                        <span className="text-danger">*</span>{" "}
+                        {t("Country Tax %")}:{" "}
+                        <Form.Control
+                          type="number"
+                          value={formData.taxPercentage || ""}
+                          onChange={(e) =>
+                            handleChange(
+                              "taxPercentage",
+                              e.target.value ? Number(e.target.value) : ""
+                            )
+                          }
+                          placeholder="%"
+                          min={1}
+                          style={{
+                            display: "inline-block",
+                            width: "80px", // Small input box
+                            textAlign: "center",
+                            marginLeft: "10px",
+                          }}
+                        />
+                      </Form.Label>
+                    </Form.Group>
+                  </Form.Group>
+
                   <Form.Group className="mb-3">
                     <Form.Label>
                       <span className="text-danger">*</span>{" "}

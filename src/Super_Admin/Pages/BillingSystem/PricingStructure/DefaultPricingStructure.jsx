@@ -9,8 +9,10 @@ import {
   updatePricingStructure,
 } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
+import { useTranslation } from "react-i18next";
 
 const DefaultPricingStructure = () => {
+  const {t} = useTranslation()
   const [formData, setFormData] = useState({
     workOrderCreation: "",
     workOrderExecution: "",
@@ -18,10 +20,12 @@ const DefaultPricingStructure = () => {
     fieldUserCreation: "",
     officeUserCreation: "",
   });
+  console.log("dataaa", formData);
   const [errors, setErrors] = useState({});
   const [pricingId, setPricingId] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
   const [loading, setLoading] = useState(false);
+  const [buttonShow, setbuttonShow] = useState(false);
 
   // Fetch API when component mountsss
   useEffect(() => {
@@ -72,7 +76,7 @@ const DefaultPricingStructure = () => {
 
     // Validation
     Object.keys(formData).forEach((key) => {
-      if (!formData[key]) newErrors[key] = "This field is required.";
+      if (!formData[key]) newErrors[key] = t("This field is required.");
     });
 
     setErrors(newErrors);
@@ -80,21 +84,21 @@ const DefaultPricingStructure = () => {
 
     // Confirm before proceeding
     const confirmResult = await Swal.fire({
-      title: "Are you sure?",
+      title: t("Are you sure?"),
       text: pricingId
-        ? "Do you want to update the pricing structure?"
-        : "Do you want to create a new pricing structure?",
+        ? t("Do you want to update the pricing structure?")
+        : t("Do you want to create a new pricing structure?"),
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, proceed!",
-      cancelButtonText: "Cancel",
+      confirmButtonText: t("Yes, proceed!"),
+      cancelButtonText: t("Cancel"),
     });
 
     if (!confirmResult.isConfirmed) return;
 
     Swal.fire({
-      title: "Processing...",
-      text: "Please wait while we save your data.",
+      title: t("Processing..."),
+      text: t("Please wait while we save your data."),
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -118,23 +122,29 @@ const DefaultPricingStructure = () => {
           formattedData,
           pricingId
         );
+        console.log("updatePricingStructure", response);
+
       } else {
         response = await createPricingStructure(token, formattedData);
-        setPricingId(response.data?.id);
+        console.log("createPricingStructure", response);
+        if (response.status === true) {
+          setPricingId(response.data?.id);
+          await fetchPricingData();
+        }
       }
 
       if (response.status === true) {
         Swal.fire(
-          "Success",
-          "Pricing structure saved successfully!",
+          t("Success"),
+          t("Pricing structure saved successfully!"),
           "success"
         );
       } else {
-        Swal.fire("Error", "Failed to save pricing structure", "error");
+        Swal.fire(t("Error"), t("Failed to save pricing structure"), "error");
       }
     } catch (error) {
       console.error("Error saving pricing data:", error);
-      Swal.fire("Error", "Something went wrong!", "error");
+      Swal.fire(t("Error"), t("Something went wrong!"), "error");
     } finally {
       setLoading(false);
     }
@@ -154,7 +164,7 @@ const DefaultPricingStructure = () => {
               borderRadius: "8px",
             }}
           >
-            <h4 className="mb-0">Enter Pricing Structure Details</h4>
+            <h4 className="mb-0">{t("Enter Pricing Structure Details")}</h4>
           </div>
 
           <div className="d-flex justify-content-center">
@@ -168,11 +178,11 @@ const DefaultPricingStructure = () => {
                     <Col md={6}>
                       <Form.Group controlId="formworkOrderCreation">
                         <Form.Label>
-                          WO Creation <span className="text-danger">*</span>
+                          {t("WO Creation")} <span className="text-danger">*</span>
                         </Form.Label>
                         <Form.Control
                           type="number"
-                          placeholder="Enter WO Creation price"
+                          placeholder={t("Enter WO Creation price")}
                           name="workOrderCreation"
                           value={formData.workOrderCreation}
                           onChange={handleInputChange}
@@ -187,11 +197,11 @@ const DefaultPricingStructure = () => {
                     <Col md={6}>
                       <Form.Group controlId="formworkOrderExecution">
                         <Form.Label>
-                          WO Execution <span className="text-danger">*</span>
+                          {t("WO Execution")} <span className="text-danger">*</span>
                         </Form.Label>
                         <Form.Control
                           type="number"
-                          placeholder="Enter WO Execution price"
+                          placeholder={t("Enter WO Execution price")}
                           name="workOrderExecution"
                           value={formData.workOrderExecution}
                           onChange={handleInputChange}
@@ -210,12 +220,12 @@ const DefaultPricingStructure = () => {
                     <Col md={6}>
                       <Form.Group controlId="formCustomerCreation">
                         <Form.Label>
-                          Customer Creation{" "}
+                          {t("Customer Creation")}{" "}
                           <span className="text-danger">*</span>
                         </Form.Label>
                         <Form.Control
                           type="number"
-                          placeholder="Enter Customer Creation price"
+                          placeholder={t("Enter Customer Creation price")}
                           name="customerCreation"
                           value={formData.customerCreation}
                           onChange={handleInputChange}
@@ -229,7 +239,7 @@ const DefaultPricingStructure = () => {
                     </Col>
                     <Col md={6}>
                       <Form.Group controlId="formCurrency">
-                        <Form.Label>Currency</Form.Label>
+                        <Form.Label>{t("Currency")}</Form.Label>
                         <Form.Control type="text" value="USD" disabled />
                       </Form.Group>
                     </Col>
@@ -240,12 +250,12 @@ const DefaultPricingStructure = () => {
                     <Col md={6}>
                       <Form.Group controlId="formfieldUserCreation">
                         <Form.Label>
-                          User Creation (Field){" "}
+                          {t("User Creation (Field)")}{" "}
                           <span className="text-danger">*</span>
                         </Form.Label>
                         <Form.Control
                           type="number"
-                          placeholder="Enter Field price"
+                          placeholder={t("Enter Field price")}
                           name="fieldUserCreation"
                           value={formData.fieldUserCreation}
                           onChange={handleInputChange}
@@ -261,12 +271,12 @@ const DefaultPricingStructure = () => {
                     <Col md={6}>
                       <Form.Group controlId="formofficeUserCreation">
                         <Form.Label>
-                          User Creation (Office){" "}
+                          {t("User Creation (Office)")}{" "}
                           <span className="text-danger">*</span>
                         </Form.Label>
                         <Form.Control
                           type="number"
-                          placeholder="Enter Office price"
+                          placeholder={t("Enter Office price")}
                           name="officeUserCreation"
                           value={formData.officeUserCreation}
                           onChange={handleInputChange}
@@ -287,10 +297,10 @@ const DefaultPricingStructure = () => {
                       style={{ background: "#2e2e32", border: "none" }}
                     >
                       {loading
-                        ? "Processing..."
+                        ? t("Processing...")
                         : pricingId
-                        ? "Update"
-                        : "Create"}
+                        ? t("Update")
+                        : t("Create")}
                     </Button>
                   </div>
                 </Form>

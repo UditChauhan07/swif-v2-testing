@@ -37,6 +37,7 @@ const Header = () => {
   const [companyLogo, setcompanyLogo] = useState(
     localStorage.getItem("companyLogo")
   );
+  console.log("companyLogo", companyLogo);
   const [companyId, setcompanyId] = useState(localStorage.getItem("companyId"));
   const [sessionId, setsessionId] = useState(localStorage.getItem("SessionId"));
   const [userId, setuserId] = useState(localStorage.getItem("userId"));
@@ -105,13 +106,17 @@ const Header = () => {
 
     if (userId) {
       // Pass translations to the listener
-      unsubscribe = listenForUserDeletion(userId, {
-        title: t("Account Deleted"),
-        message: t(
-          "Your account has been permanently removed by the administrator."
-        ),
-        confirmButton: t("Confirm Button"),
-      },Navigate);
+      unsubscribe = listenForUserDeletion(
+        userId,
+        {
+          title: t("Account Deleted"),
+          message: t(
+            "Your account has been permanently removed by the administrator."
+          ),
+          confirmButton: t("Confirm Button"),
+        },
+        Navigate
+      );
     }
 
     // Clean up listener on unmount
@@ -286,7 +291,7 @@ const Header = () => {
                 src={
                   userRole === "SuperAdmin"
                     ? "https://swif.truet.net/public/swifCompany/logo/logo.png"
-                    : companyLogo
+                    : companyLogo == 'null' ? "https://swif.truet.net/public/swifCompany/noLogo.jpg" : companyLogo
                 }
                 alt="Company Logo"
                 className="logo"
@@ -404,7 +409,7 @@ const Header = () => {
                   activeClassName="active"
                   style={{ textDecoration: "none" }}
                 >
-                  {t("Taxation Setting")}
+                  {t("Taxation Settings")}
                   <TbTax size={20} />
                 </Link>
 
@@ -431,35 +436,35 @@ const Header = () => {
                       className="sidebar-link"
                       activeClassName="active"
                     >
-                      ▣ {t("Default Pricing Structure")}
+                      ▣ {t("Features & Pricing Structure")}
                     </Link>
                     <Link
                       to="/billings/usage-limit"
                       className="sidebar-link"
                       activeClassName="active"
                     >
-                      ▣ {t("Default Usage Limit Structure")}
+                      ▣ {t("Usage Limits Per Company")}
                     </Link>
-                    <Link
+                    {/* <Link
                       to="/billings/currency-management"
                       className="sidebar-link"
                       activeClassName="active"
                     >
                       ▣ {t("Multiple Currency Management System")}
-                    </Link>
-                    <Link
+                    </Link> */}
+                    {/* <Link
                       to="/billings/pricing-option"
                       className="sidebar-link"
                       activeClassName="active"
                     >
                       ▣ {t("Custom Pricing Option")}
-                    </Link>
+                    </Link> */}
                     <Link
                       to="/billings/package-creation"
                       className="sidebar-link"
                       activeClassName="active"
                     >
-                      ▣ {t("Package Creation System")}
+                      ▣ {t("Package-Based Billing System")}
                     </Link>
                   </div>
                 </div>
