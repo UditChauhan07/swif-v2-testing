@@ -4,6 +4,9 @@ import {
   Row,
   Col,
   Form,
+  Card, 
+  Badge,
+  ListGroup,
   Button,
   InputGroup,
   ToggleButtonGroup,
@@ -13,6 +16,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import {
   createCompanyApi,
   editCompanyApi,
+  getSubscriptionPackagesList,
   getTaxationDetails,
 } from "../../../../../lib/store";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -42,6 +46,8 @@ const EditCompany = () => {
     profilePicture: "",
     companyLogo: "",
   });
+    const [subscriptionPlanList, setsubscriptionPlanList] = useState();
+    const [selectedPlan, setselectedPlan] = useState({})
 
   const [countryListDetails, setcountryListDetails] = useState();
   useEffect(() => {
@@ -61,6 +67,24 @@ const EditCompany = () => {
     };
     fetchCountry();
   }, []);
+
+    useEffect(()=>{
+      const fetchSubscriptionPlan = async () => {
+        try {
+          const response = await getSubscriptionPackagesList(token);
+          console.log('package respppppppppp',response);
+          const sortedPackages = response.packages
+            ? [...response.packages]
+                // .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
+                .sort((a, b) => a.cost_per_month - b.cost_per_month)
+            : [];
+            setsubscriptionPlanList(sortedPackages||[]);
+        } catch (error) {
+          console.error('error while fetching subscription pacakage list',error);
+        }
+      };
+      fetchSubscriptionPlan();
+    },[])
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -108,13 +132,8 @@ const EditCompany = () => {
     officeEmail: "",
 
     // Step 4: Other Settings
-    package: "Full Pack",
-    packageDescritption: [
-      "Each Quotation creation Charge will be 0.15/quotation.",
-      "Each Contract creation Charge will be 0.00/contract.",
-      "Each Work Order creation Charge will be 0.10/work order.",
-      "Each Work Order charge further 0.40 after complete Work Order.",
-    ],
+    package: "",
+    packageDescritption: "",
     workOrderTime: "04:00",
     quotationCost: "0.15",
     freeQuotations: "51",
@@ -181,10 +200,11 @@ const EditCompany = () => {
         contactPhone: company.contact_person_phone || "",
         officePhone: company.company_office_phone || "",
         officeEmail: company.company_office_email || "",
-
+        package: company?.package_id||"",
+        packageDescritption: company?.package_name||"",
         // Step 4: Other Settings
-        package: company.package || "",
-        packageDescritption: company.packageDescritption || [],
+        // package: company.package_id || "",
+        // packageDescritption: company.package_name || [],
         workOrderTime: company.workOrderTime || "",
         quotationCost: company.quotationCost || "",
         freeQuotations: company.freeQuotations || "",
@@ -197,6 +217,21 @@ const EditCompany = () => {
       }));
     }
   }, []);
+
+  useEffect(() => {
+    if (formData.packageDescritption) {
+      const selectedOption = subscriptionPlanList?.find(
+        (option) => option.name === formData.packageDescritption
+      );
+      
+      if (selectedOption) {
+        setselectedPlan({
+          name: selectedOption.name_es || selectedOption.name, // Use Spanish if available
+          features: selectedOption.features || [],
+        });
+      }
+    }
+  }, [formData.packageDescritption, subscriptionPlanList]);
 
   const navigate = useNavigate();
   const [token, settoken] = useState(localStorage.getItem("UserToken"));
@@ -222,7 +257,7 @@ const EditCompany = () => {
       let updatedFormData = { ...prev, [field]: value };
 
       if (field === "contactCountry") {
-        const selectedCountry = countryListDetails.find(
+        const selectedCountry = countryListDetails?.find(
           (country) => country.countryName === value
         );
         updatedFormData.countryName = selectedCountry
@@ -793,7 +828,8 @@ const EditCompany = () => {
       companyStatus: formData.companyStatus,
       companyState: formData.companyState,
       language: languageCode,
-
+      package_id:formData?.package,
+      package_name: formData.packageDescritption,
       alphaCode: formData.countryName,
       companyCountryName: formData.contactCountry,
       taxName: formData.taxName,
@@ -898,6 +934,22 @@ const EditCompany = () => {
         confirmButtonText: "OK",
       });
     }
+  };
+
+  const featureMapping = {
+    add_customers: "Add Customers",
+    add_office_users: "Add Office Users",
+    add_field_users: "Add Field Users",
+    work_order_creation: "Work Order Creation",
+    work_order_execution: "Work Order Execution",
+  };
+  
+  const subscriptionPlanMapping = {
+    default: "Default",
+    basic: "Basic",
+    premium: "Premium",
+    enterprise: "Enterprise",
+    payg: "Pay as You Go",
   };
 
   return (
@@ -1100,7 +1152,7 @@ const EditCompany = () => {
                       onChange={(selectedOption) =>
                         handleChange("country", selectedOption.value)
                       }
-                      value={countryOptions.find(
+                      value={countryOptions?.find(
                         (option) => option.value === formData.country
                       )}
                       styles={{
@@ -1345,7 +1397,7 @@ const EditCompany = () => {
                       onChange={(selectedOption) =>
                         handleChange("contactCountry", selectedOption.value)
                       }
-                      value={countryOptions2.find(
+                      value={countryOptions2?.find(
                         (option) => option.value === formData.contactCountry
                       )}
                       styles={{
@@ -1627,6 +1679,85 @@ const EditCompany = () => {
                 </Row>
               ))}
             </Form>
+
+                   {/* choose plan */}
+                   <Form.Group className="mb-3">
+              <Form.Label>
+                <span className="text-danger">*</span> {t("Choose Plan")}:
+              </Form.Label>
+              <Select
+              options={subscriptionPlanList?.map((option) => ({
+                value: option.name,
+                label: option.name,
+                package_id: option.package_id,
+                features: option.features,
+              }))} 
+              onChange={(selectedOption) => {
+                handleChange("package", selectedOption?.package_id);
+                handleChange("packageDescritption", selectedOption?.value);
+                setselectedPlan({
+                  name: selectedOption?.value,
+                  features: selectedOption?.features,
+                } || {});
+              }}
+              value={subscriptionPlanList
+                ?.find((option) => option.name === formData.packageDescritption) // Directly find matching option
+                ? { 
+                    value: formData.packageDescritption, 
+                    label: formData.packageDescritption,
+                    
+                  } 
+                : null} // Ensure null when no match
+              styles={{
+                menuList: (provided) => ({
+                  ...provided,
+                  maxHeight: "150px", // Limits dropdown height
+                  overflowY: "auto",
+                }),
+              }}
+              required
+            />
+
+              <Form.Control.Feedback type="invalid">
+                {errors.package}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {/* Selected Plan Details */}
+      {selectedPlan?.name && (
+        <Card className="mt-3 mb-3 shadow-sm border-0">
+          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">
+            {t(subscriptionPlanMapping[selectedPlan.name] ||selectedPlan.name.replace(/_/g, " "))}
+              {/* {selectedPlan?.name} */}
+              </h5>
+            <Badge bg="light" text="dark">
+             { t("Selected Plan")}
+            </Badge>
+          </Card.Header>
+          <Card.Body>
+            <ListGroup variant="flush">
+              {Object.entries(selectedPlan.features).map(([key, value]) => (
+                <ListGroup.Item
+                  key={key}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  <span>
+                    {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
+                      /\b\w/g,
+                      (char) => char.toUpperCase()
+                    )} */}
+                        {t(featureMapping[key] || key.replace(/_/g, " "))}
+                  </span>
+                  <Badge bg="success" pill>
+                    {value}
+                  </Badge>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Card.Body>
+        </Card>
+      )}
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"

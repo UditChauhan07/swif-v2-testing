@@ -447,13 +447,13 @@ const Header = () => {
                     >
                       ▣ {t("Usage Limits Per Company")}
                     </Link>
-                    <Link
+                    {/* <Link
                       to="/billings/currency-management"
                       className="sidebar-link"
                       activeClassName="active"
                     >
                       ▣ {t("Multiple Currency Management System")}
-                    </Link>
+                    </Link> */}
                     {/* <Link
                       to="/billings/pricing-option"
                       className="sidebar-link"

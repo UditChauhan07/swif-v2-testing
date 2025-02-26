@@ -4,6 +4,9 @@ import {
   Row,
   Col,
   Form,
+  Card, 
+  Badge,
+  ListGroup,
   Button,
   InputGroup,
   ToggleButtonGroup,
@@ -11,7 +14,7 @@ import {
 } from "react-bootstrap";
 import Header from "../../../../Components/Header/Header";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { createCompanyApi, getTaxationDetails } from "../../../../lib/store";
+import { createCompanyApi, getSubscriptionPackagesList, getTaxationDetails } from "../../../../lib/store";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
@@ -25,7 +28,9 @@ const CreateCompany = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [countryListDetails, setcountryListDetails] = useState();
-  console.log("countryListDetails", countryListDetails);
+  const [subscriptionPlanList, setsubscriptionPlanList] = useState();
+  const [selectedPlan, setselectedPlan] = useState({})
+  // console.log("countryListDetails", countryListDetails,subscriptionPlanList,selectedPlan);
 
   useEffect(() => {
     const fetchCountry = async () => {
@@ -44,6 +49,24 @@ const CreateCompany = () => {
     };
     fetchCountry();
   }, []);
+
+  useEffect(()=>{
+    const fetchSubscriptionPlan = async () => {
+      try {
+        const response = await getSubscriptionPackagesList(token);
+        console.log('package respppppppppp',response);
+        const sortedPackages = response.packages
+          ? [...response.packages]
+              // .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
+              .sort((a, b) => a.cost_per_month - b.cost_per_month)
+          : [];
+          setsubscriptionPlanList(sortedPackages||[]);
+      } catch (error) {
+        console.error('error while fetching subscription pacakage list',error);
+      }
+    };
+    fetchSubscriptionPlan();
+  },[])
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -90,13 +113,8 @@ const CreateCompany = () => {
     officePhone: "",
 
     // Step 4: Other Settings
-    package: "Full Pack",
-    packageDescritption: [
-      "Each Quotation creation Charge will be 0.15/quotation.",
-      "Each Contract creation Charge will be 0.00/contract.",
-      "Each Work Order creation Charge will be 0.10/work order.",
-      "Each Work Order charge further 0.40 after complete Work Order.",
-    ],
+    package: "",
+    packageDescritption: "",
     workOrderTime: "04:00",
     quotationCost: "0.15",
     freeQuotations: "51",
@@ -138,6 +156,7 @@ const CreateCompany = () => {
       return; // prevent advancing to the next step
     }
 
+   
     const currentErrors = validateStep(currentStep);
     if (Object.keys(currentErrors).length === 0) {
       setErrors({});
@@ -663,6 +682,8 @@ const CreateCompany = () => {
         if (!formData.contactPhone.trim())
           if (!formData.officeEmail.trim())
             newErrors.officeEmail = t("Office Email Address is required.");
+          if (!formData.package.trim())
+            newErrors.package = t("Required");
 
         break;
       default:
@@ -767,7 +788,8 @@ const CreateCompany = () => {
         city: formData.contactCity,
         country: formData.contactCountry,
         zip_postal_code: formData.contactZip,
-
+        package_id:formData.package,
+        package_name: formData.packageDescritption,
         company_contact_person_name: formData.contactPerson,
         contact_person_phone: formData.contactPhone,
         company_office_email: formData.officeEmail,
@@ -867,6 +889,21 @@ const CreateCompany = () => {
     }
   };
 
+  const featureMapping = {
+    add_customers: "Add Customers",
+    add_office_users: "Add Office Users",
+    add_field_users: "Add Field Users",
+    work_order_creation: "Work Order Creation",
+    work_order_execution: "Work Order Execution",
+  };
+  
+  const subscriptionPlanMapping = {
+    default: "Default",
+    basic: "Basic",
+    premium: "Premium",
+    enterprise: "Enterprise",
+    payg: "Pay as You Go",
+  };
   return (
     <>
       <Header />
@@ -1272,6 +1309,7 @@ const CreateCompany = () => {
                       {errors.officeEmail}
                     </Form.Control.Feedback>
                   </Form.Group>
+                
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -1626,6 +1664,79 @@ const CreateCompany = () => {
                 </Row>
               ))}
             </Form>
+
+              {/* choose plan */}
+              <Form.Group className="mb-3">
+              <Form.Label>
+                <span className="text-danger">*</span> {t("Choose Plan")}:
+              </Form.Label>
+              <Select
+                  options={subscriptionPlanList?.map((option) => ({
+                    value: option.name,
+                    label: option.name,
+                    package_id:option.package_id,
+                    features: option.features,
+                  }))} 
+                  onChange={(selectedOption) =>{
+                    handleChange("package", selectedOption?.package_id)
+                    handleChange("packageDescritption", selectedOption?.value)
+                    setselectedPlan({name: selectedOption.value,features:selectedOption.features} ||{})
+                  }
+                    
+                  }
+                  value={subscriptionPlanList
+                    ?.map((option) => ({ value: option.name, label: option.name }))
+                    .find((opt) => opt.value === formData.package)}
+                  styles={{
+                    menuList: (provided) => ({
+                      ...provided,
+                      maxHeight: "150px", // Limits dropdown height
+                      overflowY: "auto",
+                    }),
+                  }}
+                  required
+                />
+              <Form.Control.Feedback type="invalid">
+                {errors.package}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {/* Selected Plan Details */}
+      {selectedPlan?.name && (
+        <Card className="mt-3 mb-3 shadow-sm border-0">
+          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">
+            {t(subscriptionPlanMapping[selectedPlan?.name] ||selectedPlan.name.replace(/_/g, " "))}
+              {/* {selectedPlan?.name} */}
+              </h5>
+            <Badge bg="light" text="dark">
+            { t("Selected Plan")}
+            </Badge>
+          </Card.Header>
+          <Card.Body>
+            <ListGroup variant="flush">
+              {Object.entries(selectedPlan.features)?.map(([key, value]) => (
+                <ListGroup.Item
+                  key={key}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  <span>
+                    {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
+                      /\b\w/g,
+                      (char) => char.toUpperCase()
+                    )} */}
+                        {t(featureMapping[key] || key.replace(/_/g, " "))}
+                  </span>
+                  <Badge bg="success" pill>
+                    {value}
+                  </Badge>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Card.Body>
+        </Card>
+      )}
+
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"

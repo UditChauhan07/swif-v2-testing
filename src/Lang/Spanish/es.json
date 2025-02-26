@@ -1864,5 +1864,7 @@
   "Create A New plan": "Crear un Nuevo Plan",
   "Country Tax Name": "Nombre del impuesto del país",
   "Country Tax %":"Impuesto del país %",
-  "Country Currency":"Moneda del país"
+  "Country Currency":"Moneda del país",
+  "Choose Plan": "Elige el plan",
+  "Selected Plan":"Plan seleccionado"
 }

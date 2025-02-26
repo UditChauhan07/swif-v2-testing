@@ -169,7 +169,7 @@ function App() {
           <Route path="/reports/company/fielduser-attendence" element={<PrivateRoute element={FieldUserAttendece } />} />
 
           {/* Plans & Packaegs */}
-          <Route path="/plans-packages" element={<PrivateRoute element={PlansPackages } />} />
+          <Route path="/plans-packages" element={<PrivateRoute element={PackagesList } />} />
         </Routes>
       </Router>
     </>

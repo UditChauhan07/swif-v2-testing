@@ -213,6 +213,7 @@ const CreateFieldUser = () => {
                       placeholder={t("Enter Contact Number")}
                       name="contact_number"
                       maxLength={16}
+                      minLength={10}
                       value={formik.values.contact_number}
                       onChange={formik.handleChange}
                       isInvalid={
