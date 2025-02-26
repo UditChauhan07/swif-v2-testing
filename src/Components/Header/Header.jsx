@@ -17,6 +17,8 @@ import { MdDashboard } from "react-icons/md";
 import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { TbTax } from "react-icons/tb";
 import { listenForUserDeletion } from "../LogoutAutomatically/userStatusChecker/userStatusChecker";
+import { PiPackage } from "react-icons/pi";
+
 
 import {
   FaLanguage,
@@ -37,7 +39,7 @@ const Header = () => {
   const [companyLogo, setcompanyLogo] = useState(
     localStorage.getItem("companyLogo")
   );
-  console.log("companyLogo", companyLogo);
+  // console.log("companyLogo", companyLogo);
   const [companyId, setcompanyId] = useState(localStorage.getItem("companyId"));
   const [sessionId, setsessionId] = useState(localStorage.getItem("SessionId"));
   const [userId, setuserId] = useState(localStorage.getItem("userId"));
@@ -53,7 +55,7 @@ const Header = () => {
   // console.log("dasasas", selectedLanguage);
   //
   const { roles, hasPermission, permissions, getRoles } = usePermissions();
-  console.log("asdasd", roles);
+  // console.log("asdasd", roles);
 
   const toggleDropdown = (dropdown) => {
     setExpandedDropdown(expandedDropdown === dropdown ? "" : dropdown);
@@ -927,6 +929,17 @@ const Header = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Packages */}
+                <Link
+                  to="/plans-packages"
+                  className="dropdown dropdown-title"
+                  activeClassName="active"
+                  style={{ textDecoration: "none" }}
+                >
+                  {t("Plans & Packages")}
+                  <PiPackage size={20} />
+                </Link>
               </>
             )}
           </Nav>
