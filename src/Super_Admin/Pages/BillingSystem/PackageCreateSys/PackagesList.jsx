@@ -242,18 +242,20 @@ import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { getSubscriptionPackagesList } from "../../../../lib/store";
+import { convertToSelectedCurrency, getSubscriptionPackagesList } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
 import { useNavigate } from "react-router-dom";
-
+import getSymbolFromCurrency from 'currency-symbol-map'
 const PackagesList = () => {
   const role = localStorage.getItem("Role");
   const token = localStorage.getItem("UserToken");
   const [subscriptionPackages, setSubscriptionPackages] = useState([]);
+  const currencyCode=localStorage.getItem("currencyCode");
   const navigate=useNavigate();
   const decoded=jwtDecode(token);
-  console.log('decoded',decoded);
+  // console.log('decoded',decoded);
   const [loading, setLoading] = useState(true);
+  const [currencyData,setCurrencyData]=useState(null);
   const [paygPlan, setpaygPlan] = useState({
     package_id: "",
     name: "",
@@ -291,9 +293,21 @@ const PackagesList = () => {
 
   };
 
+  useEffect(() => { 
+      if(decoded?.role != "SuperAdmin" &&  currencyCode) {
+        // console.log("countryyyyyyyyyyyy",country)
+        convertToSelectedCurrency(null,currencyCode,token) // countryname,currency code, token
+       .then((data) =>{
+        // console.log("dataaaaaaa",data)
+        setCurrencyData(data)
+       })
+       .catch((error) => console.error('Error:', error));
+      }
+    }, []);
+
   useEffect(() => {
     if (token) {
-      console.log("Token hit", token);
+      // console.log("Token hit", token);
       fetchSubscriptionPackages();
     }
   }, [token]);
@@ -357,7 +371,7 @@ const PackagesList = () => {
   const handleEdit=async (packageData)=>{
     // update plan
     // call update plan API
-    console.log('edit plan',packageData);
+    // console.log('edit plan',packageData);
     navigate('/billings/package-edit', { state: { packageData } });
   }
 
@@ -365,6 +379,8 @@ const PackagesList = () => {
     if(subscriptionPackages)
     navigate('/billings/package-creation')
   }
+
+
   return (
     <>
       <Header />
@@ -473,7 +489,8 @@ const PackagesList = () => {
                                 className="text-center mb-4 fw-bold"
                                 style={{ color: "#2980b9" }}
                               >
-                                ${pkg.cost_per_month}{" "}
+                               {getSymbolFromCurrency(currencyData?.target_currency)||'$'}
+                                {currencyData?.exchange_rate ? (currencyData?.exchange_rate * pkg.cost_per_month).toFixed(2) :pkg.cost_per_month }{" "}
                                 <small
                                   style={{
                                     fontSize: "0.7rem",
@@ -627,7 +644,9 @@ const PackagesList = () => {
                                         className="text-end fw-semibold py-2"
                                         style={{ color: "#2980b9" }}
                                       >
-                                        ${rate}
+                                        {/* ${rate} */}
+                                        {getSymbolFromCurrency(currencyData?.target_currency)||'$'}
+                                {currencyData?.exchange_rate ? (currencyData?.exchange_rate * rate).toFixed(2) :rate }
                                       </td>
                                     </tr>
                                   )

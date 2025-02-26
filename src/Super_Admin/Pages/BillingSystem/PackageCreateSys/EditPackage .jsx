@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 import { editSubscriptionPackages } from "../../../../lib/store";
+import BackButton from "../../../../utils/BackButton/BackButton";
 
 const EditPackage = ({ initialValues, onSubmit }) => {
     const location = useLocation();
@@ -70,6 +71,7 @@ const EditPackage = ({ initialValues, onSubmit }) => {
     <>
       <Header />
       <div className="main-header-box py-4" style={{ backgroundColor: "#f5f7fa" }}>
+      <div className="pages-box">
         <Container className="d-flex justify-content-center align-items-center">
           <Card className="p-4 shadow-lg w-100" style={{ maxWidth: "900px", border: "none", borderRadius: "15px" }}>
             <Formik
@@ -223,6 +225,9 @@ const EditPackage = ({ initialValues, onSubmit }) => {
             </Formik>
           </Card>
         </Container>
+        <div className="d-flex justify-content-center mt-2"><BackButton/></div>
+        
+      </div>
       </div>
     </>
   );

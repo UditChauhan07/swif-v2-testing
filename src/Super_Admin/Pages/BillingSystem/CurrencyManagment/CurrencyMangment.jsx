@@ -4,7 +4,7 @@ import { convertToSelectedCurrency } from '../../../../lib/store';
 
 
 const CurrencyMangment = () => {
-  const [selectedCountry, setSelectedCountry] = useState('USD');
+  const [selectedCountry, setSelectedCountry] = useState('INR');
   const [currencyData,setCurrencyData] = useState(null);
   const [currencyRate, setCurrencyRate] = useState(1);
   const token=localStorage.getItem('UserToken');
@@ -24,7 +24,7 @@ const CurrencyMangment = () => {
     if(!currencyData) {
       convertToSelectedCurrency(null,selectedCountry,token) // countryname,currency code, token
      .then((data) =>{
-      console.log("data",data)
+      console.log("dataaaaaaa",data)
       setCurrencyData(data)
      })
      .catch((error) => console.error('Error:', error));

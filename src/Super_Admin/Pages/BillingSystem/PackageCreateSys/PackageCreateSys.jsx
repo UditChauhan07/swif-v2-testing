@@ -321,6 +321,7 @@ import { Container, Button, Card, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { CreateSubscriptionPackage } from "../../../../lib/store";
 import Swal from "sweetalert2";
+import BackButton from "../../../../utils/BackButton/BackButton";
 
 const PackageCreateSys = () => {
   
@@ -380,6 +381,7 @@ const PackageCreateSys = () => {
     <>
       <Header />
       <div className="main-header-box py-4" style={{ backgroundColor: "#f5f7fa" }}>
+      <div className="pages-box">
         <Container className="d-flex justify-content-center align-items-center">
           <Card className="p-4 shadow-lg w-100" style={{ maxWidth: "900px", border: "none", borderRadius: "15px" }}>
             <div className="form-header mb-4 text-center">
@@ -582,7 +584,10 @@ const PackageCreateSys = () => {
               )}
             </Formik>
           </Card>
+          
         </Container>
+        <div className="d-flex justify-content-center mt-2"> <BackButton/></div>
+      </div>
       </div>
     </>
   );

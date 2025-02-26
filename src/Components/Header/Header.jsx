@@ -53,7 +53,7 @@ const Header = () => {
   // console.log("dasasas", selectedLanguage);
   //
   const { roles, hasPermission, permissions, getRoles } = usePermissions();
-  console.log("asdasd", roles);
+  // console.log("asdasd", roles);
 
   const toggleDropdown = (dropdown) => {
     setExpandedDropdown(expandedDropdown === dropdown ? "" : dropdown);
@@ -445,13 +445,13 @@ const Header = () => {
                     >
                       ▣ {t("Usage Limits Per Company")}
                     </Link>
-                    {/* <Link
+                    <Link
                       to="/billings/currency-management"
                       className="sidebar-link"
                       activeClassName="active"
                     >
                       ▣ {t("Multiple Currency Management System")}
-                    </Link> */}
+                    </Link>
                     {/* <Link
                       to="/billings/pricing-option"
                       className="sidebar-link"
