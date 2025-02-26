@@ -71,6 +71,7 @@ const CreateCompany = () => {
     taxName: "",
     taxPercentage: "",
     countryName: "",
+    currencyCode: "",
     // ss
     contactZip: "",
     contactPerson: "",
@@ -166,6 +167,9 @@ const CreateCompany = () => {
           : "-";
         updatedFormData.taxPercentage = selectedCountry
           ? selectedCountry.taxPercentage
+          : "-";
+        updatedFormData.currencyCode = selectedCountry
+          ? selectedCountry.currencyCode
           : "-";
       }
 
@@ -776,6 +780,7 @@ const CreateCompany = () => {
         companyCountryName: formData.contactCountry,
         taxName: formData.taxName,
         taxPercentage: formData.taxPercentage,
+        currencyCode:formData.currencyCode
       };
 
       const userdata = {
@@ -1353,7 +1358,7 @@ const CreateCompany = () => {
 
                   {/* Country Tax Details */}
                   <Form.Group className="mb-3">
-                    <Form.Label>
+                    <Form.Label style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:"20px"}}>
                       <span className="text-danger">*</span>{" "}
                       {t("Country Tax Name")}:{" "}
                       <Form.Control
@@ -1362,7 +1367,7 @@ const CreateCompany = () => {
                         disabled
                         style={{
                           display: "inline-block",
-                          width: "auto",
+                          width: "73%",
                           marginLeft: "10px",
                           backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
                           border: "1px solid #ced4da",
@@ -1370,7 +1375,6 @@ const CreateCompany = () => {
                         }}
                       />
                     </Form.Label>
-                    <br />
                     <Form.Group className="mb-3">
                       {/* Country Tax Percentage */}
                       <Form.Label>
@@ -1392,6 +1396,23 @@ const CreateCompany = () => {
                             width: "80px", // Small input box
                             textAlign: "center",
                             marginLeft: "10px",
+                          }}
+                        />
+                      </Form.Label>
+                      <Form.Label style={{marginLeft:"7px"}}>
+                        <span className="text-danger">*</span>{" "}
+                        {t("Country Currency")}:{" "}
+                        <Form.Control
+                          type="text"
+                          value={formData.currencyCode || ""}
+                          disabled
+                          style={{
+                            display: "inline-block",
+                            width: "auto",
+                            marginLeft: "10px",
+                            backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
+                            border: "1px solid #ced4da",
+                            fontWeight: "bold",
                           }}
                         />
                       </Form.Label>

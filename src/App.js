@@ -61,6 +61,7 @@ import PackageCreateSys from './Super_Admin/Pages/BillingSystem/PackageCreateSys
 import PackagesList from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/PackagesList";
 import TaxationSetting from "./Super_Admin/Pages/TaxationSetting/TaxationSetting";
 import EditPackage from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/EditPackage ";
+import PlansPackages from "./Admin/Pages/Plans&Packages/PlansPackages";
 
 
 function App() {
@@ -167,7 +168,8 @@ function App() {
           <Route path="/reports/company/workorder" element={<PrivateRoute element={CompanyWOreport } />} />
           <Route path="/reports/company/fielduser-attendence" element={<PrivateRoute element={FieldUserAttendece } />} />
 
-          
+          {/* Plans & Packaegs */}
+          <Route path="/plans-packages" element={<PrivateRoute element={PlansPackages } />} />
         </Routes>
       </Router>
     </>
