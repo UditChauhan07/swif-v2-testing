@@ -1029,3 +1029,90 @@ export const getSubscriptionPackagesList = async (token) => {
     throw new Error("An unexpected error occurred");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const editSubscriptionPackages = async (token,payload) => {
+  try {
+    const response = await axios.put(
+      `${Url}/ra7ystemu1`,payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("package edit response Data",response);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};

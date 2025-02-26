@@ -460,7 +460,7 @@ const Header = () => {
                       ▣ {t("Custom Pricing Option")}
                     </Link> */}
                     <Link
-                      to="/billings/package-creation"
+                      to="/billings/package-list"
                       className="sidebar-link"
                       activeClassName="active"
                     >

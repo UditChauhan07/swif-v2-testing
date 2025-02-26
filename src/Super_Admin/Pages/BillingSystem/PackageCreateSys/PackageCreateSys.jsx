@@ -433,19 +433,19 @@ const PackageCreateSys = () => {
                     payg: true,
                     // payg_rates: {
                       features:{
-                      add_customers: parseFloat(values.payg_rates.add_customers).toFixed(2),
-                      add_office_users: parseFloat(values.payg_rates.add_office_users).toFixed(2),
-                      add_field_users: parseFloat(values.payg_rates.add_field_users).toFixed(2),
-                      work_order_creation: parseFloat(values.payg_rates.work_order_creation).toFixed(2),
-                      work_order_execution: parseFloat(values.payg_rates.work_order_execution).toFixed(2),
+                      add_customers: Number(parseFloat(values.payg_rates.add_customers).toFixed(2)),
+                      add_office_users: Number(parseFloat(values.payg_rates.add_office_users).toFixed(2)),
+                      add_field_users: Number(parseFloat(values.payg_rates.add_field_users).toFixed(2)),
+                      work_order_creation: Number(parseFloat(values.payg_rates.work_order_creation).toFixed(2)),
+                      work_order_execution: Number(parseFloat(values.payg_rates.work_order_execution).toFixed(2)),
                     },
                   };
                 }
                 console.log("Submitted Values:", values);
                 console.log("Payload:", payload);
                 Swal.fire({
-                  title: t("processing"),
-                  text: t("please_wait"),
+                  title: t("Processing..."),
+                  text: t("Please wait, while creating package"),
                   allowOutsideClick: false,
                   showConfirmButton: false,
                   didOpen: () => {
@@ -460,7 +460,7 @@ const PackageCreateSys = () => {
                  
                   Swal.fire(t("success"), t("Package Created Successfully!"), "success");                }
                 else{
-                  Swal.fire(t("error"), response.error || t("error_occurred"), "error");
+                  Swal.fire(t("error"), response.error || t("Failed to create package"), "error");
                 }
                 resetForm();
               }}

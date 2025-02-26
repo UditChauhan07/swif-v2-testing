@@ -241,14 +241,18 @@ import { Check2Circle, XCircle, StarFill } from "react-bootstrap-icons";
 import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
-
+import { jwtDecode } from "jwt-decode";
 import { getSubscriptionPackagesList } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
+import { useNavigate } from "react-router-dom";
 
 const PackagesList = () => {
   const role = localStorage.getItem("Role");
   const token = localStorage.getItem("UserToken");
   const [subscriptionPackages, setSubscriptionPackages] = useState([]);
+  const navigate=useNavigate();
+  const decoded=jwtDecode(token);
+  console.log('decoded',decoded);
   const [loading, setLoading] = useState(true);
   const [paygPlan, setpaygPlan] = useState({
     package_id: "",
@@ -350,7 +354,17 @@ const PackagesList = () => {
   const paygPlanMapping = {
     payg: "Pay as You Go",
   };
-  console.log("dsdsdsdsd", paygPlan.rates);
+  const handleEdit=async (packageData)=>{
+    // update plan
+    // call update plan API
+    console.log('edit plan',packageData);
+    navigate('/billings/package-edit', { state: { packageData } });
+  }
+
+  const handleCreateNewPlan=()=>{
+    if(subscriptionPackages)
+    navigate('/billings/package-creation')
+  }
   return (
     <>
       <Header />
@@ -362,6 +376,11 @@ const PackagesList = () => {
           ) : (
         
         <Container fluid className="py-1" >
+          {
+          decoded?.role === "SuperAdmin" && 
+          <Button onClick={handleCreateNewPlan}>{t("Create A New plan")}</Button>
+         }
+          
           <Row className="justify-content-center">
             {Object.keys(paygPlan.rates).length > 0 ||
             subscriptionPackages.length > 0 ? (
@@ -495,13 +514,16 @@ const PackagesList = () => {
                                   )}
                                 </tbody>
                               </Table>
-                              {/* <Button
-                            variant={index === 2 ? "primary" : "outline-primary"}
-                            className="mt-auto w-100 fw-semibold"
-                            style={{ borderRadius: "8px", padding: "10px" }}
-                          >
-                            {role === "SuperAdmin" ? "View Details" : "Select Plan"}
-                          </Button> */}
+                        {decoded?.role === "SuperAdmin" && 
+                          <Button
+                        variant={index === 2 ? "primary" : "outline-primary"}
+                        className="mt-auto w-100 fw-semibold"
+                        style={{ borderRadius: "8px", padding: "10px" }}
+                        onClick={()=>handleEdit(pkg)}
+                       >
+                        {t('Edit')}
+                      </Button>
+                      }
                             </Card.Body>
                             {/* <Card.Footer className="text-center py-3 bg-white">
                           <Badge
@@ -612,9 +634,10 @@ const PackagesList = () => {
                                 )}
                               </tbody>
                             </Table>
-                            {/* <Button variant="outline-info" className="w-100 fw-semibold" style={{ borderRadius: "8px", padding: "10px" }}>
-                          {role === "SuperAdmin" ? "View Details" : "Choose PAYG"}
-                        </Button> */}
+                            {decoded?.role === "SuperAdmin" && 
+                            <Button variant="outline-info" className="w-100 fw-semibold" onClick={()=>handleEdit(paygPlan)} style={{ borderRadius: "8px", padding: "10px" }}>
+                          {t('Edit')}
+                        </Button>}
                           </Card.Body>
                           <Card.Footer className="text-center py-3 bg-white">
                             <Badge

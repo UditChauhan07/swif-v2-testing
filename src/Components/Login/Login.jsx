@@ -49,6 +49,8 @@ const Login = () => {
         localStorage.setItem("name", response.user.first_name);
         localStorage.setItem("companyId", response.company_id);
         localStorage.setItem("language", "en");
+        localStorage.setItem("country", response.country);
+
         if(response.skipTutorial || response.skipTutorial=='true'){
           localStorage.setItem("guidlines", "unactive");
         }
