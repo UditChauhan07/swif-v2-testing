@@ -43,9 +43,9 @@ const EditPackage = ({ initialValues, onSubmit }) => {
   
   const paygSchema = baseSchema.concat(
     Yup.object({
-      cost_per_month: Yup.number().notRequired(),
-      features: Yup.object().notRequired(),
-      payg_rates: Yup.object({
+      // cost_per_month: Yup.number().notRequired(),
+      //  Yup.object().notRequired(),
+       rates:Yup.object({
         add_customers: Yup.number().required(t("Required")).min(0, t("Must be at least 0")),
         add_office_users: Yup.number().required(t("Required")).min(0, t("Must be at least 0")),
         add_field_users: Yup.number().required(t("Required")).min(0, t("Must be at least 0")),
@@ -117,22 +117,22 @@ const EditPackage = ({ initialValues, onSubmit }) => {
                 } else {
                   payload = {
                     package_id:values.package_id,
-                    // packageType: values.packageType,
+                    packageType: values.packageType,
                     // name: values.name||"payg",
                     // cost_per_month: 0.00,
                     payg: true,
                     // payg_rates: {
                       features:{
-                      add_customers: Number(parseFloat(values.payg_rates.add_customers).toFixed(2)),
-                      add_office_users: Number(parseFloat(values.payg_rates.add_office_users).toFixed(2)),
-                      add_field_users: Number(parseFloat(values.payg_rates.add_field_users).toFixed(2)),
-                      work_order_creation: Number(parseFloat(values.payg_rates.work_order_creation).toFixed(2)),
-                      work_order_execution:Number( parseFloat(values.payg_rates.work_order_execution).toFixed(2)),
+                      add_customers: Number(parseFloat(values.rates.add_customers).toFixed(2)),
+                      add_office_users: Number(parseFloat(values.rates.add_office_users).toFixed(2)),
+                      add_field_users: Number(parseFloat(values.rates.add_field_users).toFixed(2)),
+                      work_order_creation: Number(parseFloat(values.rates.work_order_creation).toFixed(2)),
+                      work_order_execution:Number( parseFloat(values.rates.work_order_execution).toFixed(2)),
                     },
                   };
                 }
-                // console.log("Updated Values:", values);
-                // console.log("Payload:", payload);
+                console.log("Updated Values:", values);
+                console.log("Payload:", payload);
                 try{
                 
                   Swal.fire({
@@ -207,13 +207,13 @@ const EditPackage = ({ initialValues, onSubmit }) => {
                     <div className="mb-4">
                       <h5 className="fw-semibold">{t("PAYG Rates ($ per usage)")}</h5>
                       <Row>
-                        {Object.keys(values.payg_rates).map((rate) => (
+                        {Object?.keys(values?.rates).map((rate) => (
                           <Col md={6} key={rate} className="mb-3">
                             <label className="form-label text-capitalize">
                               {/* {rate.replace(/_/g, " ")} */}
                               {t(featureMapping[rate] || rate.replace(/_/g, " "))}
                               </label>
-                            <Field type="text" name={`payg_rates.${rate}`} className="form-control" />
+                            <Field type="text" name={`rates.${rate}`} className="form-control" />
                           </Col>
                         ))}
                       </Row>

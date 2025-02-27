@@ -9,14 +9,15 @@ const FieldUserAttendece = () => {
   const { t } = useTranslation();
   const [fieldUserData, setFieldUserData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  console.log("filterDataa", filteredData);
+  // console.log("filterDataa", filteredData);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
 
   // Get companyId and token from local storage
   const [companyId] = useState(localStorage.getItem("companyId"));
   const [token] = useState(localStorage.getItem("UserToken"));
-
+  // console.log('-------------------------fieldUserData', fieldUserData);
   // Fetch the Field User Attendence report when component mounts
   useEffect(() => {
     const fetchReport = async () => {
@@ -24,7 +25,8 @@ const FieldUserAttendece = () => {
       setIsLoading(true);
       try {
         const response = await getFieldUserAttendenceApi(companyId, token);
-        if (response.status === "true") {
+      
+        if (response.status == true) {
           setFieldUserData(response.workOrders);
           setFilteredData(response.workOrders);
         }
@@ -52,6 +54,7 @@ const FieldUserAttendece = () => {
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase())
       );
+      // console.log('filtered: ', filtered);
       setFilteredData(filtered);
     }
   }, [searchQuery, fieldUserData]);

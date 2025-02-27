@@ -4,17 +4,24 @@ import {
   Row,
   Col,
   Form,
-  Card, 
+  Card,
   Badge,
   ListGroup,
   Button,
   InputGroup,
   ToggleButtonGroup,
   ToggleButton,
+  Alert,
 } from "react-bootstrap";
 import Header from "../../../../Components/Header/Header";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { createCompanyApi, getSubscriptionPackagesList, getTaxationDetails } from "../../../../lib/store";
+import {
+  createCompanyApi,
+  getPricingStructure,
+  getSubscriptionPackagesList,
+  getTaxationDetails,
+  getUsageLimit,
+} from "../../../../lib/store";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
@@ -22,15 +29,21 @@ import imageCompression from "browser-image-compression";
 import Select from "react-select";
 import { getNames } from "country-list";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import LoadingComp from "../../../../Components/Loader/LoadingComp";
 
 const CreateCompany = () => {
   const { t, i18n } = useTranslation();
+  const [token, settoken] = useState(localStorage.getItem("UserToken"));
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [countryListDetails, setcountryListDetails] = useState();
   const [subscriptionPlanList, setsubscriptionPlanList] = useState();
-  const [selectedPlan, setselectedPlan] = useState({})
-  // console.log("countryListDetails", countryListDetails,subscriptionPlanList,selectedPlan);
+  const [selectedPlan, setselectedPlan] = useState({});
+  const [checkBillingDetails, setcheckBillingDetails] = useState();
+  const [isLoading, setisLoading] = useState(true);
+  // console.log("checkBillingDetails", checkBillingDetails);
+  console.log("isLoading", isLoading);
 
   useEffect(() => {
     const fetchCountry = async () => {
@@ -41,6 +54,7 @@ const CreateCompany = () => {
           const sortedArray = array.sort((a, b) =>
             a?.countryName.localeCompare(b?.countryName)
           );
+          // console.log('taxationDetails', sortedArray)
           setcountryListDetails(sortedArray || []);
         }
       } catch (error) {
@@ -48,25 +62,125 @@ const CreateCompany = () => {
       }
     };
     fetchCountry();
-  }, []);
+  }, [token]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchSubscriptionPlan = async () => {
       try {
         const response = await getSubscriptionPackagesList(token);
-        console.log('package respppppppppp',response);
+        // console.log("package respppppppppp", response);
         const sortedPackages = response.packages
           ? [...response.packages]
               // .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
               .sort((a, b) => a.cost_per_month - b.cost_per_month)
           : [];
-          setsubscriptionPlanList(sortedPackages||[]);
+        setsubscriptionPlanList(sortedPackages || []);
       } catch (error) {
-        console.error('error while fetching subscription pacakage list',error);
+        console.error("error while fetching subscription pacakage list", error);
       }
     };
     fetchSubscriptionPlan();
-  },[])
+  }, []);
+
+  useEffect(() => {
+    let alertShown = false; // Prevent multiple alerts
+
+    const fetchData = async () => {
+      let messages = [];
+      
+      let hasAllData = true;
+      let errorType = "";
+
+      setisLoading(true);
+
+      try {
+        const pricingResponse = await getPricingStructure(token);
+        if (
+          pricingResponse.status === 200 &&
+          Array.isArray(pricingResponse?.data?.data) &&
+          pricingResponse.data.data.length > 0
+        ) {
+          setcheckBillingDetails(pricingResponse.data.data);
+        } else {
+          messages.push("No data Found In Pricing Structure Please Create new");
+          hasAllData = false;
+          errorType = "pricing";
+        }
+      } catch (error) {
+        messages.push("Error fetching Pricing Structure API");
+        hasAllData = false;
+      }
+
+      try {
+        const usageResponse = await getUsageLimit(token);
+        if (
+          usageResponse.status === 200 &&
+          usageResponse?.data?.data &&
+          Object.keys(usageResponse.data.data).length > 0
+        ) {
+          setcheckBillingDetails(Object.values(usageResponse.data.data));
+        } else {
+          messages.push("No data Found In Usage Limit Please Create new");
+          hasAllData = false;
+          errorType = "usage";
+
+        }
+      } catch (error) {
+        messages.push("Error fetching Usage Limit API");
+        hasAllData = false;
+      }
+
+      try {
+        const packageResponse = await getSubscriptionPackagesList(token);
+        if (
+          packageResponse?.success === true &&
+          Array.isArray(packageResponse?.packages) &&
+          packageResponse.packages.length > 0
+        ) {
+          setcheckBillingDetails(packageResponse.packages);
+        } else {
+          messages.push("No data Found In Subscription Packages Please Create new");
+          hasAllData = false;
+          errorType = "subscription";
+
+        }
+      } catch (error) {
+        messages.push("Error fetching Subscription Packages API");
+        hasAllData = false;
+      }
+
+      setisLoading(false);
+      // console.log("messagesss",messages)
+      if (!hasAllData && !alertShown) {
+        alertShown = true;
+        setTimeout(() => {
+          Swal.fire({
+            icon: "error",
+            title: "Data Fetch Failed",
+            html: messages.join("<br>"),
+            confirmButtonText: "Create!",
+          }).then(() => {
+            if (errorType === "pricing") {
+              navigate("/billings/pricing-structure"); // Redirect to pricing page
+            } else if (errorType === "usage") {
+              navigate("/billings/usage-limit"); // Redirect to usage settings page
+            } else if (errorType === "subscription") {
+              navigate("/billings/package-List"); // Redirect to subscription plans page
+            } else {
+              navigate("/billings/pricing-structure"); // Default: redirect to dashboard
+              Swal.fire("Please create all billing structures!");
+            }
+          });
+        }, 0);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      alertShown = true; // Cleanup function to prevent duplicate alerts
+    };
+  }, [token]);
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -123,13 +237,11 @@ const CreateCompany = () => {
     freeWorkOrders: "101",
     customerAddressFormat: "US",
   });
-  console.log("dsada", formData);
+  // console.log("dsada", formData);
   const [imageErrors, setImageErrors] = useState({
     profilePicture: "",
     companyLogo: "",
   });
-  const navigate = useNavigate();
-  const [token, settoken] = useState(localStorage.getItem("UserToken"));
   // console.log("formData", formData);
   const [errors, setErrors] = useState({});
   const countryOptions = getNames().map((country) => ({
@@ -142,6 +254,7 @@ const CreateCompany = () => {
     label: country.countryName,
   }));
 
+  // console.log("countryListDetails", countryListDetails,countryOptions2)
   const handleNext = () => {
     // Check if there's an email error indicating a duplicate
     if (
@@ -156,7 +269,6 @@ const CreateCompany = () => {
       return; // prevent advancing to the next step
     }
 
-   
     const currentErrors = validateStep(currentStep);
     if (Object.keys(currentErrors).length === 0) {
       setErrors({});
@@ -517,13 +629,13 @@ const CreateCompany = () => {
           }
           break;
 
-        case "quotationCost":
-          if (isNaN(value) || value < 0 || value > 1000) {
-            newErrors.quotationCost = t(
-              "Quotation Cost must be a number between 0 and 1000."
+        case "package":
+          if (!value.trim()) {
+            newErrors.package = t(
+              "Required"
             );
           } else {
-            delete newErrors.quotationCost;
+            delete newErrors.package;
           }
           break;
 
@@ -682,8 +794,7 @@ const CreateCompany = () => {
         if (!formData.contactPhone.trim())
           if (!formData.officeEmail.trim())
             newErrors.officeEmail = t("Office Email Address is required.");
-          if (!formData.package.trim())
-            newErrors.package = t("Required");
+        if (!formData.package.trim()) {newErrors.package = t("Required")}
 
         break;
       default:
@@ -740,7 +851,7 @@ const CreateCompany = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-
+// console.log('-----------------------errors', errors)
   const handleSubmit = async () => {
     const currentErrors = validateStep(currentStep);
     console.log(currentErrors);
@@ -788,7 +899,7 @@ const CreateCompany = () => {
         city: formData.contactCity,
         country: formData.contactCountry,
         zip_postal_code: formData.contactZip,
-        package_id:formData.package,
+        package_id: formData.package,
         package_name: formData.packageDescritption,
         company_contact_person_name: formData.contactPerson,
         contact_person_phone: formData.contactPhone,
@@ -802,7 +913,7 @@ const CreateCompany = () => {
         companyCountryName: formData.contactCountry,
         taxName: formData.taxName,
         taxPercentage: formData.taxPercentage,
-        currencyCode:formData.currencyCode
+        currencyCode: formData.currencyCode,
       };
 
       const userdata = {
@@ -819,7 +930,7 @@ const CreateCompany = () => {
         profile_picture: profilePictureBase64,
       };
 
-      console.log("Final Data:", companyData, userdata);
+      // console.log("Final Data:", companyData, userdata);
       const result = await Swal.fire({
         title: t("Are you sure?"),
         text: t("Do you want to create this company?"),
@@ -846,7 +957,7 @@ const CreateCompany = () => {
 
       // ✅ Send as JSON (No FormData needed)
       const response = await createCompanyApi({ companyData, userdata }, token);
-      console.log("response", response);
+      // console.log("response", response);
       Swal.close();
       if (response.success) {
         Swal.fire({
@@ -876,7 +987,7 @@ const CreateCompany = () => {
           confirmButtonText: "Try Again",
         });
       }
-      console.log("Response:", response);
+      // console.log("Response:", response);
     } catch (error) {
       console.error("Error submitting data:", error);
       Swal.close();
@@ -896,7 +1007,7 @@ const CreateCompany = () => {
     work_order_creation: "Work Order Creation",
     work_order_execution: "Work Order Execution",
   };
-  
+
   const subscriptionPlanMapping = {
     default: "Default",
     basic: "Basic",
@@ -908,862 +1019,918 @@ const CreateCompany = () => {
     <>
       <Header />
       <div className="main-header-box">
-        {currentStep === 1 && (
-          <Container
-            className="mt-4 pages-box"
-            style={{
-              backgroundColor: "white",
-              borderRadius: "22px",
-              padding: "25px",
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <div
-              className="form-header mb-4"
-              style={{
-                backgroundColor: "#2e2e32",
-                color: "white",
-                padding: "10px 20px",
-                borderRadius: "8px",
-              }}
-            >
-              <h4 className="mb-0">{t("Company Super Admin Details")}</h4>
+        {isLoading ? (
+          <>
+            <div className="mt-4 pages-box">
+              <LoadingComp />
             </div>
-            <Form>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("First Name")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "First Name"
-                      )}`}
-                      value={formData.firstName}
-                      maxLength={50}
-                      onChange={(e) =>
-                        handleChange("firstName", e.target.value)
-                      }
-                      isInvalid={!!errors.firstName}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.firstName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("Last Name")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "Last Name"
-                      )}`}
-                      maxLength={50}
-                      value={formData.lastName}
-                      onChange={(e) => handleChange("lastName", e.target.value)}
-                      isInvalid={!!errors.lastName}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.lastName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Profile Picture")}:</Form.Label>
-                    <Form.Control
-                      type="file"
-                      accept="image/jpeg, image/png"
-                      onChange={(e) =>
-                        handleImageChange("profilePicture", e.target.files[0])
-                      }
-                      isInvalid={!!imageErrors.profilePicture}
-                    />
-                    {imageErrors.profilePicture && (
-                      <Form.Text className="text-danger">
-                        {imageErrors.profilePicture}
-                      </Form.Text>
-                    )}
-                    <Form.Text className="text-muted">
-                      {t("Only JPEG and PNG formats allowed.")}
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Contact Number")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "Contact Number"
-                      )}`}
-                      value={formData.contactNumber}
-                      maxLength={15}
-                      onChange={(e) =>
-                        handleChange("contactNumber", e.target.value)
-                      }
-                      isInvalid={!!errors.contactNumber}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactNumber}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Email Address")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "Email Address"
-                      )}`}
-                      value={formData.email}
-                      maxLength={30}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      isInvalid={!!errors.email}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.email}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Admin Password")}:
-                    </Form.Label>
-                    <InputGroup hasValidation>
-                      <Form.Control
-                        type={showPassword ? "text" : "password"}
-                        placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                          "Password"
-                        )}`}
-                        value={formData.password}
-                        maxLength={20}
-                        onChange={(e) =>
-                          handleChange("password", e.target.value)
-                        }
-                        isInvalid={!!errors.password}
-                      />
-                      <InputGroup.Text
-                        style={{ cursor: "pointer" }}
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </InputGroup.Text>
-                      <Form.Control.Feedback type="invalid">
-                        {errors.password}
-                      </Form.Control.Feedback>
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Address")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "Address"
-                      )}`}
-                      value={formData.address}
-                      maxLength={50}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("City")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "City"
-                      )}`}
-                      value={formData.city}
-                      maxLength={15}
-                      onChange={(e) => handleChange("city", e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("State")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "State"
-                      )}`}
-                      value={formData.state}
-                      maxLength={15}
-                      onChange={(e) => handleChange("state", e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Country")}:</Form.Label>
-                    <Select
-                      options={countryOptions}
-                      placeholder={t("Select a country")}
-                      onChange={(selectedOption) =>
-                        handleChange("country", selectedOption.value)
-                      }
-                      value={countryOptions.find(
-                        (option) => option.value === formData.country
-                      )}
-                      styles={{
-                        menuList: (provided) => ({
-                          ...provided,
-                          maxHeight: "150px", // Limits dropdown height
-                          overflowY: "auto",
-                        }),
-                      }}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("ZIP/Postal Code")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
-                        "ZIP/Postal Code"
-                      )}`}
-                      value={formData.zip}
-                      maxLength={10}
-                      onChange={(e) => handleChange("zip", e.target.value)}
-                      isInvalid={!!errors.zip}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.zip}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Select Language")}:
-                    </Form.Label>
-                    <Form.Select
-                      as="select"
-                      value={formData.language}
-                      onChange={(e) => handleChange("language", e.target.value)}
-                      isInvalid={!!errors.language}
-                    >
-                      <option value="">{t("Select Language")}</option>
-                      <option value="English">English</option>
-                      <option value="Spanish">Spanish</option>
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">
-                      {errors.language}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Form>
-            <Button type="submit" onClick={handleNext}>
-              {t("Next")}
-            </Button>
-          </Container>
-        )}
-        {currentStep === 2 && (
-          <Container
-            className="mt-4"
-            style={{
-              backgroundColor: "white",
-              borderRadius: "22px",
-              padding: "25px",
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <div
-              className="form-header mb-4"
-              style={{
-                backgroundColor: "#2e2e32",
-                color: "white",
-                padding: "10px 20px",
-                borderRadius: "8px",
-              }}
-            >
-              <h4 className="mb-0">{t("Company Basic Details (Mandatory)")}</h4>
-            </div>
-            <Form className="mb-3">
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("Company Name")}
-                      :
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Name")}
-                      value={formData.companyName}
-                      maxLength={20}
-                      onChange={(e) =>
-                        handleChange("companyName", e.target.value)
-                      }
-                      isInvalid={!!errors.companyName}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.companyName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Company Logo")}:</Form.Label>
-                    <Form.Control
-                      type="file"
-                      accept="image/jpeg, image/png"
-                      onChange={(e) =>
-                        handleImageChange("companyLogo", e.target.files[0])
-                      }
-                      isInvalid={!!imageErrors.companyLogo}
-                    />
-                    {imageErrors.companyLogo && (
-                      <Form.Text className="text-danger">
-                        {imageErrors.companyLogo}
-                      </Form.Text>
-                    )}
-                    <Form.Text className="text-muted">
-                      Only JPEG and PNG formats allowed.
-                    </Form.Text>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Company Contact Person Name")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Contact Person Name")}
-                      value={formData.contactPerson}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleChange("contactPerson", e.target.value)
-                      }
-                      isInvalid={!!errors.contactPerson}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactPerson}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Contact Person Phone")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Person Phone")}
-                      value={formData.contactPhone}
-                      maxLength={15}
-                      onChange={(e) =>
-                        handleChange("contactPhone", e.target.value)
-                      }
-                      isInvalid={!!errors.contactPhone}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactPhone}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Company Office Email Address")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder={t("Enter Company Office Email Address")}
-                      value={formData.officeEmail}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleChange("officeEmail", e.target.value)
-                      }
-                      isInvalid={!!errors.officeEmail}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.officeEmail}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("Address Line")}{" "}
-                      1:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Address")}
-                      value={formData.addressLine1}
-                      maxLength={50}
-                      onChange={(e) =>
-                        handleChange("addressLine1", e.target.value)
-                      }
-                      isInvalid={!!errors.addressLine1}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.addressLine1}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("City")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Address's City")}
-                      value={formData.contactCity}
-                      maxLength={15}
-                      onChange={(e) =>
-                        handleChange("contactCity", e.target.value)
-                      }
-                      isInvalid={!!errors.contactCity}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactCity}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("State")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Address's State")}
-                      value={formData.companyState}
-                      maxLength={15}
-                      onChange={(e) =>
-                        handleChange("companyState", e.target.value)
-                      }
-                      isInvalid={!!errors.companyState}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.companyState}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-
-                  {/* Countryy */}
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span> {t("Country")}:
-                    </Form.Label>
-                    <Select
-                      options={countryOptions2}
-                      onChange={(selectedOption) =>
-                        handleChange("contactCountry", selectedOption.value)
-                      }
-                      value={countryOptions2.find(
-                        (option) => option.value === formData.contactCountry
-                      )}
-                      styles={{
-                        menuList: (provided) => ({
-                          ...provided,
-                          maxHeight: "150px", // Limits dropdown height
-                          overflowY: "auto",
-                        }),
-                      }}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactCountry}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-
-                  {/* Country Tax Details */}
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:"20px"}}>
-                      <span className="text-danger">*</span>{" "}
-                      {t("Country Tax Name")}:{" "}
-                      <Form.Control
-                        type="text"
-                        value={formData.taxName || ""}
-                        disabled
-                        style={{
-                          display: "inline-block",
-                          width: "73%",
-                          marginLeft: "10px",
-                          backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
-                          border: "1px solid #ced4da",
-                          fontWeight: "bold",
-                        }}
-                      />
-                    </Form.Label>
-                    <Form.Group className="mb-3">
-                      {/* Country Tax Percentage */}
-                      <Form.Label>
-                        <span className="text-danger">*</span>{" "}
-                        {t("Country Tax %")}:{" "}
-                        <Form.Control
-                          type="number"
-                          value={formData.taxPercentage || ""}
-                          onChange={(e) =>
-                            handleChange(
-                              "taxPercentage",
-                              e.target.value ? Number(e.target.value) : ""
-                            )
-                          }
-                          placeholder="%"
-                          min={1}
-                          style={{
-                            display: "inline-block",
-                            width: "80px", // Small input box
-                            textAlign: "center",
-                            marginLeft: "10px",
-                          }}
-                        />
-                      </Form.Label>
-                      <Form.Label style={{marginLeft:"7px"}}>
-                        <span className="text-danger">*</span>{" "}
-                        {t("Country Currency")}:{" "}
-                        <Form.Control
-                          type="text"
-                          value={formData.currencyCode || ""}
-                          disabled
-                          style={{
-                            display: "inline-block",
-                            width: "auto",
-                            marginLeft: "10px",
-                            backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
-                            border: "1px solid #ced4da",
-                            fontWeight: "bold",
-                          }}
-                        />
-                      </Form.Label>
-                    </Form.Group>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <span className="text-danger">*</span>{" "}
-                      {t("ZIP/Postal Code")}:
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Address's Zipcode")}
-                      value={formData.contactZip}
-                      maxLength={20}
-                      onChange={(e) =>
-                        handleChange("contactZip", e.target.value)
-                      }
-                      isInvalid={!!errors.contactZip}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.contactZip}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={12}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Working Day")}:</Form.Label>
-                    <div>
-                      <ToggleButtonGroup
-                        type="checkbox"
-                        className="d-flex flex-wrap"
-                        value={formData.workingDays}
-                        onChange={(value) =>
-                          handleChange("workingDays", value.filter(Boolean))
-                        }
-                        style={{ zIndex: "0" }}
-                      >
-                        {[
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                        ].map((day, index) => (
-                          <ToggleButton
-                            key={index}
-                            id={`btn-${day}`}
-                            value={day}
-                            variant="outline-primary"
-                            className="me-2 mb-2"
-                          >
-                            {t(day)}
-                          </ToggleButton>
-                        ))}
-                        {["Saturday", "Sunday"].map((day, index) => (
-                          <ToggleButton
-                            key={index}
-                            id={`btn-${day}`}
-                            value={day}
-                            variant="outline-secondary"
-                            className="me-2 mb-2"
-                          >
-                            {t(day)}
-                          </ToggleButton>
-                        ))}
-                      </ToggleButtonGroup>
-                      <Form.Text muted>
-                        Default (mon, tue, wed, thr, fri)
-                      </Form.Text>
-                      {errors.workingDays && (
-                        <div className="text-danger mt-1">
-                          {errors.workingDays}
-                        </div>
-                      )}
-                    </div>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <Button
-                variant="primary"
-                type="button"
-                className="mt-1 mb-2"
+          </>
+        ) : (
+          <>
+            {currentStep === 1 && (
+              <Container
+                className="mt-4 pages-box"
                 style={{
-                  background: "#6c757d",
-                  border: "none",
-                  color: "white",
-                }}
-                onClick={() => {
-                  const newCertification = { name: "", number: "" };
-                  const updatedCertifications = [
-                    ...(formData.additionalCertifications || []),
-                    newCertification,
-                  ];
-                  handleChange(
-                    "additionalCertifications",
-                    updatedCertifications
-                  );
+                  backgroundColor: "white",
+                  borderRadius: "22px",
+                  padding: "25px",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
                 }}
               >
-                {t("Add More")}
-              </Button>
-
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Certification Name")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Certification Name")}
-                      value={formData.certificationName}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleChange("certificationName", e.target.value)
-                      }
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>{t("Certification Number")}:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder={t("Enter Company Certification Number")}
-                      value={formData.certificationNumber}
-                      maxLength={20}
-                      onChange={(e) =>
-                        handleChange("certificationNumber", e.target.value)
-                      }
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              {formData.additionalCertifications?.map((cert, index) => (
-                <Row key={index} className="mt-2">
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        {t("Additional Certification Name")}:
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder={t("Enter Additional Certification Name")}
-                        value={cert.name}
-                        maxLength={30}
-                        onChange={(e) => {
-                          const updatedCertifications = [
-                            ...formData.additionalCertifications,
-                          ];
-                          updatedCertifications[index].name = e.target.value;
-                          handleChange(
-                            "additionalCertifications",
-                            updatedCertifications
-                          );
-                        }}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col
-                    md={6}
-                    className="d-flex justify-content-between align-items-center"
-                  >
-                    <Form.Group className="mb-3" style={{ width: "90%" }}>
-                      <Form.Label>
-                        {t("Additional Certification Number")}:
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder={t("Enter Additional Certification Number")}
-                        value={cert.number}
-                        maxLength={20}
-                        onChange={(e) => {
-                          const updatedCertifications = [
-                            ...formData.additionalCertifications,
-                          ];
-                          updatedCertifications[index].number = e.target.value;
-                          handleChange(
-                            "additionalCertifications",
-                            updatedCertifications
-                          );
-                        }}
-                      />
-                    </Form.Group>
-                    <Button
-                      variant="danger"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        padding: "0",
-                        fontSize: "18px",
-                      }}
-                      onClick={() => {
-                        const updatedCertifications =
-                          formData.additionalCertifications.filter(
-                            (_, i) => i !== index
-                          );
-                        handleChange(
-                          "additionalCertifications",
-                          updatedCertifications
-                        );
-                      }}
-                    >
-                      X
-                    </Button>
-                  </Col>
-                </Row>
-              ))}
-            </Form>
-
-              {/* choose plan */}
-              <Form.Group className="mb-3">
-              <Form.Label>
-                <span className="text-danger">*</span> {t("Choose Plan")}:
-              </Form.Label>
-              <Select
-                  options={subscriptionPlanList?.map((option) => ({
-                    value: option.name,
-                    label: option.name,
-                    package_id:option.package_id,
-                    features: option.features,
-                  }))} 
-                  onChange={(selectedOption) =>{
-                    handleChange("package", selectedOption?.package_id)
-                    handleChange("packageDescritption", selectedOption?.value)
-                    setselectedPlan({name: selectedOption.value,features:selectedOption.features} ||{})
-                  }
-                    
-                  }
-                  value={subscriptionPlanList
-                    ?.map((option) => ({ value: option.name, label: option.name }))
-                    .find((opt) => opt.value === formData.package)}
-                  styles={{
-                    menuList: (provided) => ({
-                      ...provided,
-                      maxHeight: "150px", // Limits dropdown height
-                      overflowY: "auto",
-                    }),
+                <div
+                  className="form-header mb-4"
+                  style={{
+                    backgroundColor: "#2e2e32",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "8px",
                   }}
-                  required
-                />
-              <Form.Control.Feedback type="invalid">
-                {errors.package}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            {/* Selected Plan Details */}
-      {selectedPlan?.name && (
-        <Card className="mt-3 mb-3 shadow-sm border-0">
-          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">
-            {t(subscriptionPlanMapping[selectedPlan?.name] ||selectedPlan.name.replace(/_/g, " "))}
-              {/* {selectedPlan?.name} */}
-              </h5>
-            <Badge bg="light" text="dark">
-            { t("Selected Plan")}
-            </Badge>
-          </Card.Header>
-          <Card.Body>
-            <ListGroup variant="flush">
-              {Object.entries(selectedPlan.features)?.map(([key, value]) => (
-                <ListGroup.Item
-                  key={key}
-                  className="d-flex justify-content-between align-items-center"
                 >
-                  <span>
-                    {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
+                  <h4 className="mb-0">{t("Company Super Admin Details")}</h4>
+                </div>
+                <Form>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("First Name")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "First Name"
+                          )}`}
+                          value={formData.firstName}
+                          maxLength={50}
+                          onChange={(e) =>
+                            handleChange("firstName", e.target.value)
+                          }
+                          isInvalid={!!errors.firstName}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.firstName}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Last Name")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "Last Name"
+                          )}`}
+                          maxLength={50}
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            handleChange("lastName", e.target.value)
+                          }
+                          isInvalid={!!errors.lastName}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.lastName}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Profile Picture")}:</Form.Label>
+                        <Form.Control
+                          type="file"
+                          accept="image/jpeg, image/png"
+                          onChange={(e) =>
+                            handleImageChange(
+                              "profilePicture",
+                              e.target.files[0]
+                            )
+                          }
+                          isInvalid={!!imageErrors.profilePicture}
+                        />
+                        {imageErrors.profilePicture && (
+                          <Form.Text className="text-danger">
+                            {imageErrors.profilePicture}
+                          </Form.Text>
+                        )}
+                        <Form.Text className="text-muted">
+                          {t("Only JPEG and PNG formats allowed.")}
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Contact Number")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "Contact Number"
+                          )}`}
+                          value={formData.contactNumber}
+                          maxLength={15}
+                          onChange={(e) =>
+                            handleChange("contactNumber", e.target.value)
+                          }
+                          isInvalid={!!errors.contactNumber}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactNumber}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Email Address")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="email"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "Email Address"
+                          )}`}
+                          value={formData.email}
+                          maxLength={30}
+                          onChange={(e) =>
+                            handleChange("email", e.target.value)
+                          }
+                          isInvalid={!!errors.email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.email}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Admin Password")}:
+                        </Form.Label>
+                        <InputGroup hasValidation>
+                          <Form.Control
+                            type={showPassword ? "text" : "password"}
+                            placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                              "Password"
+                            )}`}
+                            value={formData.password}
+                            maxLength={20}
+                            onChange={(e) =>
+                              handleChange("password", e.target.value)
+                            }
+                            isInvalid={!!errors.password}
+                          />
+                          <InputGroup.Text
+                            style={{ cursor: "pointer" }}
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                          </InputGroup.Text>
+                          <Form.Control.Feedback type="invalid">
+                            {errors.password}
+                          </Form.Control.Feedback>
+                        </InputGroup>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Address")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "Address"
+                          )}`}
+                          value={formData.address}
+                          maxLength={50}
+                          onChange={(e) =>
+                            handleChange("address", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("City")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "City"
+                          )}`}
+                          value={formData.city}
+                          maxLength={15}
+                          onChange={(e) => handleChange("city", e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("State")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "State"
+                          )}`}
+                          value={formData.state}
+                          maxLength={15}
+                          onChange={(e) =>
+                            handleChange("state", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Country")}:</Form.Label>
+                        <Select
+                          options={countryOptions}
+                          placeholder={t("Select a country")}
+                          onChange={(selectedOption) =>
+                            handleChange("country", selectedOption.value)
+                          }
+                          value={countryOptions.find(
+                            (option) => option.value === formData.country
+                          )}
+                          styles={{
+                            menuList: (provided) => ({
+                              ...provided,
+                              maxHeight: "150px", // Limits dropdown height
+                              overflowY: "auto",
+                            }),
+                          }}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("ZIP/Postal Code")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={`${t("Enter")} ${t("Super Admin")} ${t(
+                            "ZIP/Postal Code"
+                          )}`}
+                          value={formData.zip}
+                          maxLength={10}
+                          onChange={(e) => handleChange("zip", e.target.value)}
+                          isInvalid={!!errors.zip}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.zip}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Select Language")}:
+                        </Form.Label>
+                        <Form.Select
+                          as="select"
+                          value={formData.language}
+                          onChange={(e) =>
+                            handleChange("language", e.target.value)
+                          }
+                          isInvalid={!!errors.language}
+                        >
+                          <option value="">{t("Select Language")}</option>
+                          <option value="English">English</option>
+                          <option value="Spanish">Spanish</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.language}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Form>
+                <Button type="submit" onClick={handleNext}>
+                  {t("Next")}
+                </Button>
+              </Container>
+            )}
+            {currentStep === 2 && (
+              <Container
+                className="mt-4"
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "22px",
+                  padding: "25px",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <div
+                  className="form-header mb-4"
+                  style={{
+                    backgroundColor: "#2e2e32",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <h4 className="mb-0">
+                    {t("Company Basic Details (Mandatory)")}
+                  </h4>
+                </div>
+                <Form className="mb-3">
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Company Name")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Name")}
+                          value={formData.companyName}
+                          maxLength={20}
+                          onChange={(e) =>
+                            handleChange("companyName", e.target.value)
+                          }
+                          isInvalid={!!errors.companyName}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.companyName}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Company Logo")}:</Form.Label>
+                        <Form.Control
+                          type="file"
+                          accept="image/jpeg, image/png"
+                          onChange={(e) =>
+                            handleImageChange("companyLogo", e.target.files[0])
+                          }
+                          isInvalid={!!imageErrors.companyLogo}
+                        />
+                        {imageErrors.companyLogo && (
+                          <Form.Text className="text-danger">
+                            {imageErrors.companyLogo}
+                          </Form.Text>
+                        )}
+                        <Form.Text className="text-muted">
+                          Only JPEG and PNG formats allowed.
+                        </Form.Text>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Company Contact Person Name")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Contact Person Name")}
+                          value={formData.contactPerson}
+                          maxLength={30}
+                          onChange={(e) =>
+                            handleChange("contactPerson", e.target.value)
+                          }
+                          isInvalid={!!errors.contactPerson}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactPerson}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Contact Person Phone")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Person Phone")}
+                          value={formData.contactPhone}
+                          maxLength={15}
+                          onChange={(e) =>
+                            handleChange("contactPhone", e.target.value)
+                          }
+                          isInvalid={!!errors.contactPhone}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactPhone}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Company Office Email Address")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="email"
+                          placeholder={t("Enter Company Office Email Address")}
+                          value={formData.officeEmail}
+                          maxLength={30}
+                          onChange={(e) =>
+                            handleChange("officeEmail", e.target.value)
+                          }
+                          isInvalid={!!errors.officeEmail}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.officeEmail}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("Address Line")} 1:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Address")}
+                          value={formData.addressLine1}
+                          maxLength={50}
+                          onChange={(e) =>
+                            handleChange("addressLine1", e.target.value)
+                          }
+                          isInvalid={!!errors.addressLine1}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.addressLine1}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span> {t("City")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Address's City")}
+                          value={formData.contactCity}
+                          maxLength={15}
+                          onChange={(e) =>
+                            handleChange("contactCity", e.target.value)
+                          }
+                          isInvalid={!!errors.contactCity}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactCity}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span> {t("State")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Address's State")}
+                          value={formData.companyState}
+                          maxLength={15}
+                          onChange={(e) =>
+                            handleChange("companyState", e.target.value)
+                          }
+                          isInvalid={!!errors.companyState}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.companyState}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+
+                      {/* Countryy */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span> {t("Country")}:
+                        </Form.Label>
+                        <Select
+                          options={countryOptions2}
+                          onChange={(selectedOption) =>
+                            handleChange("contactCountry", selectedOption.value)
+                          }
+                          value={countryOptions2.find(
+                            (option) => option.value === formData.contactCountry
+                          )}
+                          styles={{
+                            menuList: (provided) => ({
+                              ...provided,
+                              maxHeight: "150px", // Limits dropdown height
+                              overflowY: "auto",
+                            }),
+                          }}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactCountry}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+
+                      {/* Country Tax Details */}
+                      <Form.Group className="mb-3">
+                        <Form.Label
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginBottom: "20px",
+                          }}
+                        >
+                          <span className="text-danger">*</span>{" "}
+                          {t("Country Tax Name")}:{" "}
+                          <Form.Control
+                            type="text"
+                            value={formData.taxName || ""}
+                            disabled
+                            style={{
+                              display: "inline-block",
+                              width: "73%",
+                              marginLeft: "10px",
+                              backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
+                              border: "1px solid #ced4da",
+                              fontWeight: "bold",
+                            }}
+                          />
+                        </Form.Label>
+                        <Form.Group className="mb-3">
+                          {/* Country Tax Percentage */}
+                          <Form.Label>
+                            <span className="text-danger">*</span>{" "}
+                            {t("Country Tax %")}:{" "}
+                            <Form.Control
+                              type="number"
+                              value={formData.taxPercentage || ""}
+                              onChange={(e) =>
+                                handleChange(
+                                  "taxPercentage",
+                                  e.target.value ? Number(e.target.value) : ""
+                                )
+                              }
+                              placeholder="%"
+                              min={1}
+                              style={{
+                                display: "inline-block",
+                                width: "80px", // Small input box
+                                textAlign: "center",
+                                marginLeft: "10px",
+                              }}
+                            />
+                          </Form.Label>
+                          <Form.Label style={{ marginLeft: "7px" }}>
+                            <span className="text-danger">*</span>{" "}
+                            {t("Country Currency")}:{" "}
+                            <Form.Control
+                              type="text"
+                              value={formData.currencyCode || ""}
+                              disabled
+                              style={{
+                                display: "inline-block",
+                                width: "auto",
+                                marginLeft: "10px",
+                                backgroundColor: "#f8f9fa", // Light grey background to indicate it's disabled
+                                border: "1px solid #ced4da",
+                                fontWeight: "bold",
+                              }}
+                            />
+                          </Form.Label>
+                        </Form.Group>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <span className="text-danger">*</span>{" "}
+                          {t("ZIP/Postal Code")}:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Address's Zipcode")}
+                          value={formData.contactZip}
+                          maxLength={20}
+                          onChange={(e) =>
+                            handleChange("contactZip", e.target.value)
+                          }
+                          isInvalid={!!errors.contactZip}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.contactZip}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Working Day")}:</Form.Label>
+                        <div>
+                          <ToggleButtonGroup
+                            type="checkbox"
+                            className="d-flex flex-wrap"
+                            value={formData.workingDays}
+                            onChange={(value) =>
+                              handleChange("workingDays", value.filter(Boolean))
+                            }
+                            style={{ zIndex: "0" }}
+                          >
+                            {[
+                              "Monday",
+                              "Tuesday",
+                              "Wednesday",
+                              "Thursday",
+                              "Friday",
+                            ].map((day, index) => (
+                              <ToggleButton
+                                key={index}
+                                id={`btn-${day}`}
+                                value={day}
+                                variant="outline-primary"
+                                className="me-2 mb-2"
+                              >
+                                {t(day)}
+                              </ToggleButton>
+                            ))}
+                            {["Saturday", "Sunday"].map((day, index) => (
+                              <ToggleButton
+                                key={index}
+                                id={`btn-${day}`}
+                                value={day}
+                                variant="outline-secondary"
+                                className="me-2 mb-2"
+                              >
+                                {t(day)}
+                              </ToggleButton>
+                            ))}
+                          </ToggleButtonGroup>
+                          <Form.Text muted>
+                            Default (mon, tue, wed, thr, fri)
+                          </Form.Text>
+                          {errors.workingDays && (
+                            <div className="text-danger mt-1">
+                              {errors.workingDays}
+                            </div>
+                          )}
+                        </div>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Button
+                    variant="primary"
+                    type="button"
+                    className="mt-1 mb-2"
+                    style={{
+                      background: "#6c757d",
+                      border: "none",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      const newCertification = { name: "", number: "" };
+                      const updatedCertifications = [
+                        ...(formData.additionalCertifications || []),
+                        newCertification,
+                      ];
+                      handleChange(
+                        "additionalCertifications",
+                        updatedCertifications
+                      );
+                    }}
+                  >
+                    {t("Add More")}
+                  </Button>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Certification Name")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Certification Name")}
+                          value={formData.certificationName}
+                          maxLength={30}
+                          onChange={(e) =>
+                            handleChange("certificationName", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{t("Certification Number")}:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder={t("Enter Company Certification Number")}
+                          value={formData.certificationNumber}
+                          maxLength={20}
+                          onChange={(e) =>
+                            handleChange("certificationNumber", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  {formData.additionalCertifications?.map((cert, index) => (
+                    <Row key={index} className="mt-2">
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>
+                            {t("Additional Certification Name")}:
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            placeholder={t(
+                              "Enter Additional Certification Name"
+                            )}
+                            value={cert.name}
+                            maxLength={30}
+                            onChange={(e) => {
+                              const updatedCertifications = [
+                                ...formData.additionalCertifications,
+                              ];
+                              updatedCertifications[index].name =
+                                e.target.value;
+                              handleChange(
+                                "additionalCertifications",
+                                updatedCertifications
+                              );
+                            }}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col
+                        md={6}
+                        className="d-flex justify-content-between align-items-center"
+                      >
+                        <Form.Group className="mb-3" style={{ width: "90%" }}>
+                          <Form.Label>
+                            {t("Additional Certification Number")}:
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            placeholder={t(
+                              "Enter Additional Certification Number"
+                            )}
+                            value={cert.number}
+                            maxLength={20}
+                            onChange={(e) => {
+                              const updatedCertifications = [
+                                ...formData.additionalCertifications,
+                              ];
+                              updatedCertifications[index].number =
+                                e.target.value;
+                              handleChange(
+                                "additionalCertifications",
+                                updatedCertifications
+                              );
+                            }}
+                          />
+                        </Form.Group>
+                        <Button
+                          variant="danger"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            padding: "0",
+                            fontSize: "18px",
+                          }}
+                          onClick={() => {
+                            const updatedCertifications =
+                              formData.additionalCertifications.filter(
+                                (_, i) => i !== index
+                              );
+                            handleChange(
+                              "additionalCertifications",
+                              updatedCertifications
+                            );
+                          }}
+                        >
+                          X
+                        </Button>
+                      </Col>
+                    </Row>
+                  ))}
+                </Form>
+
+                {/* choose plan */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <span className="text-danger">*</span> {t("Choose Plan")}:
+                  </Form.Label>
+                  <Select
+                    options={subscriptionPlanList?.map((option) => ({
+                      value: option.name,
+                      label: option.name,
+                      package_id: option.package_id,
+                      features: option.features,
+                    }))}
+                    onChange={(selectedOption) => {
+                      handleChange("package", selectedOption?.package_id);
+                      handleChange(
+                        "packageDescritption",
+                        selectedOption?.value
+                      );
+                      setselectedPlan(
+                        {
+                          name: selectedOption.value,
+                          features: selectedOption.features,
+                        } || {}
+                      );
+                    }}
+                    value={subscriptionPlanList
+                      ?.map((option) => ({
+                        value: option.name,
+                        label: option.name,
+                      }))
+                      .find((opt) => opt.value === formData.package)}
+                    styles={{
+                      menuList: (provided) => ({
+                        ...provided,
+                        maxHeight: "150px", // Limits dropdown height
+                        overflowY: "auto",
+                      }),
+                    }}
+                    required
+                  />
+                    {errors.package &&<span className="text-danger">{t(errors.package)}</span>}
+                  <Form.Control.Feedback type="invalid">
+                    {errors.package}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Selected Plan Details */}
+                {selectedPlan?.name && (
+                  <Card className="mt-3 mb-3 shadow-sm border-0">
+                    <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">
+                        {t(
+                          subscriptionPlanMapping[selectedPlan?.name] ||
+                            selectedPlan.name.replace(/_/g, " ")
+                        )}
+                        {/* {selectedPlan?.name} */}
+                      </h5>
+                      <Badge bg="light" text="dark">
+                        {t("Selected Plan")}
+                      </Badge>
+                    </Card.Header>
+                    <Card.Body>
+                      <ListGroup variant="flush">
+                        {Object.entries(selectedPlan.features)?.map(
+                          ([key, value]) => (
+                            <ListGroup.Item
+                              key={key}
+                              className="d-flex justify-content-between align-items-center"
+                            >
+                              <span>
+                                {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
                       /\b\w/g,
                       (char) => char.toUpperCase()
                     )} */}
-                        {t(featureMapping[key] || key.replace(/_/g, " "))}
-                  </span>
-                  <Badge bg="success" pill>
-                    {value}
-                  </Badge>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card.Body>
-        </Card>
-      )}
+                                {t(
+                                  featureMapping[key] || key.replace(/_/g, " ")
+                                )}
+                              </span>
+                              <Badge bg="success" pill>
+                                {value}
+                              </Badge>
+                            </ListGroup.Item>
+                          )
+                        )}
+                      </ListGroup>
+                    </Card.Body>
+                  </Card>
+                )}
 
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Company Status"
-                checked={formData.companyStatus}
-                onChange={(e) =>
-                  handleChange("companyStatus", e.target.checked)
-                }
-              />
-            </Form.Group>
-            <Button
-              variant="secondary"
-              onClick={handlePrevious}
-              className="me-2"
-            >
-              {t("Previous")}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                handleNext();
-                handleSubmit();
-              }}
-            >
-              {t("Submit")}
-            </Button>
-          </Container>
+                <Form.Group className="mb-3">
+                  <Form.Check
+                    type="checkbox"
+                    label="Company Status"
+                    checked={formData.companyStatus}
+                    onChange={(e) =>
+                      handleChange("companyStatus", e.target.checked)
+                    }
+                  />  
+                </Form.Group>
+                <Button
+                  variant="secondary"
+                  onClick={handlePrevious}
+                  className="me-2"
+                >
+                  {t("Previous")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    handleNext();
+                    handleSubmit();
+                  }}
+                >
+                  {t("Submit")}
+                </Button>
+              </Container>
+            )}
+          </>
         )}
       </div>
     </>

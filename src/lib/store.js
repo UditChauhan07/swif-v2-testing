@@ -911,7 +911,7 @@ export const updatePricingStructure = async (token, finaldata, pricingId) => {
   console.log("adasd", token, finaldata, pricingId);
   try {
     const response = await axios.put(
-      `${Url}ed7m5n4rt6/${pricingId}`,
+      `${Url}/ed7m5n4rt6/${pricingId}`,
       finaldata,
       {
         headers: {
@@ -969,7 +969,7 @@ export const createUsageLimit = async (token, finaldata) => {
 export const updateUsageLimit = async (token, finaldata) => {
   console.log("adasd", token, finaldata);
   try {
-    const response = await axios.put(`${Url}efum4k3k65`, finaldata, {
+    const response = await axios.put(`${Url}/efum4k3k65`, finaldata, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1020,7 +1020,7 @@ export const getSubscriptionPackagesList = async (token) => {
         },
       }
     );
-    console.log("package list response Data",response);
+    // console.log("package list response Data",response);
     return response.data;
   } catch (error) {
     if (error.response) {
