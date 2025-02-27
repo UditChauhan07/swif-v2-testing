@@ -42,7 +42,7 @@ const CreateCompany = () => {
   const [selectedPlan, setselectedPlan] = useState({});
   const [checkBillingDetails, setcheckBillingDetails] = useState();
   const [isLoading, setisLoading] = useState(true);
-  console.log("checkBillingDetails", checkBillingDetails);
+  // console.log("checkBillingDetails", checkBillingDetails);
   console.log("isLoading", isLoading);
 
   useEffect(() => {
@@ -54,6 +54,7 @@ const CreateCompany = () => {
           const sortedArray = array.sort((a, b) =>
             a?.countryName.localeCompare(b?.countryName)
           );
+          // console.log('taxationDetails', sortedArray)
           setcountryListDetails(sortedArray || []);
         }
       } catch (error) {
@@ -61,7 +62,7 @@ const CreateCompany = () => {
       }
     };
     fetchCountry();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     const fetchSubscriptionPlan = async () => {
@@ -117,7 +118,7 @@ const CreateCompany = () => {
           usageResponse?.data?.data &&
           Object.keys(usageResponse.data.data).length > 0
         ) {
-          setcountryListDetails(Object.values(usageResponse.data.data));
+          setcheckBillingDetails(Object.values(usageResponse.data.data));
         } else {
           messages.push("No data Found In Usage Limit Please Create new");
           hasAllData = false;
@@ -136,7 +137,7 @@ const CreateCompany = () => {
           Array.isArray(packageResponse?.packages) &&
           packageResponse.packages.length > 0
         ) {
-          setcountryListDetails(packageResponse.packages);
+          setcheckBillingDetails(packageResponse.packages);
         } else {
           messages.push("No data Found In Subscription Packages Please Create new");
           hasAllData = false;
@@ -149,7 +150,7 @@ const CreateCompany = () => {
       }
 
       setisLoading(false);
-      console.log("messagesss",messages)
+      // console.log("messagesss",messages)
       if (!hasAllData && !alertShown) {
         alertShown = true;
         setTimeout(() => {
@@ -253,6 +254,7 @@ const CreateCompany = () => {
     label: country.countryName,
   }));
 
+  // console.log("countryListDetails", countryListDetails,countryOptions2)
   const handleNext = () => {
     // Check if there's an email error indicating a duplicate
     if (
@@ -627,13 +629,13 @@ const CreateCompany = () => {
           }
           break;
 
-        case "quotationCost":
-          if (isNaN(value) || value < 0 || value > 1000) {
-            newErrors.quotationCost = t(
-              "Quotation Cost must be a number between 0 and 1000."
+        case "package":
+          if (!value.trim()) {
+            newErrors.package = t(
+              "Required"
             );
           } else {
-            delete newErrors.quotationCost;
+            delete newErrors.package;
           }
           break;
 
@@ -792,7 +794,7 @@ const CreateCompany = () => {
         if (!formData.contactPhone.trim())
           if (!formData.officeEmail.trim())
             newErrors.officeEmail = t("Office Email Address is required.");
-        if (!formData.package.trim()) newErrors.package = t("Required");
+        if (!formData.package.trim()) {newErrors.package = t("Required")}
 
         break;
       default:
@@ -849,7 +851,7 @@ const CreateCompany = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-
+// console.log('-----------------------errors', errors)
   const handleSubmit = async () => {
     const currentErrors = validateStep(currentStep);
     console.log(currentErrors);
@@ -928,7 +930,7 @@ const CreateCompany = () => {
         profile_picture: profilePictureBase64,
       };
 
-      console.log("Final Data:", companyData, userdata);
+      // console.log("Final Data:", companyData, userdata);
       const result = await Swal.fire({
         title: t("Are you sure?"),
         text: t("Do you want to create this company?"),
@@ -955,7 +957,7 @@ const CreateCompany = () => {
 
       // ✅ Send as JSON (No FormData needed)
       const response = await createCompanyApi({ companyData, userdata }, token);
-      console.log("response", response);
+      // console.log("response", response);
       Swal.close();
       if (response.success) {
         Swal.fire({
@@ -985,7 +987,7 @@ const CreateCompany = () => {
           confirmButtonText: "Try Again",
         });
       }
-      console.log("Response:", response);
+      // console.log("Response:", response);
     } catch (error) {
       console.error("Error submitting data:", error);
       Swal.close();
@@ -1851,6 +1853,7 @@ const CreateCompany = () => {
                     }}
                     required
                   />
+                    {errors.package &&<span className="text-danger">{t(errors.package)}</span>}
                   <Form.Control.Feedback type="invalid">
                     {errors.package}
                   </Form.Control.Feedback>
@@ -1907,7 +1910,7 @@ const CreateCompany = () => {
                     onChange={(e) =>
                       handleChange("companyStatus", e.target.checked)
                     }
-                  />
+                  />  
                 </Form.Group>
                 <Button
                   variant="secondary"

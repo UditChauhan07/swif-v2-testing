@@ -9,11 +9,12 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getNames } from "country-list";
 import Select from "react-select";
+import { BeatLoader } from "react-spinners";
 
 const CreateFieldUser = () => {
   const { t } = useTranslation();
   const countries = getNames();
-
+  
   const navigate = useNavigate();
   const token = localStorage.getItem("UserToken");
   const company_id = localStorage.getItem("companyId") || null;
@@ -50,6 +51,14 @@ const CreateFieldUser = () => {
       address: Yup.string().required(t("Address is required")),
     }),
     onSubmit: async (values) => {
+      Swal.fire({
+      title: t("Processing..."),
+      text: t("Creating field user, please wait."),
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
       const formData = new FormData();
       for (const key in values) {
         if (key === "profilePicture") {
@@ -61,6 +70,7 @@ const CreateFieldUser = () => {
       console.log("Form", values);
 
       const response = await create_FieldUser(values, token);
+        Swal.close();
       if (response.success) {
         Swal.fire({
           title: t("Success"),
@@ -86,6 +96,7 @@ const CreateFieldUser = () => {
       <Header />
       <div className="main-header-box mt-4">
         <div className="pages-box">
+      
           <div className="">
             <div
               className="form-header mb-4"
@@ -325,6 +336,7 @@ const CreateFieldUser = () => {
               </div>
             </Form>
           </div>
+         
         </div>
       </div>
     </>

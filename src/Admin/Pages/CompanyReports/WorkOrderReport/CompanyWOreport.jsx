@@ -5,28 +5,31 @@ import { useTranslation } from "react-i18next";
 import { workOrderReportSingleCompany } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
 import "./CompWOReport.css";
+import { BeatLoader } from "react-spinners";
 
 const CompanyWOreport = () => {
   const { t } = useTranslation();
   const [workOrderData, setWorkOrderData] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
   const [companyId, setCompanyId] = useState(localStorage.getItem("companyId"));
-
+  const [loading,setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await workOrderReportSingleCompany(token, companyId);
         if (response.status === true) {
-          setWorkOrderData(response.data);
+          setWorkOrderData(response.data||[]);
         }
       } catch (error) {
         console.error("API Error:", error);
+      }finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
-
+console.log("Work Order",workOrderData)
   return (
     <>
       <Header />
@@ -45,7 +48,16 @@ const CompanyWOreport = () => {
               {t("Work Order Report")}
             </h4>
           </div>
-          {workOrderData ? (
+          {loading? (
+              <BeatLoader
+              size={12}
+              color={"#3C3C3C"}
+              style={{ display: "flex", justifyContent: "center" }}
+            />
+          ) : (
+            <>
+          {
+          Object?.entries(workOrderData)?.length>0 ? (
             <Container className="mt-4">
               <Card className="shadow-lg rounded p-4">
                 <div className="text-center">
@@ -112,7 +124,12 @@ const CompanyWOreport = () => {
               </Card>
             </Container>
           ) : (
-            <LoadingComp />
+        
+              <div className="text-muted fs-6 d-flex justify-content-center">
+              {t("No data found")}
+              </div>
+          )}
+          </>
           )}
         </div>
       </div>

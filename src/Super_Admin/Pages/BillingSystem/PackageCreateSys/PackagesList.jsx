@@ -274,7 +274,7 @@ const PackagesList = () => {
   const fetchSubscriptionPackages = async () => {
     try {
       const response = await getSubscriptionPackagesList(token);
-      console.log(response);
+      // console.log(response);
       const sortedPackages = response.packages
         ? [...response.packages]
             .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
@@ -285,7 +285,7 @@ const PackagesList = () => {
       const paygPlan = response.packages.filter(
         (pkg) => pkg.packageType === "payg"
       );
-      console.log("Payg Plan", paygPlan);
+      // console.log("Payg Plan", paygPlan);
       setpaygPlan({
         packageType:paygPlan[0].packageType||"payg",
         package_id: paygPlan[0].package_id || 0,
@@ -392,7 +392,7 @@ const PackagesList = () => {
   const handleCreateNewPlan = () => {
     if (subscriptionPackages) navigate("/billings/package-creation");
   };
-console.log('create new plan', currentPlan);
+// console.log('create new plan', currentPlan);
   return (
     <>
       <Header />
