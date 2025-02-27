@@ -242,21 +242,27 @@ import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { convertToSelectedCurrency, getSubscriptionPackagesList } from "../../../../lib/store";
+import {
+  convertToSelectedCurrency,
+  getSubscriptionPackagesList,
+} from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
 import { useNavigate } from "react-router-dom";
-import getSymbolFromCurrency from 'currency-symbol-map'
+import getSymbolFromCurrency from "currency-symbol-map";
+import { CheckCircleFill } from "react-bootstrap-icons";
 const PackagesList = () => {
   const role = localStorage.getItem("Role");
   const token = localStorage.getItem("UserToken");
   const [subscriptionPackages, setSubscriptionPackages] = useState([]);
-  const currencyCode=localStorage.getItem("currencyCode");
-  const navigate=useNavigate();
-  const decoded=jwtDecode(token);
+  const currencyCode = localStorage.getItem("currencyCode");
+  const navigate = useNavigate();
+  const decoded = jwtDecode(token);
   // console.log('decoded',decoded);
   const [loading, setLoading] = useState(true);
-  const [currencyData,setCurrencyData]=useState(null);
+  const [currencyData, setCurrencyData] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState([]);
   const [paygPlan, setpaygPlan] = useState({
+    packageType:"",
     package_id: "",
     name: "",
     rates: {},
@@ -281,29 +287,37 @@ const PackagesList = () => {
       );
       console.log("Payg Plan", paygPlan);
       setpaygPlan({
+        packageType:paygPlan[0].packageType||"payg",
         package_id: paygPlan[0].package_id || 0,
         name: paygPlan[0].name || "",
         rates: paygPlan[0].features || 0 || {},
       });
       setLoading(false);
+      if (decoded?.role != "SuperAdmin" && decoded?.package_id) {
+        const userPackage = response.packages.find(
+          (pkg) => pkg.package_id === decoded.package_id
+        );
+        if (userPackage) setCurrentPlan(userPackage);
+      }
     } catch (error) {
       console.error(error);
       setLoading(false);
-    }finally {setLoading(false);}
-
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { 
-      if(decoded?.role != "SuperAdmin" &&  currencyCode) {
-        // console.log("countryyyyyyyyyyyy",country)
-        convertToSelectedCurrency(null,currencyCode,token) // countryname,currency code, token
-       .then((data) =>{
-        // console.log("dataaaaaaa",data)
-        setCurrencyData(data)
-       })
-       .catch((error) => console.error('Error:', error));
-      }
-    }, []);
+  useEffect(() => {
+    if (decoded?.role != "SuperAdmin" && currencyCode) {
+      // console.log("countryyyyyyyyyyyy",country)
+      convertToSelectedCurrency(null, currencyCode, token) // countryname,currency code, token
+        .then((data) => {
+          // console.log("dataaaaaaa",data)
+          setCurrencyData(data);
+        })
+        .catch((error) => console.error("Error:", error));
+    }
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -368,83 +382,60 @@ const PackagesList = () => {
   const paygPlanMapping = {
     payg: "Pay as You Go",
   };
-  const handleEdit=async (packageData)=>{
+  const handleEdit = async (packageData) => {
     // update plan
     // call update plan API
     // console.log('edit plan',packageData);
-    navigate('/billings/package-edit', { state: { packageData } });
-  }
+    navigate("/billings/package-edit", { state: { packageData } });
+  };
 
-  const handleCreateNewPlan=()=>{
-    if(subscriptionPackages)
-    navigate('/billings/package-creation')
-  }
-
-
+  const handleCreateNewPlan = () => {
+    if (subscriptionPackages) navigate("/billings/package-creation");
+  };
+console.log('create new plan', currentPlan);
   return (
     <>
       <Header />
       <div className="main-header-box mt-4">
-      <div className="pages-box">
-   
+        <div className="pages-box">
           {loading ? (
             <LoadingComp />
           ) : (
-        
-        <Container fluid className="py-1" >
-          {
-          decoded?.role === "SuperAdmin" && 
-          <Button onClick={handleCreateNewPlan}>{t("Create A New plan")}</Button>
-         }
-          
-          <Row className="justify-content-center">
-            {Object.keys(paygPlan.rates).length > 0 ||
-            subscriptionPackages.length > 0 ? (
-              <Col xs={12} lg={11}>
-                <h1
-                  className="text-center mb-3 fw-bold"
-                  style={{ color: "#2c3e50", fontSize: "2.5rem" }}
-                >
-                  {role === "SuperAdmin"
-                    ? t("Plans & Packages")
-                    : t("Choose Your Perfect Plan")}
-                </h1>
+            <Container fluid className="py-1">
+              {decoded?.role === "SuperAdmin" && (
+                <Button onClick={handleCreateNewPlan}>
+                  {t("Create A New plan")}
+                </Button>
+              )}
 
-                {/* Subscription Packages Section */}
-                {subscriptionPackages.length > 0 && (
-                  <section className="mb-5">
-                    <h2
-                      className="text-center fw-semibold mb-3"
-                      style={{ color: "#34495e", fontSize: "1.75rem" }}
-                    >
-                      {t("Subscription Packages")}
-                    </h2>
-                    <p
-                      className="text-center mb-5 text-muted"
-                      style={{ maxWidth: "700px", margin: "0 auto" }}
-                    >
-                      {t(
-                        "Select A Plan Tailored To Your Needs ."
-                      )}{" "}
-                      {/* {t(
-                        "Select A Plan Tailored To Your Needs . Exceed Your Limits ? PAYG Rates Kick In Seamlessly ."
-                      )}{" "} */}
-                    </p>
-                    <Row className="justify-content-center g-4">
-                      {subscriptionPackages.map((pkg, index) => (
-                        <Col
-                          key={pkg.package_id}
-                          xs={12}
-                          md={6}
-                          lg={3}
-                          className="mb-4"
-                        >
+              {/* current plan if company admin */}
+              {decoded?.role !== "SuperAdmin" && Object.entries(currentPlan)?.length>0 &&
+               (
+                <Row className="justify-content-center">
+                  <Col xs={12} lg={11}>
+                    <section className="mb-5">
+                      <h1
+                        className="text-center mb-3 fw-bold"
+                        style={{ color: "#2c3e50", fontSize: "2.5rem" }}
+                      >
+                        {t("Your Current Plan")}
+                      </h1>
+                      <p
+                        className="text-center mb-5 text-muted"
+                        style={{
+                          maxWidth: "700px",
+                          minWidth: "700px",
+                          margin: "0 auto",
+                        }}
+                      >
+                        {t(
+                          "Here’s the plan you’re currently subscribed to. Manage or upgrade anytime."
+                        )}
+                      </p>
+                      <Row className="justify-content-center g-4">
+                        <Col xs={12} md={6} lg={4} className="mb-4">
                           <Card
-                            className={`h-100 shadow-lg ${
-                              index === subscriptionPackages.length - 2
-                                ? "border-primary scale-on-hover"
-                                : "border-light mb-2"
-                            }`}
+                            className="h-100 shadow-lg border-success"
                             style={{
                               borderRadius: "15px",
                               overflow: "hidden",
@@ -452,45 +443,38 @@ const PackagesList = () => {
                             }}
                           >
                             <Card.Header
-                              className={`text-center  ${
-                                index === subscriptionPackages.length - 2
-                                  ? "bg-primary text-white py-3"
-                                  : "bg-light text-dark py-4"
-                              }`}
+                              className="text-center bg-success text-white py-4"
                               style={{ borderBottom: "none" }}
                             >
                               <h3 className="mb-0 fw-bold d-flex align-items-center justify-content-center">
-                                {index === subscriptionPackages.length - 2 && (
-                                  <StarFill
-                                    className="me-2"
-                                    style={{ color: "#ffd700" }}
-                                  />
-                                )}
-
+                                <CheckCircleFill
+                                  className="me-2"
+                                  style={{ color: "#fff" }}
+                                />
                                 {t(
                                   subscriptionPlanMapping[
-                                    pkg?.name?.toLocaleLowerCase()
-                                  ] || pkg?.name
+                                    currentPlan?.name?.toLocaleLowerCase()
+                                  ] || currentPlan?.name
                                 )}
-                                {/* {pkg.name} */}
                               </h3>
-                              {index === subscriptionPackages.length - 2 && (
-                                <Badge
-                                  bg="warning"
-                                  text="dark"
-                                  className="mt-2"
-                                >
-                                  {t("Most Popular")}
-                                </Badge>
-                              )}
+                              <Badge bg="light" text="dark" className="mt-2">
+                                {t("Active")}
+                              </Badge>
                             </Card.Header>
                             <Card.Body className="d-flex flex-column p-4">
                               <h2
                                 className="text-center mb-4 fw-bold"
                                 style={{ color: "#2980b9" }}
                               >
-                               {getSymbolFromCurrency(currencyData?.target_currency)||'$'}
-                                {currencyData?.exchange_rate ? (currencyData?.exchange_rate * pkg.cost_per_month).toFixed(2) :pkg.cost_per_month }{" "}
+                                {getSymbolFromCurrency(
+                                  currencyData?.target_currency
+                                ) || "$"}
+                                {currencyData?.exchange_rate
+                                  ? (
+                                      currencyData?.exchange_rate *
+                                      currentPlan?.cost_per_month
+                                    ).toFixed(2)
+                                  : currentPlan?.cost_per_month}{" "}
                                 <small
                                   style={{
                                     fontSize: "0.7rem",
@@ -502,47 +486,257 @@ const PackagesList = () => {
                               </h2>
                               <Table className="mb-4" borderless size="sm">
                                 <tbody>
-                                  {Object.entries(pkg.features).map(
-                                    ([feature, limit]) => (
-                                      <tr
-                                        key={feature}
-                                        style={{
-                                          borderBottom: "1px solid #ecf0f1",
-                                        }}
-                                      >
-                                        <td
-                                          className="text-capitalize py-2"
-                                          style={{ color: "#34495e" }}
+                                  {currentPlan?.features &&
+                                    Object.entries(currentPlan.features).map(
+                                      ([feature, limit]) => (
+                                        <tr
+                                          key={feature}
+                                          style={{
+                                            borderBottom: "1px solid #ecf0f1",
+                                          }}
                                         >
-                                          {/* {feature.replace(/_/g, " ")} */}
-                                          {t(
-                                            featureMapping[feature] ||
-                                              feature.replace(/_/g, " ")
-                                          )}
-                                        </td>
-                                        <td
-                                          className="text-end fw-semibold py-2 "
-                                          style={{ color: "#2c3e50" }}
-                                        >
-                                          {limit}
-                                        </td>
-                                      </tr>
-                                    )
-                                  )}
+                                          <td
+                                            className="text-capitalize py-2"
+                                            style={{ color: "#34495e" }}
+                                          >
+                                            {t(
+                                              featureMapping[feature] ||
+                                                feature.replace(/_/g, " ")
+                                            )}
+                                          </td>
+                                          <td
+                                            className="text-end fw-semibold py-2"
+                                            style={{ color: "#2c3e50" }}
+                                          >
+                                            {limit}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
                                 </tbody>
                               </Table>
-                        {decoded?.role === "SuperAdmin" && 
-                          <Button
-                        variant={index === 2 ? "primary" : "outline-primary"}
+                              {/* <Button
+                        variant="outline-success"
                         className="mt-auto w-100 fw-semibold"
                         style={{ borderRadius: "8px", padding: "10px" }}
-                        onClick={()=>handleEdit(pkg)}
-                       >
-                        {t('Edit')}
-                      </Button>
-                      }
+                        // onClick={() => handleManagePlan(currentPlan)}
+                      >
+                        {t("Manage Plan")}
+                      </Button> */}
                             </Card.Body>
-                            {/* <Card.Footer className="text-center py-3 bg-white">
+                          </Card>
+                        </Col>
+                      </Row>
+                    </section>
+                  </Col>
+                </Row>
+                  
+              )}
+              {decoded?.role !== "SuperAdmin" && Object.entries(currentPlan)?.length==0 &&
+               (
+                <Row className="justify-content-center">
+                  <Col xs={12} lg={11}>
+                    <section className="mb-5">
+                      <h5
+                        className="text-center mb-3 fw-bold text-danger"
+                        // style={{ color: "#2c3e50", fontSize: "2.5rem" }}
+                      >
+                       ( {t("You don't have any active plan")} )
+                      </h5>
+                      {/* <p
+                        className="text-center mb-5 text-muted"
+                        style={{
+                          maxWidth: "700px",
+                          minWidth: "700px",
+                          margin: "0 auto",
+                        }}
+                      >
+                        {t(
+                          "Explore our plans to find the perfect fit for your needs."
+                        )}
+                      </p> */}
+                      </section>
+                      </Col>
+                      </Row>
+               )}
+
+
+              {/* Separation Line */}
+              {decoded?.role !== "SuperAdmin" && Object.entries(currentPlan)?.length>0 &&
+              <hr
+                  style={{
+                    border: "none",
+                    borderTop: "2px solid black",
+                    margin: "2rem auto",
+                    width: "80%"
+                  }}
+              />
+                }
+
+
+              <Row className="justify-content-center">
+                {Object.keys(paygPlan.rates).length > 0 ||
+                subscriptionPackages.length > 0 ? (
+                  <Col xs={12} lg={11}>
+                    <h1
+                      className="text-center mb-3 fw-bold"
+                      style={{ color: "#2c3e50", fontSize: "2.5rem" }}
+                    >
+                    
+                      {role === "SuperAdmin"
+                      ? t("Plans & Packages")
+                      :Object.entries(currentPlan).length>0
+                          ? t("Other plans you can checkout")
+                          : t("Choose Your Perfect Plan")}
+                    </h1>
+
+                    {/* Subscription Packages Section */}
+                    {subscriptionPackages.length > 0 && (
+                      <section className="mb-5">
+                        <h2
+                          className="text-center fw-semibold mb-3"
+                          style={{ color: "#34495e", fontSize: "1.75rem" }}
+                        >
+                          {t("Subscription Packages")}
+                        </h2>
+                        <p
+                          className="text-center mb-5 text-muted"
+                          style={{ maxWidth: "700px", margin: "0 auto" }}
+                        >
+                          {t("Select A Plan Tailored To Your Needs .")}{" "}
+                          {/* {t(
+                        "Select A Plan Tailored To Your Needs . Exceed Your Limits ? PAYG Rates Kick In Seamlessly ."
+                      )}{" "} */}
+                        </p>
+                        <Row className="justify-content-center g-4">
+                          {subscriptionPackages.map((pkg, index) => (
+                            <Col
+                              key={pkg.package_id}
+                              xs={12}
+                              md={6}
+                              lg={3}
+                              className="mb-4"
+                            >
+                              <Card
+                                className={`h-100 shadow-lg ${
+                                  index === subscriptionPackages.length - 2
+                                    ? "border-primary scale-on-hover"
+                                    : "border-light mb-2"
+                                }`}
+                                style={{
+                                  borderRadius: "15px",
+                                  overflow: "hidden",
+                                  transition: "transform 0.3s",
+                                }}
+                              >
+                                <Card.Header
+                                  className={`text-center  ${
+                                    index === subscriptionPackages.length - 2
+                                      ? "bg-primary text-white py-3"
+                                      : "bg-light text-dark py-4"
+                                  }`}
+                                  style={{ borderBottom: "none" }}
+                                >
+                                  <h3 className="mb-0 fw-bold d-flex align-items-center justify-content-center">
+                                    {index ===
+                                      subscriptionPackages.length - 2 && (
+                                      <StarFill
+                                        className="me-2"
+                                        style={{ color: "#ffd700" }}
+                                      />
+                                    )}
+
+                                    {t(
+                                      subscriptionPlanMapping[
+                                        pkg?.name?.toLocaleLowerCase()
+                                      ] || pkg?.name
+                                    )}
+                                    {/* {pkg.name} */}
+                                  </h3>
+                                  {index ===
+                                    subscriptionPackages.length - 2 && (
+                                    <Badge
+                                      bg="warning"
+                                      text="dark"
+                                      className="mt-2"
+                                    >
+                                      {t("Most Popular")}
+                                    </Badge>
+                                  )}
+                                </Card.Header>
+                                <Card.Body className="d-flex flex-column p-4">
+                                  <h2
+                                    className="text-center mb-4 fw-bold"
+                                    style={{ color: "#2980b9" }}
+                                  >
+                                    {getSymbolFromCurrency(
+                                      currencyData?.target_currency
+                                    ) || "$"}
+                                    {currencyData?.exchange_rate
+                                      ? (
+                                          currencyData?.exchange_rate *
+                                          pkg.cost_per_month
+                                        ).toFixed(2)
+                                      : pkg.cost_per_month}{" "}
+                                    <small
+                                      style={{
+                                        fontSize: "0.7rem",
+                                        color: "#7f8c8d",
+                                      }}
+                                    >
+                                      /mo
+                                    </small>
+                                  </h2>
+                                  <Table className="mb-4" borderless size="sm">
+                                    <tbody>
+                                      {Object.entries(pkg.features).map(
+                                        ([feature, limit]) => (
+                                          <tr
+                                            key={feature}
+                                            style={{
+                                              borderBottom: "1px solid #ecf0f1",
+                                            }}
+                                          >
+                                            <td
+                                              className="text-capitalize py-2"
+                                              style={{ color: "#34495e" }}
+                                            >
+                                              {/* {feature.replace(/_/g, " ")} */}
+                                              {t(
+                                                featureMapping[feature] ||
+                                                  feature.replace(/_/g, " ")
+                                              )}
+                                            </td>
+                                            <td
+                                              className="text-end fw-semibold py-2 "
+                                              style={{ color: "#2c3e50" }}
+                                            >
+                                              {limit}
+                                            </td>
+                                          </tr>
+                                        )
+                                      )}
+                                    </tbody>
+                                  </Table>
+                                  {decoded?.role === "SuperAdmin" && (
+                                    <Button
+                                      variant={
+                                        index === 2
+                                          ? "primary"
+                                          : "outline-primary"
+                                      }
+                                      className="mt-auto w-100 fw-semibold"
+                                      style={{
+                                        borderRadius: "8px",
+                                        padding: "10px",
+                                      }}
+                                      onClick={() => handleEdit(pkg)}
+                                    >
+                                      {t("Edit")}
+                                    </Button>
+                                  )}
+                                </Card.Body>
+                                {/* <Card.Footer className="text-center py-3 bg-white">
                           <Badge
                             bg={pkg.payg ? "success" : "danger"}
                             className="fw-normal"
@@ -559,140 +753,158 @@ const PackagesList = () => {
                             )}
                           </Badge>
                         </Card.Footer> */}
-                          </Card>
-                        </Col>
-                      ))}
-                    </Row>
-                  </section>
-                )}
+                              </Card>
+                            </Col>
+                          ))}
+                        </Row>
+                      </section>
+                    )}
 
-                {/* Pay as You Go Section */}
-                {Object?.entries(paygPlan?.rates).length > 0 && (
-                  <section>
-                    <h2
-                      className="text-center fw-semibold mb-3"
-                      style={{ color: "#34495e", fontSize: "1.75rem" }}
-                    >
-                      {" "}
-                      {t("Pay As You Go")}
-                    </h2>
-                    <p
-                      className="text-center mb-5 text-muted"
-                      style={{ maxWidth: "700px", margin: "0 auto" }}
-                    >
-                      {t(
-                        "Flexible Pricing—Pay Only For What You Use , When You Use It ."
-                      )}
-                    </p>
-                    <Row className="justify-content-center">
-                      <Col xs={12} md={8} lg={5}>
-                        <Card
-                          className="shadow-lg"
-                          style={{ borderRadius: "15px", overflow: "hidden" }}
+                    {/* Pay as You Go Section */}
+                    {Object?.entries(paygPlan?.rates).length > 0 && (
+                      <section>
+                        <h2
+                          className="text-center fw-semibold mb-3"
+                          style={{ color: "#34495e", fontSize: "1.75rem" }}
                         >
-                          <Card.Header className="text-center py-4 bg-info text-white">
-                            <h3 className="mb-0 fw-bold">
-                              {t(
-                                paygPlanMapping[
-                                  paygPlan?.name?.toLocaleLowerCase()
-                                ] || paygPlan?.name
-                              )}
-                              {/* {paygPlan.name} */}
-                            </h3>
-                          </Card.Header>
-                          <Card.Body className="p-4">
-                            <Table
-                              className="mb-4"
-                              hover
-                              size="sm"
+                          {" "}
+                          {t("Pay As You Go")}
+                        </h2>
+                        <p
+                          className="text-center mb-5 text-muted"
+                          style={{ maxWidth: "700px", margin: "0 auto" }}
+                        >
+                          {t(
+                            "Flexible Pricing—Pay Only For What You Use , When You Use It ."
+                          )}
+                        </p>
+                        <Row className="justify-content-center">
+                          <Col xs={12} md={8} lg={5}>
+                            <Card
+                              className="shadow-lg"
                               style={{
-                                borderCollapse: "separate",
-                                borderSpacing: "0 5px",
+                                borderRadius: "15px",
+                                overflow: "hidden",
                               }}
                             >
-                              <thead>
-                                <tr style={{ backgroundColor: "#ecf0f1" }}>
-                                  <th
-                                    className="py-2"
-                                    style={{ color: "#34495e" }}
-                                  >
-                                    {t("Feature")}
-                                  </th>
-                                  <th
-                                    className="text-end py-2"
-                                    style={{ color: "#34495e" }}
-                                  >
-                                    {t("Rate ($)")}
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {Object?.entries(paygPlan?.rates)?.map(
-                                  ([feature, rate]) => (
-                                    <tr key={feature}>
-                                      <td
-                                        className="text-capitalize py-2"
-                                        style={{ color: "#2c3e50" }}
+                              <Card.Header className="text-center py-4 bg-info text-white">
+                                <h3 className="mb-0 fw-bold">
+                                  {t(
+                                    paygPlanMapping[
+                                      paygPlan?.name?.toLocaleLowerCase()
+                                    ] || paygPlan?.name
+                                  )}
+                                  {/* {paygPlan.name} */}
+                                </h3>
+                              </Card.Header>
+                              <Card.Body className="p-4">
+                                <Table
+                                  className="mb-4"
+                                  hover
+                                  size="sm"
+                                  style={{
+                                    borderCollapse: "separate",
+                                    borderSpacing: "0 5px",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr style={{ backgroundColor: "#ecf0f1" }}>
+                                      <th
+                                        className="py-2"
+                                        style={{ color: "#34495e" }}
                                       >
-                                        {/* {feature.replace(/_/g, " ")} */}
-                                        {t(
-                                          featureMapping[feature] ||
-                                            feature.replace(/_/g, " ")
-                                        )}
-                                      </td>
-                                      <td
-                                        className="text-end fw-semibold py-2"
-                                        style={{ color: "#2980b9" }}
+                                        {t("Feature")}
+                                      </th>
+                                      <th
+                                        className="text-end py-2"
+                                        style={{ color: "#34495e" }}
                                       >
-                                        {/* ${rate} */}
-                                        {getSymbolFromCurrency(currencyData?.target_currency)||'$'}
-                                {currencyData?.exchange_rate ? (currencyData?.exchange_rate * rate).toFixed(2) :rate }
-                                      </td>
+                                        {t("Rate ($)")}
+                                      </th>
                                     </tr>
-                                  )
+                                  </thead>
+                                  <tbody>
+                                    {Object?.entries(paygPlan?.rates)?.map(
+                                      ([feature, rate]) => (
+                                        <tr key={feature}>
+                                          <td
+                                            className="text-capitalize py-2"
+                                            style={{ color: "#2c3e50" }}
+                                          >
+                                            {/* {feature.replace(/_/g, " ")} */}
+                                            {t(
+                                              featureMapping[feature] ||
+                                                feature.replace(/_/g, " ")
+                                            )}
+                                          </td>
+                                          <td
+                                            className="text-end fw-semibold py-2"
+                                            style={{ color: "#2980b9" }}
+                                          >
+                                            {/* ${rate} */}
+                                            {getSymbolFromCurrency(
+                                              currencyData?.target_currency
+                                            ) || "$"}
+                                            {currencyData?.exchange_rate
+                                              ? (
+                                                  currencyData?.exchange_rate *
+                                                  rate
+                                                ).toFixed(2)
+                                              : rate}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
+                                  </tbody>
+                                </Table>
+                                {decoded?.role === "SuperAdmin" && (
+                                  <Button
+                                    variant="outline-info"
+                                    className="w-100 fw-semibold"
+                                    onClick={() => handleEdit(paygPlan)}
+                                    style={{
+                                      borderRadius: "8px",
+                                      padding: "10px",
+                                    }}
+                                  >
+                                    {t("Edit")}
+                                  </Button>
                                 )}
-                              </tbody>
-                            </Table>
-                            {decoded?.role === "SuperAdmin" && 
-                            <Button variant="outline-info" className="w-100 fw-semibold" onClick={()=>handleEdit(paygPlan)} style={{ borderRadius: "8px", padding: "10px" }}>
-                          {t('Edit')}
-                        </Button>}
-                          </Card.Body>
-                          <Card.Footer className="text-center py-3 bg-white">
-                            <Badge
-                              bg="info"
-                              className="fw-normal"
-                              style={{
-                                padding: "6px 10px",
-                                fontSize: "0.9rem",
-                              }}
-                            >
-                              <Check2Circle className="me-1" />{" "}
-                              {t("Fully Flexible")}
-                            </Badge>
-                          </Card.Footer>
-                        </Card>
-                      </Col>
-                    </Row>
-                  </section>
+                              </Card.Body>
+                              <Card.Footer className="text-center py-3 bg-white">
+                                <Badge
+                                  bg="info"
+                                  className="fw-normal"
+                                  style={{
+                                    padding: "6px 10px",
+                                    fontSize: "0.9rem",
+                                  }}
+                                >
+                                  <Check2Circle className="me-1" />{" "}
+                                  {t("Fully Flexible")}
+                                </Badge>
+                              </Card.Footer>
+                            </Card>
+                          </Col>
+                        </Row>
+                      </section>
+                    )}
+                  </Col>
+                ) : (
+                  <Col xs={12} lg={11}>
+                    <h1
+                      className="text-center mb-5 fw-bold"
+                      style={{ color: "#2c3e50", fontSize: "2.5rem" }}
+                    >
+                      {t("No Subscription Packages Available")}
+                    </h1>
+                  </Col>
                 )}
-              </Col>
-            ) : (
-              <Col xs={12} lg={11}>
-                <h1
-                  className="text-center mb-5 fw-bold"
-                  style={{ color: "#2c3e50", fontSize: "2.5rem" }}
-                >
-                  {t("No Subscription Packages Available")}
-                </h1>
-              </Col>
-            )}
-          </Row>
-        </Container>
+              </Row>
+            </Container>
           )}
+        </div>
       </div>
-      </div>
-
 
       {/* Custom CSS */}
       <style jsx>{`
@@ -713,10 +925,12 @@ const PackagesList = () => {
 
 export default PackagesList;
 
-{/* <div
+{
+  /* <div
 className="main-header-box"
 style={{
   background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
   minHeight: "100vh",
 }}
-> */}
+> */
+}

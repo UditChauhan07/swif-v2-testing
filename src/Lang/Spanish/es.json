@@ -1866,5 +1866,11 @@
   "Country Tax %":"Impuesto del país %",
   "Country Currency":"Moneda del país",
   "Choose Plan": "Elige el plan",
-  "Selected Plan":"Plan seleccionado"
+  "Selected Plan":"Plan seleccionado",
+    "Your Current Plan": "Tu Plan Actual",
+    "Here’s the plan you’re currently subscribed to. Manage or upgrade anytime.": "Aquí tienes el plan al que estás suscrito actualmente. Administra o mejora en cualquier momento."
+ , "Other plans you can checkout": "Otros planes que puedes consultar",
+ "You don't have any active plan": "No tienes ningún plan activo",
+ "Explore our plans to find the perfect fit for your needs.": "Explora nuestros planes para encontrar el que mejor se adapte a tus necesidades."
+  
 }
