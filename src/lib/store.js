@@ -1020,7 +1020,7 @@ export const getSubscriptionPackagesList = async (token) => {
         },
       }
     );
-    console.log("package list response Data",response);
+    // console.log("package list response Data",response);
     return response.data;
   } catch (error) {
     if (error.response) {
