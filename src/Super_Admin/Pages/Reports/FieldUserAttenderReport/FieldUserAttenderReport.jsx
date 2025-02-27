@@ -147,7 +147,7 @@ const FieldUserAttendece = () => {
                 >
                   <option value="">-- {t("Select Company")} --</option>
                   {companies.map((comp) => (
-                    <option key={comp.id} value={comp.id}>
+                    <option key={comp.id} value={comp.id} className="text-capitalize">
                       {comp.name}
                     </option>
                   ))}

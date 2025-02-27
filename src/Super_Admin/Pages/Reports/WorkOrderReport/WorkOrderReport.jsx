@@ -198,7 +198,7 @@ const WorkOrderReport = () => {
                       <strong>{item.companyId}</strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      <strong>{item.companyName}</strong>
+                      <strong className="text-capitalize">{item.companyName}</strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.perDay}
