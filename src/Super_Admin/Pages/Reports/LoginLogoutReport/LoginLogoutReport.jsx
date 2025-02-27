@@ -24,8 +24,10 @@ const LoginLogoutReport = () => {
         console.log("Response:", response);
         if (response.status === true) {
           // Set filtered data initially as all data
-          setReportData(response?.data);
-          setFilteredData(response?.data);
+          const sortedData=response?.data?.filter((data) => data?.companyName.toLowerCase()!='unknown')
+          console.log("Sorted data:", sortedData)
+          setReportData(sortedData);
+          setFilteredData(sortedData);
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -43,7 +45,7 @@ const LoginLogoutReport = () => {
       setFilteredData(reportData);
     } else {
       const filtered = reportData.filter((item) =>
-        item.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+        item?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase())
       );
       setFilteredData(filtered);
     }
@@ -171,7 +173,7 @@ const LoginLogoutReport = () => {
                 filteredData.map((item, index) => (
                   <tr key={index}>
                     <td style={{ padding: "15px 10px", fontSize: "0.9rem" }}>
-                      <strong>{item.companyName}</strong>
+                      <strong className="text-capitalize">{item.companyName}</strong>
                     </td>
                     <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
                       {userType === "office_user"

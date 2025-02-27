@@ -17,6 +17,7 @@ const TaxationSetting = () => {
   const rowsPerPage = 20;
   const [token] = useState(localStorage.getItem("UserToken"));
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchCountry = async () => {
     setIsLoading(true);
@@ -78,7 +79,11 @@ const TaxationSetting = () => {
     //   );
     //   setShowEditModal(false);
     // }
-
+    if(selectedTax.taxPercentage<=0 || !selectedTax.taxPercentage)
+    {
+      setError('Required')
+      return false
+    }
     Swal.fire({
       title: t("Processing..."),
       text: t("Please wait while we update the tax details."),
@@ -261,7 +266,7 @@ const TaxationSetting = () => {
       {/* Edit Modal */}
       <Modal
         show={showEditModal}
-        onHide={() => setShowEditModal(false)}
+        onHide={() => {setShowEditModal(false);setError(null)}}
         centered
       >
         <Modal.Header closeButton>
@@ -291,18 +296,20 @@ const TaxationSetting = () => {
                 <Form.Control
                   type="text"
                   value={selectedTax.taxPercentage}
+                  required
                   maxLength={2}
                   onInput={(e) => {e.target.value = e.target.value.replace(/[^0-9.]/g, "")}}
                   onChange={(e) =>
                     setSelectedTax({ ...selectedTax, taxPercentage: e.target.value })
                   }
-                />
+                /> {error &&<span className="text-danger">{t(error)}</span>}
               </Form.Group>
+             
             </Form>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+          <Button variant="secondary" onClick={() => {setShowEditModal(false);setError(null)}}>
             {t("Cancel")}
           </Button>
           <Button variant="primary" onClick={handleModalSave}>
