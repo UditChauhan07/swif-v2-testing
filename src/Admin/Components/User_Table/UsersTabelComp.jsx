@@ -26,7 +26,7 @@ const UsersTabelComp = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const [userRole, setuserRole] = useState(localStorage.getItem("Role"));
-  console.log("tableData:", tableData);
+console.log('tableData:', tableData);
 
   const handleToPreview = async (row) => {
     navigate("/users/office/list/view", { state: { row } });
@@ -68,14 +68,15 @@ const UsersTabelComp = ({
     navigate("/users/office/edit", { state: { row } });
   };
 
-  const filteredtable = tableData?.filter(
-    (item) =>
-      item?.first_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      item?.email?.toLowerCase()?.includes(searchQuery?.toLowerCase())
-  );
 
-  console.log("filteredtable", searchQuery, filteredtable);
+    const filteredtable = tableData?.filter(
+     (item) =>
+       item?.first_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+       item?.email?.toLowerCase()?.includes(searchQuery?.toLowerCase())
+   );
 
+   console.log('filteredtable',searchQuery,filteredtable);
+   
   // Calculate pagination indices and current items to display
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
