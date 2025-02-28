@@ -1872,6 +1872,15 @@
  , "Other plans you can checkout": "Otros planes que puedes consultar",
  "You don't have any active plan": "No tienes ningún plan activo",
  "Explore our plans to find the perfect fit for your needs.": "Explora nuestros planes para encontrar el que mejor se adapte a tus necesidades.",
- "Creating field user, please wait.": "Creando usuario de campo, por favor espera."
+ "Creating field user, please wait.": "Creando usuario de campo, por favor espera.",
+ "Price per Month": "Precio por mes",
+ "Plan Price": "Precio del Plan",
+ "Total Price": "Precio Total",
+ "Per Month": "Por Mes", 
+ "Total Cost": "Costo Total",
+ "User can login via this Password": "El usuario puede iniciar sesión con esta contraseña",
+ "User can login via this Email": "El usuario puede iniciar sesión con este correo electrónico"
+
+
   
 }

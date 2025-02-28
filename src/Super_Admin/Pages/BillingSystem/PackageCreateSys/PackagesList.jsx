@@ -245,6 +245,7 @@ import { jwtDecode } from "jwt-decode";
 import {
   convertToSelectedCurrency,
   getSubscriptionPackagesList,
+  getUsageLimit,
 } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
 import { useNavigate } from "react-router-dom";
@@ -261,19 +262,39 @@ const PackagesList = () => {
   const [loading, setLoading] = useState(true);
   const [currencyData, setCurrencyData] = useState(null);
   const [currentPlan, setCurrentPlan] = useState([]);
+  const [defaultPlan, setDefaultPlan] = useState({
+    add_customers: 0,
+    add_office_users: 0,
+    add_field_users: 0,
+    work_order_creation: 0,
+    work_order_execution: 0
+  });
   const [paygPlan, setpaygPlan] = useState({
     packageType:"",
     package_id: "",
     name: "",
     rates: {},
   });
-
+  // console.log('defaultPlan',defaultPlan,subscriptionPackages)
   // const [paygPlan, setPaygPlan] = useState(null);
   const { t, i18n } = useTranslation();
 
   const fetchSubscriptionPackages = async () => {
     try {
       const response = await getSubscriptionPackagesList(token);
+    const response2 = await getUsageLimit(token);
+    if (response2.data.status && response2.data.data.length > 0) {
+     
+          // console.log('dsdsdsdsdsdsdsdsds',response2.data);
+          setDefaultPlan({
+          add_customers:response2.data?.data[0]?.customerCreation|| 0,
+          add_office_users: response2.data?.data[0]?.officeUserCreation|| 0,
+          add_field_users: response2.data?.data[0]?.fieldUserCreation || 0,
+          work_order_creation: response2.data?.data[0]?.workOrderCreation|| 0,
+          work_order_execution: response2.data?.data[0]?.workOrderExecution || 0
+        });
+          // setDefaultPlan(response2.data)
+    }
       // console.log(response);
       const sortedPackages = response.packages
         ? [...response.packages]
@@ -386,7 +407,10 @@ const PackagesList = () => {
     // update plan
     // call update plan API
     // console.log('edit plan',packageData);
-    navigate("/billings/package-edit", { state: { packageData } });
+   
+      navigate("/billings/package-edit", { state: { packageData } });
+
+    
   };
 
   const handleCreateNewPlan = () => {
@@ -609,7 +633,7 @@ const PackagesList = () => {
                       )}{" "} */}
                         </p>
                         <Row className="justify-content-center g-4">
-                          {subscriptionPackages.map((pkg, index) => (
+                          {subscriptionPackages?.map((pkg, index) => (
                             <Col
                               key={pkg.package_id}
                               xs={12}
@@ -684,11 +708,12 @@ const PackagesList = () => {
                                         color: "#7f8c8d",
                                       }}
                                     >
-                                      /mo
+                                     {pkg?.name?.toLowerCase() != "default" && '/mo'}
                                     </small>
                                   </h2>
                                   <Table className="mb-4" borderless size="sm">
                                     <tbody>
+                                     
                                       {Object.entries(pkg.features).map(
                                         ([feature, limit]) => (
                                           <tr
@@ -707,18 +732,22 @@ const PackagesList = () => {
                                                   feature.replace(/_/g, " ")
                                               )}
                                             </td>
+                                            {/* { feature} */}
                                             <td
                                               className="text-end fw-semibold py-2 "
                                               style={{ color: "#2c3e50" }}
                                             >
-                                              {limit}
+                                               {/* {pkg?.name=='Default'? defaultPlan.feature :limit}
+                                               {pkg?.name?.toLowerCase() === "default"
+                                                  ? defaultPlan?.[feature] ?? "N/A" */}
+                                                  { limit}
                                             </td>
                                           </tr>
                                         )
                                       )}
                                     </tbody>
                                   </Table>
-                                  {decoded?.role === "SuperAdmin" && (
+                                  {decoded?.role === "SuperAdmin"  && (
                                     <Button
                                       variant={
                                         index === 2

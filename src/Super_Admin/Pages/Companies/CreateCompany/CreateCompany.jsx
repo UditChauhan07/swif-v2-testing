@@ -30,6 +30,7 @@ import Select from "react-select";
 import { getNames } from "country-list";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
+import { PencilSquare, Check2 } from "react-bootstrap-icons"; // Import icons
 
 const CreateCompany = () => {
   const { t, i18n } = useTranslation();
@@ -42,6 +43,9 @@ const CreateCompany = () => {
   const [selectedPlan, setselectedPlan] = useState({});
   const [checkBillingDetails, setcheckBillingDetails] = useState();
   const [isLoading, setisLoading] = useState(true);
+  const [editMode, setEditMode] = useState({}); // Track which fields are editable
+  const [isEditingTotal, setIsEditingTotal] = useState(false); // Toggle total cost edit mode
+
   // console.log("checkBillingDetails", checkBillingDetails);
   console.log("isLoading", isLoading);
 
@@ -87,7 +91,7 @@ const CreateCompany = () => {
 
     const fetchData = async () => {
       let messages = [];
-      
+
       let hasAllData = true;
       let errorType = "";
 
@@ -123,7 +127,6 @@ const CreateCompany = () => {
           messages.push("No data Found In Usage Limit Please Create new");
           hasAllData = false;
           errorType = "usage";
-
         }
       } catch (error) {
         messages.push("Error fetching Usage Limit API");
@@ -139,10 +142,11 @@ const CreateCompany = () => {
         ) {
           setcheckBillingDetails(packageResponse.packages);
         } else {
-          messages.push("No data Found In Subscription Packages Please Create new");
+          messages.push(
+            "No data Found In Subscription Packages Please Create new"
+          );
           hasAllData = false;
           errorType = "subscription";
-
         }
       } catch (error) {
         messages.push("Error fetching Subscription Packages API");
@@ -631,9 +635,7 @@ const CreateCompany = () => {
 
         case "package":
           if (!value.trim()) {
-            newErrors.package = t(
-              "Required"
-            );
+            newErrors.package = t("Required");
           } else {
             delete newErrors.package;
           }
@@ -794,7 +796,9 @@ const CreateCompany = () => {
         if (!formData.contactPhone.trim())
           if (!formData.officeEmail.trim())
             newErrors.officeEmail = t("Office Email Address is required.");
-        if (!formData.package.trim()) {newErrors.package = t("Required")}
+        if (!formData.package.trim()) {
+          newErrors.package = t("Required");
+        }
 
         break;
       default:
@@ -851,10 +855,46 @@ const CreateCompany = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-// console.log('-----------------------errors', errors)
+  // console.log('-----------------------errors', errors)
   const handleSubmit = async () => {
     const currentErrors = validateStep(currentStep);
-    console.log(currentErrors);
+    // currency: formData.currencyCode ||"USD",
+    // Interval: 'monthly',
+    // customerCreation:selectedPlan.features?.add_customers || 0,
+    // fieldUserCreation :selectedPlan.features?.add_field_users || 0,
+    // officeUserCreation: selectedPlan.features?.add_office_users || 0,
+    // workOrderCreation : selectedPlan.features?.work_order_creation || 0,
+    // workOrderExecution : selectedPlan.features?.work_order_execution || 0,
+    // planTotalCost:selectedPlan?.cost_per_month||0,
+    // planName:selectedPlan.name||formData.packageDescritption
+    const charges = {
+      currency: formData?.currencyCode || "USD",
+      planName: selectedPlan.name || formData.packageDescritption,
+      Interval: "monthly",
+    };
+
+    if (formData.packageDescritption == "payg") {
+      charges.customerCreation = selectedPlan?.features?.add_customers || 0;
+      charges.fieldUserCreation = selectedPlan?.features?.add_field_users || 0;
+      charges.officeUserCreation =
+        selectedPlan?.features?.add_office_users || 0;
+      charges.workOrderCreation =
+        selectedPlan?.features?.work_order_creation || 0;
+      charges.workOrderExecution =
+        selectedPlan?.features?.work_order_execution || 0;
+    } else {
+      charges.customerCreation = selectedPlan?.features?.add_customers || 0;
+      charges.fieldUserCreation = selectedPlan?.features?.add_field_users || 0;
+      charges.officeUserCreation =
+        selectedPlan?.features?.add_office_users || 0;
+      charges.workOrderCreation =
+        selectedPlan?.features?.work_order_creation || 0;
+      charges.workOrderExecution =
+        selectedPlan?.features?.work_order_execution || 0;
+      charges.planTotalCost = selectedPlan?.cost_per_month || 0;
+    }
+
+    // console.log(currentErrors);
     if (
       Object.keys(errors).length > 0 ||
       Object.keys(currentErrors).length > 0
@@ -908,12 +948,22 @@ const CreateCompany = () => {
         companyStatus: formData.companyStatus,
         companyState: formData.companyState,
         language: languageCode,
-
+        charges,
         alphaCode: formData.countryName,
         companyCountryName: formData.contactCountry,
         taxName: formData.taxName,
         taxPercentage: formData.taxPercentage,
         currencyCode: formData.currencyCode,
+
+        // currency: formData.currencyCode ||"USD",
+        // Interval: 'monthly',
+        // customerCreation:selectedPlan.features?.add_customers || 0,
+        // fieldUserCreation :selectedPlan.features?.add_field_users || 0,
+        // officeUserCreation: selectedPlan.features?.add_office_users || 0,
+        // workOrderCreation : selectedPlan.features?.work_order_creation || 0,
+        // workOrderExecution : selectedPlan.features?.work_order_execution || 0,
+        // planTotalCost:selectedPlan?.cost_per_month||0,
+        // planName:selectedPlan.name||formData.packageDescritption
       };
 
       const userdata = {
@@ -930,7 +980,7 @@ const CreateCompany = () => {
         profile_picture: profilePictureBase64,
       };
 
-      // console.log("Final Data:", companyData, userdata);
+      console.log("Final Data:", companyData, userdata);
       const result = await Swal.fire({
         title: t("Are you sure?"),
         text: t("Do you want to create this company?"),
@@ -999,6 +1049,7 @@ const CreateCompany = () => {
       });
     }
   };
+  console.log("selectedPlan", selectedPlan);
 
   const featureMapping = {
     add_customers: "Add Customers",
@@ -1015,6 +1066,64 @@ const CreateCompany = () => {
     enterprise: "Enterprise",
     payg: "Pay as You Go",
   };
+
+  // const handleFeatureChange = (featureKey, newValue) => {
+  //   const updatedFeatures = {
+  //     ...selectedPlan.features,
+  //     [featureKey]: Number(newValue), // Ensure numeric input
+  //   };
+
+  //   // Example cost calculation (Modify based on your pricing model)
+  //   const newCost = Object.values(updatedFeatures).reduce((acc, val) => acc + val * 5, 0);
+
+  //   setselectedPlan((prev) => ({
+  //     ...prev,
+  //     features: updatedFeatures,
+  //     // cost_per_month: newCost, // Update cost dynamically
+  //   }));
+  // };
+
+  // Toggle edit mode for a specific feature
+  const toggleEditMode = (featureKey) => {
+    setEditMode((prev) => ({
+      ...prev,
+      [featureKey]: !prev[featureKey],
+    }));
+  };
+
+  // Update feature limits
+  const handleFeatureChange = (featureKey, newValue) => {
+    const updatedFeatures = {
+      ...selectedPlan.features,
+      [featureKey]: Number(newValue),
+    };
+
+    // Example: Calculate cost dynamically (Modify as per your pricing model)
+    const newCost = Object.values(updatedFeatures).reduce(
+      (acc, val) => acc + val * 5,
+      0
+    );
+
+    setselectedPlan((prev) => ({
+      ...prev,
+      features: updatedFeatures,
+      cost_per_month:
+        selectedPlan.name.toLowerCase() === "payg"
+          ? newCost
+          : prev.cost_per_month, // Only auto-update cost if PAYG
+      name: "Custom",
+    }));
+  };
+
+  // Manually update total cost (for non-PAYG plans)
+  const handleTotalCostChange = (newCost) => {
+    setselectedPlan((prev) => ({
+      ...prev,
+      cost_per_month: Number(newCost),
+      name: "Custom",
+    }));
+  };
+
   return (
     <>
       <Header />
@@ -1168,6 +1277,9 @@ const CreateCompany = () => {
                         <Form.Control.Feedback type="invalid">
                           {errors.email}
                         </Form.Control.Feedback>
+                        <Form.Text className="d-block mb-1 text-muted">
+                          {t("User can login via this Email")}
+                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -1199,6 +1311,9 @@ const CreateCompany = () => {
                             {errors.password}
                           </Form.Control.Feedback>
                         </InputGroup>
+                        <Form.Text className="d-block mb-1 text-muted">
+                          {t("User can login via this Password")}
+                        </Form.Text>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -1821,9 +1936,11 @@ const CreateCompany = () => {
                   <Select
                     options={subscriptionPlanList?.map((option) => ({
                       value: option.name,
+                      // label:option.name!='payg'? `${option.name} - $${option.cost_per_month}` :option.name,
                       label: option.name,
                       package_id: option.package_id,
                       features: option.features,
+                      cost_per_month: option?.cost_per_month,
                     }))}
                     onChange={(selectedOption) => {
                       handleChange("package", selectedOption?.package_id);
@@ -1833,6 +1950,7 @@ const CreateCompany = () => {
                       );
                       setselectedPlan(
                         {
+                          cost_per_month: selectedOption?.cost_per_month,
                           name: selectedOption.value,
                           features: selectedOption.features,
                         } || {}
@@ -1853,13 +1971,63 @@ const CreateCompany = () => {
                     }}
                     required
                   />
-                    {errors.package &&<span className="text-danger">{t(errors.package)}</span>}
+                  {errors.package && (
+                    <span className="text-danger">{t(errors.package)}</span>
+                  )}
                   <Form.Control.Feedback type="invalid">
                     {errors.package}
                   </Form.Control.Feedback>
                 </Form.Group>
 
                 {/* Selected Plan Details */}
+                {selectedPlan?.name &&
+                  // <Card className="mt-3 mb-3 shadow-sm border-0">
+                  //   <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+                  //     <h5 className="mb-0">
+                  //       {t(
+                  //         subscriptionPlanMapping[selectedPlan?.name] ||
+                  //           selectedPlan.name.replace(/_/g, " ")
+                  //       )}
+
+                  //       {/* {selectedPlan?.name} */}
+                  //     </h5>
+                  //     <Badge bg="light" text="dark">
+                  //       {t("Selected Plan")}
+                  //     </Badge>
+                  //   </Card.Header>
+                  //   <Card.Body>
+                  //     <ListGroup variant="flush">
+                  //       {Object.entries(selectedPlan?.features)?.map(
+                  //         ([key, value]) => (
+                  //           <ListGroup.Item
+                  //             key={key}
+                  //             className="d-flex justify-content-between align-items-center"
+                  //           >
+                  //             <span>
+                  //               {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
+                  //     /\b\w/g,
+                  //     (char) => char.toUpperCase()
+                  //   )} */}
+                  //               {t(
+                  //                 featureMapping[key] || key.replace(/_/g, " ")
+                  //               )}
+                  //             </span>
+                  //             <Badge bg="success" pill>
+                  //               {selectedPlan?.name=='payg'? `$ ${value}` : value}
+                  //             </Badge>
+                  //           </ListGroup.Item>
+
+                  //         )
+                  //       )}
+                  //        <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                  //         <span><p className="fw-bold">{t("Total Cost")} ({t("Per Month")})</p></span>
+                  //         <p className="fw-bold">$ {selectedPlan?.cost_per_month}</p>
+                  //           </ListGroup.Item>
+                  //     </ListGroup>
+                  //   </Card.Body>
+                  // </Card>
+                  ""}
+
                 {selectedPlan?.name && (
                   <Card className="mt-3 mb-3 shadow-sm border-0">
                     <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
@@ -1868,7 +2036,6 @@ const CreateCompany = () => {
                           subscriptionPlanMapping[selectedPlan?.name] ||
                             selectedPlan.name.replace(/_/g, " ")
                         )}
-                        {/* {selectedPlan?.name} */}
                       </h5>
                       <Badge bg="light" text="dark">
                         {t("Selected Plan")}
@@ -1876,32 +2043,110 @@ const CreateCompany = () => {
                     </Card.Header>
                     <Card.Body>
                       <ListGroup variant="flush">
-                        {Object.entries(selectedPlan.features)?.map(
+                        {Object.entries(selectedPlan?.features)?.map(
                           ([key, value]) => (
                             <ListGroup.Item
                               key={key}
                               className="d-flex justify-content-between align-items-center"
                             >
                               <span>
-                                {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
-                      /\b\w/g,
-                      (char) => char.toUpperCase()
-                    )} */}
                                 {t(
                                   featureMapping[key] || key.replace(/_/g, " ")
                                 )}
                               </span>
-                              <Badge bg="success" pill>
-                                {value}
-                              </Badge>
+                              <div className="d-flex align-items-center">
+                                {editMode[key] ? (
+                                  <>
+                                    <Form.Control
+                                      type="number"
+                                      value={value}
+                                      min="0"
+                                      className="w-50 text-center"
+                                      onChange={(e) =>
+                                        handleFeatureChange(key, e.target.value)
+                                      }
+                                    />
+                                    <Check2
+                                      className="ms-2 text-success"
+                                      style={{
+                                        cursor: "pointer",
+                                        fontSize: "1.2rem",
+                                      }}
+                                      onClick={() => toggleEditMode(key)}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Badge bg="success" pill>
+                                      {value}
+                                    </Badge>
+                                    <PencilSquare
+                                      className="ms-2 text-primary"
+                                      style={{
+                                        cursor: "pointer",
+                                        fontSize: "1.2rem",
+                                      }}
+                                      onClick={() => toggleEditMode(key)}
+                                    />
+                                  </>
+                                )}
+                              </div>
                             </ListGroup.Item>
                           )
+                        )}
+                        {selectedPlan?.name.toLowerCase() !== "payg" && (
+                          <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                            <span>
+                              <p className="fw-bold">
+                                {t("Total Cost")} ({t("Per Month")})
+                              </p>
+                            </span>
+                            <div className="d-flex align-items-center">
+                              {selectedPlan?.name.toLowerCase() === "payg" ? (
+                                <p className="fw-bold">
+                                  $ {selectedPlan?.cost_per_month}
+                                </p>
+                              ) : isEditingTotal ? (
+                                <>
+                                  <Form.Control
+                                    type="number"
+                                    value={selectedPlan.cost_per_month}
+                                    className="w-50 text-center"
+                                    onChange={(e) =>
+                                      handleTotalCostChange(e.target.value)
+                                    }
+                                  />
+                                  <Check2
+                                    className="ms-2 text-success"
+                                    style={{
+                                      cursor: "pointer",
+                                      fontSize: "1.2rem",
+                                    }}
+                                    onClick={() => setIsEditingTotal(false)}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <p className="fw-bold">
+                                    $ {selectedPlan?.cost_per_month}
+                                  </p>
+                                  <PencilSquare
+                                    className="ms-2 text-primary"
+                                    style={{
+                                      cursor: "pointer",
+                                      fontSize: "1.2rem",
+                                    }}
+                                    onClick={() => setIsEditingTotal(true)}
+                                  />
+                                </>
+                              )}
+                            </div>
+                          </ListGroup.Item>
                         )}
                       </ListGroup>
                     </Card.Body>
                   </Card>
                 )}
-
                 <Form.Group className="mb-3">
                   <Form.Check
                     type="checkbox"
@@ -1910,7 +2155,7 @@ const CreateCompany = () => {
                     onChange={(e) =>
                       handleChange("companyStatus", e.target.checked)
                     }
-                  />  
+                  />
                 </Form.Group>
                 <Button
                   variant="secondary"
