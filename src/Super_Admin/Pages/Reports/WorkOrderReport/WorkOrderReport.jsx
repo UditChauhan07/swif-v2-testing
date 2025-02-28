@@ -5,14 +5,18 @@ import Header from "../../../../Components/Header/Header";
 import { workOrderReportAllCompany } from "../../../../lib/store";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
+// import PaginationComp from "./PaginationComp"; // adjust the path as needed
 
 const WorkOrderReport = () => {
   const { t } = useTranslation();
   const [workOrderData, setWorkOrderData] = useState({});
-  const [filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 7; 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,7 +24,7 @@ const WorkOrderReport = () => {
         const response = await workOrderReportAllCompany(token);
         if (response.status === true) {
           setWorkOrderData(response?.data || {});
-          setFilteredData(response?.data || {}); 
+          setFilteredData(response?.data || {});
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -32,7 +36,7 @@ const WorkOrderReport = () => {
     fetchData();
   }, [token]);
 
-  // Filter the work order data based on the search query
+  // Filter work order data based on the search query
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredData(workOrderData);
@@ -48,9 +52,10 @@ const WorkOrderReport = () => {
       }, {});
       setFilteredData(filteredWorkOrders);
     }
+    setCurrentPage(1); // Reset to first page when search query changes
   }, [searchQuery, workOrderData]);
 
-  // Function to format work order data into a consumable array
+  // Format the work order data into an array for consumption
   function formatWorkOrderData() {
     return Object.keys(filteredData).map((key) => ({
       companyId: key,
@@ -64,7 +69,12 @@ const WorkOrderReport = () => {
     }));
   }
 
-  // Handle clearing search input
+  const formattedData = formatWorkOrderData();
+  // Calculate the indexes for the current page
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentData = formattedData.slice(indexOfFirstRow, indexOfLastRow);
+
   const handleClear = () => {
     setSearchQuery("");
   };
@@ -185,20 +195,22 @@ const WorkOrderReport = () => {
                     <p className="mt-2">{t("Loading...")}</p>
                   </td>
                 </tr>
-              ) : Object.keys(filteredData).length === 0 ? (
+              ) : formattedData.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="text-center py-5">
                     {t("No data found")}
                   </td>
                 </tr>
               ) : (
-                formatWorkOrderData().map((item, index) => (
+                currentData.map((item, index) => (
                   <tr key={index}>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       <strong>{item.companyId}</strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      <strong className="text-capitalize">{item.companyName}</strong>
+                      <strong className="text-capitalize">
+                        {item.companyName}
+                      </strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.perDay}
@@ -223,6 +235,15 @@ const WorkOrderReport = () => {
               )}
             </tbody>
           </Table>
+          {/* Render the Pagination component if data exists and loading is complete */}
+          {!isLoading && formattedData.length > 0 && (
+            <PaginationComp
+              totalItems={formattedData.length}
+              currentPage={currentPage}
+              rowsPerPage={rowsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </>

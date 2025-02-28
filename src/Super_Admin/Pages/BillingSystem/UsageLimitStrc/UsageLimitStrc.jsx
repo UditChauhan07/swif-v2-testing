@@ -185,7 +185,7 @@ const UsageLimitStrc = () => {
                           value={formData.workOrderCreation}
                           onChange={handleInputChange}
                           isInvalid={!!errors.workOrderCreation}
-                          min={0}
+                          min={1}
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.workOrderCreation}
@@ -205,7 +205,7 @@ const UsageLimitStrc = () => {
                           value={formData.workOrderExecution}
                           onChange={handleInputChange}
                           isInvalid={!!errors.workOrderExecution}
-                          min={0}
+                          min={1}
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.workOrderExecution}
@@ -229,7 +229,7 @@ const UsageLimitStrc = () => {
                           value={formData.fieldUserCreation}
                           onChange={handleInputChange}
                           isInvalid={!!errors.fieldUserCreation}
-                          min={0}
+                          min={1}
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.fieldUserCreation}
@@ -250,7 +250,7 @@ const UsageLimitStrc = () => {
                           value={formData.officeUserCreation}
                           onChange={handleInputChange}
                           isInvalid={!!errors.officeUserCreation}
-                          min={0}
+                          min={1}
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.officeUserCreation}
@@ -274,7 +274,7 @@ const UsageLimitStrc = () => {
                           value={formData.customerCreation}
                           onChange={handleInputChange}
                           isInvalid={!!errors.customerCreation}
-                          min={0}
+                          min={1}
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.customerCreation}
