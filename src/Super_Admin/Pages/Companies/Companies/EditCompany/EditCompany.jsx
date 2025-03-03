@@ -853,6 +853,7 @@ const EditCompany = () => {
       charges.workOrderExecution =
         selectedPlan?.features?.work_order_execution || 0;
       charges.planTotalCost = selectedPlan?.cost_per_month || 0;
+      charges.taxAbleAmount = selectedPlan?.cost_per_month ? selectedPlan.cost_per_month + (selectedPlan.cost_per_month * (formData.taxPercentage || 0) / 100) : 0;   
     }
     if (
       Object.keys(errors).length > 0 ||
@@ -1047,10 +1048,8 @@ const EditCompany = () => {
       ...prev,
       features: updatedFeatures,
       cost_per_month:
-        selectedPlan.name.toLowerCase() === "payg"
-          ? newCost
-          : prev.cost_per_month, // Only auto-update cost if PAYG
-      name: "Custom",
+        selectedPlan?.name?.toLowerCase() === "payg"? 0 : prev.cost_per_month, // Only auto-update cost if PAYG
+      name: selectedPlan?.name.toLowerCase() === "payg" ? prev.name : "Custom",
     }));
   };
 
@@ -1059,7 +1058,7 @@ const EditCompany = () => {
     setselectedPlan((prev) => ({
       ...prev,
       cost_per_month: Number(newCost),
-      name: "Custom",
+      name: selectedPlan?.name.toLowerCase() === "payg" ? prev.name : "Custom",
     }));
   };
 

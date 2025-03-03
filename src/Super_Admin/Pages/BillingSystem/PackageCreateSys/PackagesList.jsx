@@ -491,8 +491,8 @@ const PackagesList = () => {
                                 style={{ color: "#2980b9" }}
                               >
                                 {getSymbolFromCurrency(
-                                  currencyData?.target_currency
-                                ) || "$"}
+                                  currencyData?.target_currency 
+                                ) || "$ " }{" "}
                                 {currencyData?.exchange_rate
                                   ? (
                                       currencyData?.exchange_rate *
