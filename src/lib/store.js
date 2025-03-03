@@ -1031,7 +1031,44 @@ export const getSubscriptionPackagesList = async (token) => {
 };
 
 
+// Super Admin Company Details
+export const getSuperAdminCompanyDetails = async (token) => {
+  try {
+    const response = await axios.get(`${Url}/dss13cdw12f`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    // console.log(response.data, "login api data");
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
 
+// Super Admin Company Details Update
+export const updateSuperAdminCompanyDetails = async (token, companyData) => {
+  try {
+    const response = await axios.put(
+      `${Url}/1jdu912jd01`,
+      companyData, // pass the company data directly as the request body
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
 
 
 

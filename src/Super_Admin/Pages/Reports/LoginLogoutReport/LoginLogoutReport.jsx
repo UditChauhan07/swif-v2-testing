@@ -4,6 +4,7 @@ import { BeatLoader } from "react-spinners";
 import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
 import { getLoginLogoutRecords } from "../../../../lib/store";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
 
 const LoginLogoutReport = () => {
   const { t } = useTranslation();
@@ -16,16 +17,22 @@ const LoginLogoutReport = () => {
   // New state for user type filter; default is "office_user"
   const [userType, setUserType] = useState("office_user");
 
-  // Simulate fetching data with API response
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Change as needed
+
+  // Fetch the login/logout records from the API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getLoginLogoutRecords(token);
         console.log("Response:", response);
         if (response.status === true) {
-          // Set filtered data initially as all data
-          const sortedData=response?.data?.filter((data) => data?.companyName.toLowerCase()!='unknown')
-          console.log("Sorted data:", sortedData)
+          // Filter out any records where companyName is "unknown"
+          const sortedData = response?.data?.filter(
+            (data) => data?.companyName.toLowerCase() !== "unknown"
+          );
+          console.log("Sorted data:", sortedData);
           setReportData(sortedData);
           setFilteredData(sortedData);
         }
@@ -39,21 +46,28 @@ const LoginLogoutReport = () => {
     fetchData();
   }, [token]);
 
-  // Filter data based on search query (searching by Company Name)
+  // Filter data based on the search query (searching by Company Name)
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredData(reportData);
     } else {
       const filtered = reportData.filter((item) =>
-        item?.companyName?.toLowerCase()?.includes(searchQuery.toLowerCase())
+        item?.companyName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredData(filtered);
     }
+    // Reset current page when filtering changes
+    setCurrentPage(1);
   }, [searchQuery, reportData]);
 
   const handleClear = () => {
     setSearchQuery("");
   };
+
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <>
@@ -76,7 +90,7 @@ const LoginLogoutReport = () => {
               </Button>
             </div>
           </div>
-          {/* Added minimal user type filter */}
+          {/* Minimal user type filter */}
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div>
               <Form.Label>{t("User Type")}</Form.Label>
@@ -132,22 +146,22 @@ const LoginLogoutReport = () => {
               </tr>
               <tr style={{ backgroundColor: "#E7EAF3", color: "#3C3C3C" }}>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Day")}
+                  {t("Daily")}
                 </th>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Week")}
+                  {t("Weekly")}
                 </th>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Month")}
+                  {t("Monthly")}
                 </th>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Day")}
+                  {t("Daily")}
                 </th>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Week")}
+                  {t("Weekly")}
                 </th>
                 <th style={{ background: "#e5e5e5", textAlign: "center" }}>
-                  {t("Per Month")}
+                  {t("Monthly")}
                 </th>
               </tr>
             </thead>
@@ -170,37 +184,75 @@ const LoginLogoutReport = () => {
                   </td>
                 </tr>
               ) : (
-                filteredData.map((item, index) => (
+                currentItems.map((item, index) => (
                   <tr key={index}>
                     <td style={{ padding: "15px 10px", fontSize: "0.9rem" }}>
-                      <strong className="text-capitalize">{item.companyName}</strong>
+                      <strong className="text-capitalize">
+                        {item.companyName}
+                      </strong>
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.login_per_day
                         : item.field_user.login_per_day}
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.login_per_week
                         : item.field_user.login_per_week}
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.login_per_month
                         : item.field_user.login_per_month}
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.logout_per_day
                         : item.field_user.logout_per_day}
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.logout_per_week
                         : item.field_user.logout_per_week}
                     </td>
-                    <td style={{ padding: "15px 10px", fontSize: "0.9rem", textAlign: "center" }}>
+                    <td
+                      style={{
+                        padding: "15px 10px",
+                        fontSize: "0.9rem",
+                        textAlign: "center",
+                      }}
+                    >
                       {userType === "office_user"
                         ? item.office_user.logout_per_month
                         : item.field_user.logout_per_month}
@@ -210,6 +262,15 @@ const LoginLogoutReport = () => {
               )}
             </tbody>
           </Table>
+          {/* Render PaginationComp if there are more records than itemsPerPage */}
+          {filteredData.length > itemsPerPage && (
+            <PaginationComp
+              totalItems={filteredData.length}
+              currentPage={currentPage}
+              rowsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </>

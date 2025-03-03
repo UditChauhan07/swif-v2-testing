@@ -23,7 +23,12 @@ const Companies = () => {
       try {
         const response = await getCompanyListApi(token);
         if (response.status === true) {
-          setCompanyList(response?.data || []);
+          const filteredCompanies =
+            response?.data?.filter(
+              (company) => !company.company.SuperAdminCompany
+            ) || [];
+
+          setCompanyList(filteredCompanies);
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -40,6 +45,7 @@ const Companies = () => {
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = companyList.slice(indexOfFirstRow, indexOfLastRow);
+  console.log("rssss", currentRows);
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
