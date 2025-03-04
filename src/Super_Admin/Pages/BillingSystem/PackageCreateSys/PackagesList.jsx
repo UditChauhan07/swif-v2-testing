@@ -605,7 +605,7 @@ const PackagesList = () => {
                                          {
                                             currentPlan.name === 'payg'
                                               ? currencyData?.exchange_rate
-                                                ? `${getSymbolFromCurrency(currencyData?.target_currency) || "$ "} {" "} ${(
+                                                ? `${getSymbolFromCurrency(currencyData?.target_currency) || "$ "}  ${(
                                                     currencyData?.exchange_rate * limit
                                                   ).toFixed(2)}`
                                                 : limit
@@ -776,7 +776,7 @@ const PackagesList = () => {
                                   >
                                     {getSymbolFromCurrency(
                                       currencyData?.target_currency
-                                    ) || "$"}{" "}
+                                    ) || "$"}
                                     {currencyData?.exchange_rate
                                       ? (
                                           currencyData?.exchange_rate *
