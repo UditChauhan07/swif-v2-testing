@@ -1920,9 +1920,9 @@
   "Top Paying Companies": "Principales Compañías Pagadoras",
   "Total Paid Amount": "Total Pagado",
   "Last Invoice Date": "Fecha de Última Factura",
-  "Super Admin Profile":"Perfil de superadministrador",
-  "Update Super Admin Details":"Actualizar detalles del superadministrador",
-  "Address Line 1":"Dirección Línea 1",
+  "Super Admin Profile": "Perfil de superadministrador",
+  "Update Super Admin Details": "Actualizar detalles del superadministrador",
+  "Address Line 1": "Dirección Línea 1",
   "Do you want to update the company details?": "¿Quieres actualizar los detalles de la empresa?",
   "Yes, update it!": "Sí, actualizar!",
   "Updating company details, please wait.": "Actualizando los detalles de la empresa, por favor espera.",
@@ -1932,5 +1932,6 @@
   "Enter Contact Person Name": "Ingrese el Nombre de la Persona de Contacto",
   "Enter Contact Phone": "Ingrese el Teléfono de Contacto",
   "Enter Office Email": "Ingrese el Correo Electrónico de la Oficina",
-  "Enter State": "Ingrese el Estado"
+  "Enter State": "Ingrese el Estado",
+  "Service Tax Included": "Impuesto de Servicio Incluido"
 }

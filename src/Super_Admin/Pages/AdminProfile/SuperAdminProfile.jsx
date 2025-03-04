@@ -113,7 +113,7 @@ const SuperAdminProfile = () => {
       },
     };
 
-    // Show confirmation dialog
+    // Show confirmation dialogg
     const result = await Swal.fire({
       title: t("Are you sure?"),
       text: t("Do you want to update the company details?"),
