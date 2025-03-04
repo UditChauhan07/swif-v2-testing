@@ -1933,5 +1933,15 @@
   "Enter Contact Phone": "Ingrese el Teléfono de Contacto",
   "Enter Office Email": "Ingrese el Correo Electrónico de la Oficina",
   "Enter State": "Ingrese el Estado",
-  "Service Tax Included": "Impuesto de Servicio Incluido"
+  "Service Tax Included": "Impuesto de Servicio Incluido",
+  "Search by Invoice No or Company Name...": "Buscar por número de factura o nombre de la empresa...",
+  "Invoice No": "Número de Factura",
+  "Issue Date": "Fecha de Emisión",
+  "Payment Status": "Estado de Pago",
+  "Do you want to update the invoice status?": "¿Desea actualizar el estado de la factura?",
+  "Updating...": "Actualizando...",
+  "Status updated": "Estado actualizado",
+  "The invoice status has been updated successfully.": "El estado de la factura se ha actualizado correctamente.",
+  "Update failed": "La actualización falló",
+  "There was an error updating the invoice status. Please try again later.": "Hubo un error al actualizar el estado de la factura. Por favor, inténtelo de nuevo más tarde."
 }

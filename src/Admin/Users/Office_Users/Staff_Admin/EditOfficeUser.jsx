@@ -399,7 +399,7 @@ const EditOfficeUser = () => {
                       </Form.Group>
                     </Col>
 
-                    <Col md={6}>
+                    {/* <Col md={6}>
                       <Form.Group className="mb-3">
                         <Form.Label>Choose Role*</Form.Label>
                         <Field as="select" className="form-control" name="role">
@@ -417,7 +417,7 @@ const EditOfficeUser = () => {
                           className="text-danger"
                         />
                       </Form.Group>
-                    </Col>
+                    </Col> */}
 
                     <Col md={6} className="d-flex align-items-center">
                       <Field

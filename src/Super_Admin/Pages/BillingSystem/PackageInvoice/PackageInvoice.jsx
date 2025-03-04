@@ -4,143 +4,48 @@ import { BeatLoader } from "react-spinners";
 import Header from "../../../../Components/Header/Header";
 import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
 import { useTranslation } from "react-i18next";
-import { FaInfoCircle, FaEdit, FaClipboardList } from "react-icons/fa";
+import { FaInfoCircle, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { IoMdDownload } from "react-icons/io";
+import { getInvoicePayment, updateInvoicePayment } from "../../../../lib/store";
+import Swal from "sweetalert2";
 
 const InvoiceReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [invoiceData, setInvoiceData] = useState([]);
+  const [token] = useState(localStorage.getItem("UserToken"));
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
 
-  // State for Modal
+  // State for Modal (for updating status, if needed)
   const [showModal, setShowModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [newStatus, setNewStatus] = useState("");
 
-  useEffect(() => {
+  const fetchInvoices = async () => {
     setIsLoading(true);
-    const sampleInvoices = [
-      {
-        invoiceId: "INV001",
-        companyName: "Acme Corp",
-        billingType: "Subscription",
-        invoiceDate: "2023-01-01",
-        dueDate: "2023-01-15",
-        totalAmount: 1500,
-        currency: "USD",
-        status: "Paid",
-        paymentMethod: "Stripe",
-      },
-      {
-        invoiceId: "INV002",
-        companyName: "Beta LLC",
-        billingType: "PAYG",
-        invoiceDate: "2023-02-05",
-        dueDate: "2023-02-20",
-        totalAmount: 750,
-        currency: "EUR",
-        status: "Pending",
-        paymentMethod: "PayPal",
-      },
-      {
-        invoiceId: "INV003",
-        companyName: "Gamma Industries",
-        billingType: "Subscription",
-        invoiceDate: "2023-03-10",
-        dueDate: "2023-03-25",
-        totalAmount: 2200,
-        currency: "USD",
-        status: "Overdue",
-        paymentMethod: "Manual",
-      },
-      {
-        invoiceId: "INV004",
-        companyName: "Delta Co.",
-        billingType: "PAYG",
-        invoiceDate: "2023-04-15",
-        dueDate: "2023-04-30",
-        totalAmount: 980,
-        currency: "GBP",
-        status: "Failed",
-        paymentMethod: "Stripe",
-      },
-      {
-        invoiceId: "INV005",
-        companyName: "Epsilon Ltd.",
-        billingType: "Subscription",
-        invoiceDate: "2023-05-01",
-        dueDate: "2023-05-15",
-        totalAmount: 1800,
-        currency: "USD",
-        status: "Paid",
-        paymentMethod: "PayPal",
-      },
-      {
-        invoiceId: "INV006",
-        companyName: "Zeta Enterprises",
-        billingType: "PAYG",
-        invoiceDate: "2023-06-20",
-        dueDate: "2023-07-05",
-        totalAmount: 650,
-        currency: "EUR",
-        status: "Pending",
-        paymentMethod: "Manual",
-      },
-      {
-        invoiceId: "INV007",
-        companyName: "Eta Incorporated",
-        billingType: "Subscription",
-        invoiceDate: "2023-07-10",
-        dueDate: "2023-07-25",
-        totalAmount: 2050,
-        currency: "USD",
-        status: "Paid",
-        paymentMethod: "Stripe",
-      },
-      {
-        invoiceId: "INV008",
-        companyName: "Theta Solutions",
-        billingType: "PAYG",
-        invoiceDate: "2023-08-05",
-        dueDate: "2023-08-20",
-        totalAmount: 890,
-        currency: "GBP",
-        status: "Overdue",
-        paymentMethod: "PayPal",
-      },
-      {
-        invoiceId: "INV009",
-        companyName: "Iota Systems",
-        billingType: "Subscription",
-        invoiceDate: "2023-09-12",
-        dueDate: "2023-09-27",
-        totalAmount: 1750,
-        currency: "USD",
-        status: "Pending",
-        paymentMethod: "Manual",
-      },
-      {
-        invoiceId: "INV010",
-        companyName: "Kappa Dynamics",
-        billingType: "PAYG",
-        invoiceDate: "2023-10-01",
-        dueDate: "2023-10-16",
-        totalAmount: 930,
-        currency: "EUR",
-        status: "Paid",
-        paymentMethod: "Stripe",
-      },
-    ];
-    setInvoiceData(sampleInvoices);
-    setFilteredData(sampleInvoices);
+    try {
+      const response = await getInvoicePayment(token);
+      // console.log("response", response);
+      if (response.status === 200) {
+        setInvoiceData(response.data.invoices);
+        setFilteredData(response.data.invoices);
+      } else {
+        console.error("Error fetching invoices:", response);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
     setIsLoading(false);
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [token]);
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -148,12 +53,12 @@ const InvoiceReport = () => {
     } else {
       const filtered = invoiceData.filter(
         (item) =>
-          item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+          item.invoiceNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.company_name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredData(filtered);
     }
-    setCurrentPage(1); // Reset page on search change
+    setCurrentPage(1);
   }, [searchQuery, invoiceData]);
 
   const indexOfLastItem = currentPage * rowsPerPage;
@@ -169,22 +74,86 @@ const InvoiceReport = () => {
   };
 
   const handleUpdateStatus = (invoice) => {
+    // console.log("invoice", invoice);
     setSelectedInvoice(invoice);
-    setNewStatus(invoice.status); 
+    setNewStatus(invoice.payment_status || ""); // Use invoice.status if available
     setShowModal(true);
   };
 
-  const handleSaveStatus = () => {
-    if (selectedInvoice) {
-      const updatedInvoices = invoiceData.map((item) =>
-        item.invoiceId === selectedInvoice.invoiceId
-          ? { ...item, status: newStatus }
-          : item
-      );
-      setInvoiceData(updatedInvoices);
-      setFilteredData(updatedInvoices);
-      setShowModal(false); // Close the modal after saving the new status
+  const handleSaveStatus = async () => {
+    if (!selectedInvoice) return;
+
+    const paymentData = {
+      invoiceNo: selectedInvoice.invoiceNo,
+      status: newStatus,
+    };
+    // console.log("paymentData", paymentData);
+
+    // Show confirmation dialog
+    const confirmation = await Swal.fire({
+      title: t("Are you sure?"),
+      text: t("Do you want to update the invoice status?"),
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: t("Yes"),
+      cancelButtonText: t("No"),
+    });
+
+    if (confirmation.isConfirmed) {
+      // Show loading indicator
+      Swal.fire({
+        title: t("Updating..."),
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      try {
+        const response = await updateInvoicePayment(token, paymentData);
+        if (response && response.status === 200) {
+          Swal.close(); // Close loading alert
+          Swal.fire({
+            icon: "success",
+            title: t("Status updated"),
+            text: t("The invoice status has been updated successfully."),
+            confirmButtonText: t("OK"),
+          });
+          setShowModal(false);
+          fetchInvoices();
+        } else {
+          Swal.close();
+          Swal.fire({
+            icon: "error",
+            title: t("Update failed"),
+            text: t(
+              "There was an error updating the invoice status. Please try again later."
+            ),
+            confirmButtonText: t("OK"),
+          });
+          console.error("Error updating invoice status:", response);
+        }
+      } catch (error) {
+        Swal.close();
+        Swal.fire({
+          icon: "error",
+          title: t("Update failed"),
+          text: t(
+            "There was an error updating the invoice status. Please try again later."
+          ),
+          confirmButtonText: t("OK"),
+        });
+        console.error("Error updating invoice status:", error);
+      }
     }
+  };
+
+  const handleDownloadPDF = (invoice) => {
+    const linkSource = `data:application/pdf;base64,${invoice.pdf}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = `${invoice.invoiceNo}.pdf`;
+    downloadLink.click();
   };
 
   return (
@@ -192,13 +161,12 @@ const InvoiceReport = () => {
       <Header />
       <div className="main-header-box mt-4">
         <div className="pages-box">
-          {/* Header & Search */}
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h4 className="mb-0">{t("Invoice & Payments")}</h4>
             <div className="d-flex gap-2">
               <Form.Control
                 type="text"
-                placeholder={t("Search by Invoice ID or Company Name...")}
+                placeholder={t("Search by Invoice No or Company Name...")}
                 className="me-2"
                 style={{ width: "250px" }}
                 value={searchQuery}
@@ -210,110 +178,22 @@ const InvoiceReport = () => {
             </div>
           </div>
 
-          <Table
-            hover
-            responsive
-            className="align-middle"
-            style={{ minWidth: "1650px" }}
-          >
+          <Table hover responsive className="align-middle">
             <thead>
               <tr style={{ backgroundColor: "#E7EAF3", color: "#3C3C3C" }}>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Invoice ID")}
-                </th>
-                <th
-                  style={{
-                    width: "15%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Company Name")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Billing Type")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Invoice Date")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Due Date")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Total Amount")}
-                </th>
-                <th
-                  style={{
-                    width: "8%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Currency")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Status")}
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Payment Method")}
-                </th>
-                <th
-                  style={{
-                    width: "12%",
-                    textAlign: "left",
-                    background: "#e5e5e5",
-                  }}
-                >
-                  {t("Actions")}
-                </th>
+                <th>{t("Invoice No")}</th>
+                <th>{t("Company Name")}</th>
+                <th>{t("Issue Date")}</th>
+                <th>{t("Due Date")}</th>
+                <th>{t("Payment Status")}</th>
+                <th>{t("Total")}</th>
+                <th>{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="10" className="text-center py-5">
+                  <td colSpan="6" className="text-center py-5">
                     <BeatLoader
                       size={12}
                       color={"#3C3C3C"}
@@ -324,7 +204,7 @@ const InvoiceReport = () => {
                 </tr>
               ) : filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="text-center py-5">
+                  <td colSpan="6" className="text-center py-5">
                     {t("No data found")}
                   </td>
                 </tr>
@@ -332,37 +212,28 @@ const InvoiceReport = () => {
                 currentData.map((item, index) => (
                   <tr key={index}>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      <strong>{item.invoiceId}</strong>
+                      <strong>{item.invoiceNo}</strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       <strong className="text-capitalize">
-                        {item.companyName}
+                        {item.company_name}
                       </strong>
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.billingType}
-                    </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.invoiceDate}
+                      {item.issueDate}
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.dueDate}
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.totalAmount}
+                      {item.payment_status}
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.currency}
-                    </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.status}
-                    </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.paymentMethod}
+                      {item.total}
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       <div className="d-flex gap-2">
-                        <Button
+                        {/* <Button
                           title="Details"
                           variant="outline-secondary"
                           size="sm"
@@ -377,7 +248,7 @@ const InvoiceReport = () => {
                           onClick={() => handleDetailsClick(item)}
                         >
                           <FaInfoCircle />
-                        </Button>
+                        </Button> */}
                         <Button
                           title="Update"
                           variant="outline-secondary"
@@ -395,7 +266,7 @@ const InvoiceReport = () => {
                           <FaEdit />
                         </Button>
                         <Button
-                          title="Delete"
+                          title="Download PDF"
                           variant="outline-secondary"
                           size="sm"
                           style={{
@@ -406,6 +277,7 @@ const InvoiceReport = () => {
                             alignItems: "center",
                             justifyContent: "center",
                           }}
+                          onClick={() => handleDownloadPDF(item)}
                         >
                           <IoMdDownload size={20} />
                         </Button>
@@ -426,9 +298,9 @@ const InvoiceReport = () => {
           )}
         </div>
       </div>
-      {/* Modal for Updating Status */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered >
-        <Modal.Header closeButton >
+      {/* Modal for updating invoice status */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
           <Modal.Title>{t("Update Invoice Status")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>

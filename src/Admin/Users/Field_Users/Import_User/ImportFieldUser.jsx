@@ -524,7 +524,7 @@ const ImportFieldUser = () => {
           {/* Uploaded XLSX Data Preview Table Section */}
           {xlsxData?.length > 0 && (
             <div
-              className="border p-4 rounded"
+              className="border p-4 rounded mb-4"
               style={{
                 backgroundColor: "#f9f9f9",
                 boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
