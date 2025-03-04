@@ -1090,6 +1090,44 @@ export const updateSuperAdminCompanyDetails = async (token, companyData) => {
   }
 };
 
+// Get Invoice and Payments  
+export const getInvoicePayment = async (token) => {
+  try {
+    const response = await axios.get(`${Url}/u127shop1s`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    // console.log(response.data, "login api data");
+    return response;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
+// Update Invoice Status
+export const updateInvoicePayment = async (token, invoiceData) => {
+  try {
+    const response = await axios.put(
+      `${Url}/ukjyw81ksc`,
+      invoiceData, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
 
 
 

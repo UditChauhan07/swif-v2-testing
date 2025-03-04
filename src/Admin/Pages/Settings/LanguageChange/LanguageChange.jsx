@@ -58,7 +58,9 @@ const LanguageChange = () => {
           text: t("Language updated successfully"),
           icon: "success",
         });
-        window.location.reload()
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         Swal.fire({
           title: t("Error"),

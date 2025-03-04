@@ -153,9 +153,9 @@
     padding: 8px 15px;
   }
 
-  .custom-navbar {
+  /* .custom-navbar {
     width: 100%;
-  }
+  } */
 }
 
 
@@ -175,4 +175,24 @@
 .dropdown-items .sidebar-link.active {
   font-weight: bold;
   background-color: #0056b3; /* Slightly darker blue for nested items */
+}
+
+@media screen and (max-width: 992px) {
+  .sidebar-toggle-btn {
+    display: block;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    background: transparent;
+    border: none;
+    color: #000;
+  }
+}
+
+/* Optionally hide the button on larger screens */
+@media screen and (min-width: 993px) {
+  .sidebar-toggle-btn {
+    display: none;
+  }
 }

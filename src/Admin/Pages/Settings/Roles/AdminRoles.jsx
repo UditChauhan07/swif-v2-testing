@@ -14,6 +14,7 @@ const AdminRoles = () => {
   const navigate = useNavigate();
 
   const [rolesList, setRolesList] = useState([]);
+  console.log("rolessList",rolesList)
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -156,6 +157,7 @@ const AdminRoles = () => {
                       <td className="text-center">{role.userCount}</td>
                       <td className="text-center">
                         <Button
+                        title="Details"
                           variant="outline-secondary"
                           size="sm"
                           style={{
@@ -182,7 +184,7 @@ const AdminRoles = () => {
 
             {/* Reusable Pagination Component */}
             <PaginationComp
-              totalItems={rolesList.length}
+              totalItems={rolesList?.length || 0}
               currentPage={currentPage}
               rowsPerPage={rowsPerPage}
               onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
