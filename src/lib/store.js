@@ -1030,6 +1030,26 @@ export const getSubscriptionPackagesList = async (token) => {
   }
 };
 
+export const getCurrenPlan = async(token,companyId)=>{
+  try {
+    const response = await axios.get(
+      `${Url}/uqwxm1p0s2?companyID=${encodeURIComponent(companyId)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("current plan response Data",response);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
 
 
 

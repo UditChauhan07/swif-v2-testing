@@ -236,6 +236,7 @@ import {
   Badge,
   Table,
   Button,
+ Tooltip, OverlayTrigger 
 } from "react-bootstrap";
 import { Check2Circle, XCircle, StarFill } from "react-bootstrap-icons";
 import Header from "../../../../Components/Header/Header";
@@ -244,6 +245,7 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import {
   convertToSelectedCurrency,
+  getCurrenPlan,
   getSubscriptionPackagesList,
   getUsageLimit,
 } from "../../../../lib/store";
@@ -251,9 +253,12 @@ import LoadingComp from "../../../../Components/Loader/LoadingComp";
 import { useNavigate } from "react-router-dom";
 import getSymbolFromCurrency from "currency-symbol-map";
 import { CheckCircleFill } from "react-bootstrap-icons";
+import { BsInfoCircle } from "react-icons/bs"; // Font Awesome or Bootstrap Icons
+
 const PackagesList = () => {
   const role = localStorage.getItem("Role");
   const token = localStorage.getItem("UserToken");
+  const companyId=localStorage.getItem("companyId");
   const [subscriptionPackages, setSubscriptionPackages] = useState([]);
   const currencyCode = localStorage.getItem("currencyCode");
   const navigate = useNavigate();
@@ -261,7 +266,14 @@ const PackagesList = () => {
   // console.log('decoded',decoded);
   const [loading, setLoading] = useState(true);
   const [currencyData, setCurrencyData] = useState(null);
-  const [currentPlan, setCurrentPlan] = useState([]);
+  const [currentPlan, setCurrentPlan] = useState({
+    // add_customers: 0,
+    // add_office_users: 0,
+    // add_field_users:  0,
+    // work_order_creation:  0,
+    // work_order_execution:  0
+    features:{}
+  });
   const [defaultPlan, setDefaultPlan] = useState({
     add_customers: 0,
     add_office_users: 0,
@@ -275,26 +287,26 @@ const PackagesList = () => {
     name: "",
     rates: {},
   });
-  // console.log('defaultPlan',defaultPlan,subscriptionPackages)
+  console.log('defaultPlan',currentPlan)
   // const [paygPlan, setPaygPlan] = useState(null);
   const { t, i18n } = useTranslation();
 
   const fetchSubscriptionPackages = async () => {
     try {
       const response = await getSubscriptionPackagesList(token);
-    const response2 = await getUsageLimit(token);
-    if (response2.data.status && response2.data.data.length > 0) {
+    // const response2 = await getUsageLimit(token);
+    // if (response2.data.status && response2.data.data.length > 0) {
      
-          // console.log('dsdsdsdsdsdsdsdsds',response2.data);
-          setDefaultPlan({
-          add_customers:response2.data?.data[0]?.customerCreation|| 0,
-          add_office_users: response2.data?.data[0]?.officeUserCreation|| 0,
-          add_field_users: response2.data?.data[0]?.fieldUserCreation || 0,
-          work_order_creation: response2.data?.data[0]?.workOrderCreation|| 0,
-          work_order_execution: response2.data?.data[0]?.workOrderExecution || 0
-        });
-          // setDefaultPlan(response2.data)
-    }
+    //       // console.log('dsdsdsdsdsdsdsdsds',response2.data);
+    //       setDefaultPlan({
+    //       add_customers:response2.data?.data[0]?.customerCreation|| 0,
+    //       add_office_users: response2.data?.data[0]?.officeUserCreation|| 0,
+    //       add_field_users: response2.data?.data[0]?.fieldUserCreation || 0,
+    //       work_order_creation: response2.data?.data[0]?.workOrderCreation|| 0,
+    //       work_order_execution: response2.data?.data[0]?.workOrderExecution || 0
+    //     });
+    //       // setDefaultPlan(response2.data)
+    // }
       // console.log(response);
       const sortedPackages = response.packages
         ? [...response.packages]
@@ -314,12 +326,12 @@ const PackagesList = () => {
         rates: paygPlan[0].features || 0 || {},
       });
       setLoading(false);
-      if (decoded?.role != "SuperAdmin" && decoded?.package_id) {
-        const userPackage = response.packages.find(
-          (pkg) => pkg.package_id === decoded.package_id
-        );
-        if (userPackage) setCurrentPlan(userPackage);
-      }
+      // if (decoded?.role != "SuperAdmin" && decoded?.package_id) {
+      //   const userPackage = response.packages.find(
+      //     (pkg) => pkg.package_id === decoded.package_id
+      //   );
+      //   if (userPackage) setCurrentPlan(userPackage);
+      // }
     } catch (error) {
       console.error(error);
       setLoading(false);
@@ -327,6 +339,38 @@ const PackagesList = () => {
       setLoading(false);
     }
   };
+  const fetchCurrentPlan = async() =>{
+    try {
+      const response = await getCurrenPlan(token,companyId);
+      console.log('current plan',response);
+      if (response) setCurrentPlan({
+        features:{
+          add_customers: response.package.customerCreation  ||0,
+        add_office_users:response.package.fieldUserCreation  || 0,
+        add_field_users:  response.package.officeUserCreation  ||0,
+        work_order_creation:response.package.workOrderCreation  ||0,
+        work_order_execution: response.package.workOrderExecution  || 0,
+        },
+        name:response.package.planName ||"",
+        planTotalCost:response.package.planTotalCost || 0,
+        cost_per_month:response.package.taxAbleAmount || 0
+    //     "package": {
+    //     "currency": "ALL",
+    //     "planName": "Custom",
+    //     "Interval": "monthly",
+    //     "customerCreation": 0,
+    //     "fieldUserCreation": 30,
+    //     "officeUserCreation": 15,
+    //     "workOrderCreation": 50,
+    //     "workOrderExecution": 50,
+    //     "planTotalCost": 40,
+    //     "taxAbleAmount": 48
+    // }
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   useEffect(() => {
     if (decoded?.role != "SuperAdmin" && currencyCode) {
@@ -344,6 +388,9 @@ const PackagesList = () => {
     if (token) {
       // console.log("Token hit", token);
       fetchSubscriptionPackages();
+      if(token && companyId){
+        fetchCurrentPlan();
+      }
     }
   }, [token]);
 
@@ -416,6 +463,19 @@ const PackagesList = () => {
   const handleCreateNewPlan = () => {
     if (subscriptionPackages) navigate("/billings/package-creation");
   };
+
+  function calculateTaxPercentage(costIncludingTax, planCost) {
+    if (planCost === 0) return 0; // Avoid division by zero
+    const taxAmount = costIncludingTax - planCost;
+    const taxPercentage = (taxAmount / planCost) * 100;
+    return taxPercentage;
+  }
+  const taxPercentage = calculateTaxPercentage(currentPlan.cost_per_month, currentPlan.planTotalCost);
+
+  function calculateTaxableLimit(limit, taxPercentage) {
+    return limit * (1 + taxPercentage / 100);
+  }
+  
 // console.log('create new plan', currentPlan);
   return (
     <>
@@ -457,7 +517,7 @@ const PackagesList = () => {
                         )}
                       </p>
                       <Row className="justify-content-center g-4">
-                        <Col xs={12} md={6} lg={4} className="mb-4">
+                        <Col xs={12} md={6} lg={4} className="mb-2">
                           <Card
                             className="h-100 shadow-lg border-success"
                             style={{
@@ -486,7 +546,8 @@ const PackagesList = () => {
                               </Badge>
                             </Card.Header>
                             <Card.Body className="d-flex flex-column p-4">
-                              <h2
+                           { currentPlan.name !='payg' &&
+                           <h2
                                 className="text-center mb-4 fw-bold"
                                 style={{ color: "#2980b9" }}
                               >
@@ -507,7 +568,16 @@ const PackagesList = () => {
                                 >
                                   /mo
                                 </small>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-service-tax"> {t("Service Tax Included")} - ({taxPercentage.toFixed(2)})% </Tooltip>}
+                                  >
+
+                              <BsInfoCircle style={{ fontSize: "16px", marginLeft:"10px" }} />
+                           
+                          </OverlayTrigger>
                               </h2>
+                                }
                               <Table className="mb-4" borderless size="sm">
                                 <tbody>
                                   {currentPlan?.features &&
@@ -532,7 +602,16 @@ const PackagesList = () => {
                                             className="text-end fw-semibold py-2"
                                             style={{ color: "#2c3e50" }}
                                           >
-                                            {limit}
+                                         {
+                                            currentPlan.name === 'payg'
+                                              ? currencyData?.exchange_rate
+                                                ? `${getSymbolFromCurrency(currencyData?.target_currency) || "$ "} {" "} ${(
+                                                    currencyData?.exchange_rate * limit
+                                                  ).toFixed(2)}`
+                                                : limit
+                                              : `${limit}`
+                                          }
+
                                           </td>
                                         </tr>
                                       )
@@ -633,7 +712,9 @@ const PackagesList = () => {
                       )}{" "} */}
                         </p>
                         <Row className="justify-content-center g-4">
-                          {subscriptionPackages?.map((pkg, index) => (
+                          {subscriptionPackages?.map((pkg, index) =>{
+                              const taxableLimit = calculateTaxableLimit(pkg?.cost_per_month, taxPercentage); 
+                             return (
                             <Col
                               key={pkg.package_id}
                               xs={12}
@@ -695,11 +776,11 @@ const PackagesList = () => {
                                   >
                                     {getSymbolFromCurrency(
                                       currencyData?.target_currency
-                                    ) || "$"}
+                                    ) || "$"}{" "}
                                     {currencyData?.exchange_rate
                                       ? (
                                           currencyData?.exchange_rate *
-                                          pkg.cost_per_month
+                                          taxableLimit
                                         ).toFixed(2)
                                       : pkg.cost_per_month}{" "}
                                     <small
@@ -708,7 +789,17 @@ const PackagesList = () => {
                                         color: "#7f8c8d",
                                       }}
                                     >
-                                     {pkg?.name?.toLowerCase() != "default" && '/mo'}
+                                     {pkg?.name?.toLowerCase() != "default" &&
+                                     <>
+                                     <span>/mo</span> 
+                                     <OverlayTrigger
+                                    placement="bottom"
+                                    overlay={<Tooltip id="tooltip-service-tax"> {t("Service Tax Included")} - ({taxPercentage.toFixed(2)})% </Tooltip>}
+                                  >
+                                 <BsInfoCircle style={{ fontSize: "12px", marginLeft:"10px" }} />
+                                  </OverlayTrigger>  
+                                  </>
+                                  }
                                     </small>
                                   </h2>
                                   <Table className="mb-4" borderless size="sm">
@@ -783,8 +874,9 @@ const PackagesList = () => {
                           </Badge>
                         </Card.Footer> */}
                               </Card>
-                            </Col>
-                          ))}
+                            </Col>)
+                          
+                          })}
                         </Row>
                       </section>
                     )}

@@ -265,6 +265,16 @@ const Header = () => {
                     </Link>
                   </Dropdown.Item>
                 )}
+                {userRole === "SuperAdmin" && (
+                  <Dropdown.Item>
+                    <Link
+                      to="/admin/profile"
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      {t("Admin Profile")}
+                    </Link>
+                  </Dropdown.Item>
+                )}
                 <Dropdown.Item>
                   <Link
                     to="/changepassword"
@@ -467,6 +477,20 @@ const Header = () => {
                       activeClassName="active"
                     >
                       ▣ {t("Package-Based Billing System")}
+                    </Link>
+                    <Link
+                      to="/billings/package-invoice"
+                      className="sidebar-link"
+                      activeClassName="active"
+                    >
+                      ▣ {t("Invoice & Payments")}
+                    </Link>
+                    <Link
+                      to="/billings/reports-analytics"
+                      className="sidebar-link"
+                      activeClassName="active"
+                    >
+                      ▣ {t("Reports & Analytics")}
                     </Link>
                   </div>
                 </div>

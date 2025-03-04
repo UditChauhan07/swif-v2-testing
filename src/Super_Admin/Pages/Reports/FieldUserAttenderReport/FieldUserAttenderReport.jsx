@@ -8,15 +8,14 @@ import {
   getFieldUserAttendenceApi,
 } from "../../../../lib/store";
 import LoadingComp from "../../../../Components/Loader/LoadingComp";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
+// import PaginationComp from "./PaginationComp"; // adjust the path as needed
 
 const FieldUserAttendece = () => {
   const { t } = useTranslation();
   const [fieldUserData, setFieldUserData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  // console.log("filteredData", filteredData);
-
   const [isLoading, setIsLoading] = useState(false);
-  // console.log("isLoading", isLoading);
   const [searchQuery, setSearchQuery] = useState("");
   const [token] = useState(localStorage.getItem("UserToken"));
 
@@ -29,7 +28,7 @@ const FieldUserAttendece = () => {
   const [showReport, setShowReport] = useState(false);
   const [reportError, setreportError] = useState();
 
-  // Pagination states
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -82,6 +81,7 @@ const FieldUserAttendece = () => {
     }
   };
 
+  // Filter the field user data based on the search query
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredData(fieldUserData);
@@ -98,29 +98,17 @@ const FieldUserAttendece = () => {
       );
       setFilteredData(filtered);
     }
-    setCurrentPage(1); // Reset to first page whenever filtering changes
+    setCurrentPage(1); // Reset to first page when filtering changes
   }, [searchQuery, fieldUserData]);
 
   const handleClear = () => {
     setSearchQuery("");
   };
 
-  // Pagination Logic
+  // Calculate the current items for pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handleNextPage = () => {
-    if (currentPage < Math.ceil(filteredData.length / itemsPerPage)) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
 
   return (
     <>
@@ -147,7 +135,11 @@ const FieldUserAttendece = () => {
                 >
                   <option value="">-- {t("Select Company")} --</option>
                   {companies.map((comp) => (
-                    <option key={comp.id} value={comp.id} className="text-capitalize">
+                    <option
+                      key={comp.id}
+                      value={comp.id}
+                      className="text-capitalize"
+                    >
                       {comp.name}
                     </option>
                   ))}
@@ -186,8 +178,8 @@ const FieldUserAttendece = () => {
                       <div
                         className="text-center my-4"
                         style={{
-                          backgroundColor: "#ffe6e6", // Light red background
-                          color: "#d9534f", // Red text
+                          backgroundColor: "#ffe6e6",
+                          color: "#d9534f",
                           padding: "10px",
                           fontWeight: "bold",
                           borderRadius: "5px",
@@ -425,29 +417,15 @@ const FieldUserAttendece = () => {
                   </Table>
                 </Card.Body>
               </Card>
-              {/* Pagination Controls */}
-              <div className="d-flex justify-content-end mt-3">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="me-2"
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                >
-                  &laquo; {t("Previous")}
-                </Button>
-                <Button variant="outline-secondary" size="sm" className="me-2">
-                  {currentPage}
-                </Button>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage * itemsPerPage >= filteredData.length}
-                >
-                  {t("Next")} &raquo;
-                </Button>
-              </div>
+              {/* Pagination Component */}
+              {filteredData.length > itemsPerPage && (
+                <PaginationComp
+                  totalItems={filteredData.length}
+                  currentPage={currentPage}
+                  rowsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
+              )}
             </>
           )}
         </div>

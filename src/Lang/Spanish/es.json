@@ -1879,8 +1879,9 @@
  "Per Month": "Por Mes", 
  "Total Cost": "Costo Total",
  "User can login via this Password": "El usuario puede iniciar sesión con esta contraseña",
- "User can login via this Email": "El usuario puede iniciar sesión con este correo electrónico"
+ "User can login via this Email": "El usuario puede iniciar sesión con este correo electrónico",
 
 
-  
+ "Daily":"A diario",
+  "Service Tax Included":"Impuesto de Servicio Incluido"
 }

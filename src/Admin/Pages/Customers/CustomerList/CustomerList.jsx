@@ -24,7 +24,7 @@ const CustomerList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const companyId = localStorage.getItem("companyId");
   const token = localStorage.getItem("UserToken");
-  const rowsPerPage = 4;
+  const rowsPerPage = 5;
 
   useEffect(() => {
     const fetchCustomers = async () => {

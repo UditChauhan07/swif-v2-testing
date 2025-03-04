@@ -4,29 +4,29 @@ import { BeatLoader } from "react-spinners";
 import Header from "../../../../Components/Header/Header";
 import { useTranslation } from "react-i18next";
 import { getFieldUserAttendenceApi } from "../../../../lib/store";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
 
 const FieldUserAttendece = () => {
   const { t } = useTranslation();
   const [fieldUserData, setFieldUserData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  // console.log("filterDataa", filteredData);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
 
-  // Get companyId and token from local storage
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const [companyId] = useState(localStorage.getItem("companyId"));
   const [token] = useState(localStorage.getItem("UserToken"));
-  // console.log('-------------------------fieldUserData', fieldUserData);
-  // Fetch the Field User Attendence report when component mounts
+
   useEffect(() => {
     const fetchReport = async () => {
       if (!companyId) return;
       setIsLoading(true);
       try {
         const response = await getFieldUserAttendenceApi(companyId, token);
-      
-        if (response.status == true) {
+        if (response.status === true) {
           setFieldUserData(response.workOrders);
           setFilteredData(response.workOrders);
         }
@@ -46,7 +46,7 @@ const FieldUserAttendece = () => {
     } else {
       const filtered = fieldUserData.filter(
         (item) =>
-          item?.fieldUsers?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item?.workerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item?.workOrderId
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
@@ -54,10 +54,15 @@ const FieldUserAttendece = () => {
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase())
       );
-      // console.log('filtered: ', filtered);
       setFilteredData(filtered);
     }
+    setCurrentPage(1); // Reset page on search change
   }, [searchQuery, fieldUserData]);
+
+  // Calculate indices for pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleClear = () => {
     setSearchQuery("");
@@ -66,10 +71,11 @@ const FieldUserAttendece = () => {
   return (
     <>
       <Header />
-      <div className="main-header-box mt-5">
+      <div className="main-header-box mt-4">
         <div className="pages-box">
           {/* Optional search filter */}
-          <div className="d-flex justify-content-end align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h4 className="mb-0">{t("Field User Attendence Report")}</h4>
             <div className="d-flex gap-2">
               <Form.Control
                 type="text"
@@ -172,14 +178,14 @@ const FieldUserAttendece = () => {
                         <p className="mt-2">{t("Loading...")}</p>
                       </td>
                     </tr>
-                  ) : filteredData.length === 0 ? (
+                  ) : currentItems.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="text-center py-5">
                         {t("No data found")}
                       </td>
                     </tr>
                   ) : (
-                    filteredData.map((item, index) => (
+                    currentItems.map((item, index) => (
                       <tr key={index}>
                         <td
                           style={{ padding: "15px 10px", fontSize: "0.9rem" }}
@@ -259,6 +265,15 @@ const FieldUserAttendece = () => {
               </Table>
             </Card.Body>
           </Card>
+          {/* Render PaginationComp if there are more records than itemsPerPage */}
+          {filteredData.length > itemsPerPage && (
+            <PaginationComp
+              totalItems={filteredData.length}
+              currentPage={currentPage}
+              rowsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </>
