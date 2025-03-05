@@ -201,7 +201,7 @@ const Header = () => {
     }
   };
 
-  // Handle language change
+  // Handle language changes
   const changeLanguage = (lng) => {
     setSelectedLanguage(lng);
     i18n.changeLanguage(lng);
