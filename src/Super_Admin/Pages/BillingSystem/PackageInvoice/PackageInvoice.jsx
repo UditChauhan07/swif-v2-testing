@@ -14,6 +14,7 @@ const InvoiceReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [invoiceData, setInvoiceData] = useState([]);
+  console.log("invoice Dataa", invoiceData);
   const [token] = useState(localStorage.getItem("UserToken"));
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +65,7 @@ const InvoiceReport = () => {
   const indexOfLastItem = currentPage * rowsPerPage;
   const indexOfFirstItem = indexOfLastItem - rowsPerPage;
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  console.log("dasdasda", currentData);
 
   const handleClear = () => {
     setSearchQuery("");
@@ -76,7 +78,12 @@ const InvoiceReport = () => {
   const handleUpdateStatus = (invoice) => {
     // console.log("invoice", invoice);
     setSelectedInvoice(invoice);
-    setNewStatus(invoice.payment_status || ""); // Use invoice.status if available
+    setNewStatus(
+      invoice.payment_status
+        ? invoice.payment_status.charAt(0).toUpperCase() +
+            invoice.payment_status.slice(1)
+        : ""
+    );
     setShowModal(true);
   };
 
@@ -228,8 +235,10 @@ const InvoiceReport = () => {
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.payment_status}
                     </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.total}
+                    <td title={item.total} style={{ padding: "15px", fontSize: "0.9rem" }}>
+                      {item.total.toFixed(2).length > 8
+                        ? item.total.toFixed(2).slice(0, 7) + "..."
+                        : item.total.toFixed(2)}
                     </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       <div className="d-flex gap-2">

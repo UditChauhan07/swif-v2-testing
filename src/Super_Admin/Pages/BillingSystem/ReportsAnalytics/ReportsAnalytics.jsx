@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../../../Components/Header/Header";
 import { Card, Row, Col, Button, Form } from "react-bootstrap";
 import {
@@ -16,9 +16,11 @@ import {
 import Select from "react-select";
 import { customSelectStyles } from "../../../../utils/SelectStyle/SelectStyle";
 import { useTranslation } from "react-i18next";
+import { getCompanyListApi } from "../../../../lib/store";
 
 const ReportsAnalytics = () => {
   const { t } = useTranslation();
+  const [token, setToken] = useState(localStorage.getItem("UserToken"));
 
   // Sample Data with translations
   const featureUsageData = [
@@ -53,38 +55,65 @@ const ReportsAnalytics = () => {
     },
   ];
 
-  const durationOptions = [
-    { value: "", label: t("Select Duration") },
-    { value: "last30", label: t("Last 30 Days") },
-    { value: "last90", label: t("Last 90 Days") },
-    { value: "lastYear", label: t("Last Year") },
-  ];
-
-  const companyOptions = [
-    { value: "", label: t("Select Company") },
-    { value: "Company A", label: "Company A" },
-    { value: "Company B", label: "Company B" },
-    { value: "Company C", label: "Company C" },
-    { value: "Company D", label: "Company D" },
-  ];
-
   const billingTypeOptions = [
-    { value: "", label: t("Select Billing Type") },
-    { value: "Subscription", label: t("Subscription") },
-    { value: "PAYG", label: t("PAYG") },
+    { value: "both", label: "Both" },
+    { value: "payg", label: "PAYG" },
+    { value: "subscription", label: "Subscription" },
   ];
 
   // States for filters
-  const [selectedDuration, setSelectedDuration] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
-  const [selectedBillingType, setSelectedBillingType] = useState("");
+  const [companyError, setCompanyError] = useState("");
+  const [selectedBillingType, setSelectedBillingType] = useState("both");
+
+  // GetData
+  const [companyList, setcompanyList] = useState();
+
+  const today2 = new Date().toISOString().split("T")[0];
+
+  // Calculate today's date in YYYY-MM-DD format
+  const today = new Date();
+  const formattedToday = today.toISOString().split("T")[0];
+
+  // Calculate the date one month ago
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  const formattedOneMonthAgo = oneMonthAgo.toISOString().split("T")[0];
+
+  const [endDate, setEndDate] = useState(formattedToday);
+  const [startDate, setStartDate] = useState(formattedOneMonthAgo);
+
+  useEffect(() => {
+    const fetchCompany = async () => {
+      try {
+        const response = await getCompanyListApi(token);
+        if (response.status === true) {
+          const companiesData = response?.data?.map((item) => ({
+            company_name: item.company.company_name,
+            id: item.company.id,
+          }));
+          setcompanyList(companiesData);
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+      }
+    };
+    fetchCompany();
+  }, []);
 
   // Handle filter change
   const handleFilterChange = () => {
+    if (!selectedCompany) {
+      setCompanyError(t("Company is required"));
+      return;
+    } else {
+      setCompanyError("");
+    }
     console.log({
-      selectedDuration,
       selectedCompany,
       selectedBillingType,
+      startDate,
+      endDate,
     });
   };
 
@@ -98,44 +127,46 @@ const ReportsAnalytics = () => {
             <Col md={12}>
               <Card>
                 <Card.Body>
-                  <h5 className="mb-3">{t("Filter Options")}</h5>
+                  <div className="d-flex justify-content-between">
+                    <h5 className="mb-3">{t("Filter Options")}</h5>
+                    <div>
+                      <Button variant="secondary" onClick={handleFilterChange}>
+                        {t("Apply Filters")}
+                      </Button>
+                    </div>
+                  </div>
                   <Form>
-                    <Row className="g-3 align-items-end">
-                      {/* Duration Filter */}
-                      <Col md={3}>
-                        <Form.Group controlId="filterDuration">
-                          <Form.Label>{t("Duration")}</Form.Label>
-                          <Select
-                            options={durationOptions}
-                            value={durationOptions.find(
-                              (opt) => opt.value === selectedDuration
-                            )}
-                            onChange={(selected) =>
-                              setSelectedDuration(
-                                selected ? selected.value : ""
-                              )
-                            }
-                            classNamePrefix="react-select"
-                            styles={customSelectStyles}
-                          />
-                        </Form.Group>
-                      </Col>
-
+                    <Row className="g-3">
                       {/* Company Filter */}
                       <Col md={3}>
                         <Form.Group controlId="filterCompany">
                           <Form.Label>{t("Company")}</Form.Label>
                           <Select
-                            options={companyOptions}
-                            value={companyOptions.find(
-                              (opt) => opt.value === selectedCompany
-                            )}
-                            onChange={(selected) =>
-                              setSelectedCompany(selected ? selected.value : "")
-                            }
+                            options={companyList?.map((company) => ({
+                              value: company.id,
+                              label: company.company_name,
+                            }))}
+                            value={companyList
+                              ?.map((company) => ({
+                                value: company.id,
+                                label: company.company_name,
+                              }))
+                              .find((opt) => opt.value === selectedCompany)}
+                            onChange={(selected) => {
+                              setSelectedCompany(
+                                selected ? selected.value : ""
+                              );
+                              // Clear error on selection
+                              if (selected) setCompanyError("");
+                            }}
                             classNamePrefix="react-select"
                             styles={customSelectStyles}
                           />
+                          {companyError && (
+                            <div className="text-danger mt-1">
+                              {companyError}
+                            </div>
+                          )}
                         </Form.Group>
                       </Col>
 
@@ -159,15 +190,33 @@ const ReportsAnalytics = () => {
                         </Form.Group>
                       </Col>
 
-                      {/* Apply Button */}
+                      {/* Start Date Filter */}
                       <Col md={3}>
-                        <Button
-                          variant="secondary"
-                          onClick={handleFilterChange}
-                        >
-                          {t("Apply Filters")}
-                        </Button>
+                        <Form.Group controlId="filterStartDate">
+                          <Form.Label>{t("Start Date")}</Form.Label>
+                          <Form.Control
+                            type="date"
+                            value={startDate}
+                            max={today2}
+                            onChange={(e) => setStartDate(e.target.value)}
+                          />
+                        </Form.Group>
                       </Col>
+
+                      {/* End Date Filter */}
+                      <Col md={3}>
+                        <Form.Group controlId="filterEndDate">
+                          <Form.Label>{t("End Date")}</Form.Label>
+                          <Form.Control
+                            type="date"
+                            value={endDate}
+                            max={today2}
+                            onChange={(e) => setEndDate(e.target.value)}
+                          />
+                        </Form.Group>
+                      </Col>
+
+                      {/* Apply Button */}
                     </Row>
                   </Form>
                 </Card.Body>
