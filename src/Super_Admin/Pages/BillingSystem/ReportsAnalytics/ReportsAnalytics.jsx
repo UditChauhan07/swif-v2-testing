@@ -12,47 +12,58 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import Select from "react-select";
 import { customSelectStyles } from "../../../../utils/SelectStyle/SelectStyle";
 import { useTranslation } from "react-i18next";
-import { getCompanyListApi } from "../../../../lib/store";
+import {
+  getCompanyListApi,
+  getReportAllCompany,
+  getReportSingleCompany,
+} from "../../../../lib/store";
+import LoadingComp from "../../../../Components/Loader/LoadingComp";
+
+// Custom legend renderer for the Invoice Status Report PieChart
+const renderCustomLegend = (props) => {
+  const { payload } = props;
+  return (
+    <div style={{ padding: 10 }}>
+      {payload.map((entry, index) => (
+        <div
+          key={`legend-item-${index}`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: 4,
+          }}
+        >
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              backgroundColor: entry.color,
+              marginRight: 8,
+            }}
+          ></div>
+          <span>
+            {entry.value}: {entry.payload.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const ReportsAnalytics = () => {
   const { t } = useTranslation();
-  const [token, setToken] = useState(localStorage.getItem("UserToken"));
+  const [token] = useState(localStorage.getItem("UserToken"));
 
-  // Sample Data with translations
-  const featureUsageData = [
-    { feature: t("Work Order Created"), usage: 500 },
-    { feature: t("Work Order Executed"), usage: 400 },
-    { feature: t("User Created"), usage: 100 },
-    { feature: t("Feature Execution"), usage: 300 },
-  ];
-
-  const invoiceStatusData = [
+  const defaultInvoiceStatusData = [
     { name: t("Paid"), value: 60 },
     { name: t("Pending"), value: 20 },
     { name: t("Overdue"), value: 15 },
     { name: t("Failed"), value: 5 },
-  ];
-
-  const topCompaniesData = [
-    {
-      companyName: "Company A",
-      totalPaid: 2000,
-      lastInvoiceDate: "2023-01-10",
-    },
-    {
-      companyName: "Company B",
-      totalPaid: 3000,
-      lastInvoiceDate: "2023-02-15",
-    },
-    {
-      companyName: "Company C",
-      totalPaid: 1500,
-      lastInvoiceDate: "2023-03-05",
-    },
   ];
 
   const billingTypeOptions = [
@@ -61,21 +72,22 @@ const ReportsAnalytics = () => {
     { value: "subscription", label: "Subscription" },
   ];
 
-  // States for filters
+  // States for filters and API data
   const [selectedCompany, setSelectedCompany] = useState("");
   const [companyError, setCompanyError] = useState("");
   const [selectedBillingType, setSelectedBillingType] = useState("both");
-
-  // GetData
+  const [companyLoader, setcompanyLoader] = useState(false);
   const [companyList, setcompanyList] = useState();
+  const [getSingleCompanyData, setgetSingleCompanyData] = useState();
+  const [error, setError] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [grandTotals, setGrandTotals] = useState(null);
+  console.log("grandtotal", grandTotals);
 
+  // Date calculations
   const today2 = new Date().toISOString().split("T")[0];
-
-  // Calculate today's date in YYYY-MM-DD format
   const today = new Date();
   const formattedToday = today.toISOString().split("T")[0];
-
-  // Calculate the date one month ago
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const formattedOneMonthAgo = oneMonthAgo.toISOString().split("T")[0];
@@ -83,8 +95,66 @@ const ReportsAnalytics = () => {
   const [endDate, setEndDate] = useState(formattedToday);
   const [startDate, setStartDate] = useState(formattedOneMonthAgo);
 
+  // Transform API data for charts when available; otherwise, use defaults.
+  const featureUsageChartData = getSingleCompanyData
+    ? [
+        {
+          feature: t("Total Work Orders"),
+          usage: getSingleCompanyData.featuresCount.totalWorkOrders,
+        },
+        {
+          feature: t("Executed Work Orders"),
+          usage: getSingleCompanyData.featuresCount.executedWorkOrders,
+        },
+        {
+          feature: t("Users Created"),
+          usage: getSingleCompanyData.featuresCount.usersCreated,
+        },
+        {
+          feature: t("Field Users Created"),
+          usage: getSingleCompanyData.featuresCount.fieldUsersCreated,
+        },
+        {
+          feature: t("Customers Created"),
+          usage: getSingleCompanyData.featuresCount.customersCreated,
+        },
+      ]
+    : grandTotals
+    ? [
+        {
+          feature: t("Total Work Orders"),
+          usage: grandTotals.totalWorkOrders,
+        },
+        {
+          feature: t("Executed Work Orders"),
+          usage: grandTotals.executedWorkOrder || "2",
+        },
+        {
+          feature: t("Users Created"),
+          usage: grandTotals.totalOfficeUsers,
+        },
+        {
+          feature: t("Field Users Created"),
+          usage: grandTotals.totalFieldUsers,
+        },
+        {
+          feature: t("Customers Created"),
+          usage: grandTotals.totalCustomers,
+        },
+      ]
+    : [];
+
+  const invoiceStatusChartData = getSingleCompanyData
+    ? Object.keys(getSingleCompanyData.billStatusCount).map((key) => ({
+        name: t(key),
+        value: getSingleCompanyData.billStatusCount[key],
+      }))
+    : defaultInvoiceStatusData;
+
+  // Fetch company list on mount
   useEffect(() => {
     const fetchCompany = async () => {
+      setcompanyLoader(true);
       try {
         const response = await getCompanyListApi(token);
         if (response.status === true) {
@@ -96,30 +166,76 @@ const ReportsAnalytics = () => {
         }
       } catch (error) {
         console.error("API Error:", error);
+      } finally {
+        setcompanyLoader(false);
       }
     };
     fetchCompany();
+  }, [token]);
+
+  // Fetch default data (grand totals) on mount
+  useEffect(() => {
+    const fetchDefaultData = async () => {
+      setAnalyticsLoading(true);
+      try {
+        const response = await getReportAllCompany();
+        console.log("Default response:", response);
+        if (response.status === 200) {
+          setGrandTotals(response.data.grandTotals);
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+    fetchDefaultData();
   }, []);
 
-  // Handle filter change
-  const handleFilterChange = () => {
+  // Handle filter change and API call
+  const handleFilterChange = async () => {
     if (!selectedCompany) {
       setCompanyError(t("Company is required"));
       return;
     } else {
       setCompanyError("");
     }
-    console.log({
-      selectedCompany,
-      selectedBillingType,
-      startDate,
-      endDate,
-    });
+    setAnalyticsLoading(true);
+    setError(null);
+    try {
+      const response = await getReportSingleCompany(
+        selectedCompany,
+        selectedBillingType,
+        startDate,
+        endDate
+      );
+      console.log("API Response:", response);
+      if (response.status === 200) {
+        setgetSingleCompanyData(response.data.analytics);
+      } else {
+        setError(
+          response.error || t("An error occurred while retrieving data.")
+        );
+      }
+    } catch (err) {
+      console.log("Error API", err);
+      setError(t("An error occurred while retrieving data."));
+    } finally {
+      setAnalyticsLoading(false);
+    }
   };
 
   return (
     <>
       <Header />
+      <style>
+        {`
+          .recharts-legend-wrapper {
+             top: 0px !important;
+              /* additional custom styles here */
+              }
+        `}
+      </style>
       <div className="main-header-box mt-4">
         <div className="pages-box">
           {/* Filters */}
@@ -142,6 +258,7 @@ const ReportsAnalytics = () => {
                         <Form.Group controlId="filterCompany">
                           <Form.Label>{t("Company")}</Form.Label>
                           <Select
+                            isLoading={companyLoader}
                             options={companyList?.map((company) => ({
                               value: company.id,
                               label: company.company_name,
@@ -156,7 +273,6 @@ const ReportsAnalytics = () => {
                               setSelectedCompany(
                                 selected ? selected.value : ""
                               );
-                              // Clear error on selection
                               if (selected) setCompanyError("");
                             }}
                             classNamePrefix="react-select"
@@ -215,8 +331,6 @@ const ReportsAnalytics = () => {
                           />
                         </Form.Group>
                       </Col>
-
-                      {/* Apply Button */}
                     </Row>
                   </Form>
                 </Card.Body>
@@ -224,130 +338,148 @@ const ReportsAnalytics = () => {
             </Col>
           </Row>
 
-          {/* Total Revenue, Work Orders Created and Executed */}
-          <Row className="mb-4">
-            <Col md={4}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Total Revenue")}</Card.Title>
-                  <Card.Text>
-                    <strong>$15,000</strong>
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Work Orders Created")}</Card.Title>
-                  <Card.Text>
-                    <strong>500</strong>
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Work Orders Executed")}</Card.Title>
-                  <Card.Text>
-                    <strong>500</strong>
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+          {/* Analytics Section */}
+          {analyticsLoading ? (
+            <LoadingComp />
+          ) : error ? (
+            <div
+              className="text-center my-4"
+              style={{
+                backgroundColor: "#ffe6e6",
+                color: "#d9534f",
+                padding: "10px",
+                fontWeight: "bold",
+                borderRadius: "5px",
+              }}
+            >
+              <h5>{error}</h5>
+            </div>
+          ) : (
+            <>
+              {/* Revenue and Work Orders Cards */}
+              <Row className="mb-4">
+                <Col md={4}>
+                  <Card>
+                    <Card.Body>
+                      <Card.Title>{t("Total Revenue")}</Card.Title>
+                      <Card.Text>
+                        <strong>
+                          {getSingleCompanyData
+                            ? `$${getSingleCompanyData.totalRevenue}`
+                            : grandTotals
+                            ? `$${grandTotals.totalRevenue}`
+                            : "$15,000"}
+                        </strong>
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                <Col md={4}>
+                  <Card>
+                    <Card.Body>
+                      <Card.Title>{t("Work Orders Created")}</Card.Title>
+                      <Card.Text>
+                        <strong>
+                          {getSingleCompanyData
+                            ? getSingleCompanyData.featuresCount.totalWorkOrders
+                            : grandTotals
+                            ? grandTotals.totalWorkOrders
+                            : "20"}
+                        </strong>
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                <Col md={4}>
+                  <Card>
+                    <Card.Body>
+                      <Card.Title>{t("Work Orders Executed")}</Card.Title>
+                      <Card.Text>
+                        <strong>
+                          {getSingleCompanyData
+                            ? getSingleCompanyData.featuresCount
+                                .executedWorkOrders
+                            : grandTotals
+                            ? grandTotals.executedWorkOrder || "2"
+                            : "20"}
+                        </strong>
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
-          {/* Feature Usage Overview (Bar Chart) */}
-          <Row className="mb-4">
-            <Col md={12}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Feature Usage Overview")}</Card.Title>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={featureUsageData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="feature" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="usage" fill="#2e2e32" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+              {/* Feature Usage Overview (Bar Chart) */}
+              <Row className="mb-4">
+                <Col md={12}>
+                  <Card>
+                    <Card.Body>
+                      <Card.Title>{t("Feature Usage Overview")}</Card.Title>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={featureUsageChartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="feature" />
+                          <YAxis allowDecimals={false} />
+                          <Tooltip />
+                          <Bar dataKey="usage" fill="#2e2e32" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
-          {/* Invoice Status Report (Pie Chart) */}
-          <Row className="mb-4">
-            <Col md={12}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Invoice Status Report")}</Card.Title>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={invoiceStatusData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={120}
-                        label
-                      >
-                        {invoiceStatusData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              index === 0
-                                ? "#4a4a50"
-                                : index === 1
-                                ? "#5c5c63"
-                                : index === 2
-                                ? "#787880"
-                                : "#9a9aa0"
-                            }
-                            stroke="none"
-                            onMouseDown={(e) => e.preventDefault()}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          {/* Top Paying Companies Table */}
-          <Row className="mb-4">
-            <Col md={12}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{t("Top Paying Companies")}</Card.Title>
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>{t("Company Name")}</th>
-                        <th>{t("Total Paid Amount")}</th>
-                        <th>{t("Last Invoice Date")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topCompaniesData.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.companyName}</td>
-                          <td>{item.totalPaid}</td>
-                          <td>{item.lastInvoiceDate}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+              {/* Conditionally show Invoice Status Report (with custom legend) only if filtered data is available */}
+              {getSingleCompanyData && (
+                <Row className="mb-4">
+                  <Col md={12}>
+                    <Card>
+                      <Card.Body>
+                        <Card.Title>{t("Invoice Status Report")}</Card.Title>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={invoiceStatusChartData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={120}
+                              label
+                            >
+                              {invoiceStatusChartData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={
+                                    index === 0
+                                      ? "#4a4a50"
+                                      : index === 1
+                                      ? "#5c5c63"
+                                      : index === 2
+                                      ? "#787880"
+                                      : "#9a9aa0"
+                                  }
+                                  stroke="none"
+                                  onMouseDown={(e) => e.preventDefault()}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              content={renderCustomLegend}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>

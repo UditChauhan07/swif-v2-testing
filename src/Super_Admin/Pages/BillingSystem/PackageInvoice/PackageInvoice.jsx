@@ -9,12 +9,12 @@ import { useNavigate } from "react-router-dom";
 import { IoMdDownload } from "react-icons/io";
 import { getInvoicePayment, updateInvoicePayment } from "../../../../lib/store";
 import Swal from "sweetalert2";
+import Select from "react-select";
 
 const InvoiceReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [invoiceData, setInvoiceData] = useState([]);
-  console.log("invoice Dataa", invoiceData);
   const [token] = useState(localStorage.getItem("UserToken"));
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,6 @@ const InvoiceReport = () => {
     setIsLoading(true);
     try {
       const response = await getInvoicePayment(token);
-      // console.log("response", response);
       if (response.status === 200) {
         setInvoiceData(response.data.invoices);
         setFilteredData(response.data.invoices);
@@ -65,7 +64,7 @@ const InvoiceReport = () => {
   const indexOfLastItem = currentPage * rowsPerPage;
   const indexOfFirstItem = indexOfLastItem - rowsPerPage;
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  console.log("dasdasda", currentData);
+  // console.log("dasdasda", currentData);
 
   const handleClear = () => {
     setSearchQuery("");
@@ -78,17 +77,21 @@ const InvoiceReport = () => {
   const handleUpdateStatus = (invoice) => {
     // console.log("invoice", invoice);
     setSelectedInvoice(invoice);
-    setNewStatus(
-      invoice.payment_status
-        ? invoice.payment_status.charAt(0).toUpperCase() +
-            invoice.payment_status.slice(1)
-        : ""
-    );
+    // setNewStatus(
+    //   invoice.payment_status
+    //     ? invoice.payment_status.charAt(0).toUpperCase() +
+    //         invoice.payment_status.slice(1)
+    //     : ""
+    // );
     setShowModal(true);
   };
 
   const handleSaveStatus = async () => {
     if (!selectedInvoice) return;
+    if (!newStatus) {
+      alert(t("Please select a status before updating."));
+      return;
+    }
 
     const paymentData = {
       invoiceNo: selectedInvoice.invoiceNo,
@@ -128,6 +131,7 @@ const InvoiceReport = () => {
           });
           setShowModal(false);
           fetchInvoices();
+          setNewStatus("");
         } else {
           Swal.close();
           Swal.fire({
@@ -163,6 +167,11 @@ const InvoiceReport = () => {
     downloadLink.click();
   };
 
+  const options = [
+    { value: "Paid", label: t("Paid") },
+    { value: "Failed", label: t("Failed") },
+  ];
+
   return (
     <>
       <Header />
@@ -193,14 +202,14 @@ const InvoiceReport = () => {
                 <th>{t("Issue Date")}</th>
                 <th>{t("Due Date")}</th>
                 <th>{t("Payment Status")}</th>
-                <th>{t("Total")}</th>
+                <th>{t("Total Amount")}</th>
                 <th>{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-5">
+                  <td colSpan="7" className="text-center py-5">
                     <BeatLoader
                       size={12}
                       color={"#3C3C3C"}
@@ -209,7 +218,7 @@ const InvoiceReport = () => {
                     <p className="mt-2">{t("Loading...")}</p>
                   </td>
                 </tr>
-              ) : filteredData.length === 0 ? (
+              ) : filteredData.length === 0 || filteredData === undefined ? (
                 <tr>
                   <td colSpan="6" className="text-center py-5">
                     {t("No data found")}
@@ -235,11 +244,10 @@ const InvoiceReport = () => {
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.payment_status}
                     </td>
-                    <td title={item.total} style={{ padding: "15px", fontSize: "0.9rem" }}>
-                      {item.total.toFixed(2).length > 8
-                        ? item.total.toFixed(2).slice(0, 7) + "..."
-                        : item.total.toFixed(2)}
+                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
+                      {item?.total} ({item?.currencyCode})
                     </td>
+
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       <div className="d-flex gap-2">
                         {/* <Button
@@ -308,7 +316,14 @@ const InvoiceReport = () => {
         </div>
       </div>
       {/* Modal for updating invoice status */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal
+        show={showModal}
+        onHide={() => {
+          setShowModal(false);
+          setNewStatus("");
+        }}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>{t("Update Invoice Status")}</Modal.Title>
         </Modal.Header>
@@ -316,25 +331,30 @@ const InvoiceReport = () => {
           <Form>
             <Form.Group>
               <Form.Label>{t("Select Status")}</Form.Label>
-              <Form.Control
-                as="select"
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-              >
-                <option value="Paid">{t("Paid")}</option>
-                <option value="Pending">{t("Pending")}</option>
-                <option value="Failed">{t("Failed")}</option>
-              </Form.Control>
+              <Select
+                options={options}
+                onChange={(selectedOption) =>
+                  setNewStatus(selectedOption.value)
+                }
+                placeholder={t("Select a status")}
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowModal(false);
+              setNewStatus("");
+            }}
+          >
             {t("Close")}
           </Button>
           <Button
             style={{ background: "#2e2e32", color: "white", border: "none" }}
             onClick={handleSaveStatus}
+            disabled={!newStatus} // Disable if newStatus is empty
           >
             {t("Update")}
           </Button>

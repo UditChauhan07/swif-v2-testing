@@ -869,7 +869,6 @@ export const convertToSelectedCurrency = async (
   }
 };
 
-
 // Billing System - Get Pricing Structure
 export const getPricingStructure = async (token) => {
   try {
@@ -984,20 +983,14 @@ export const updateUsageLimit = async (token, finaldata) => {
   }
 };
 
-
 //create subscription package
 export const CreateSubscriptionPackage = async (token, finaldata) => {
-
   try {
-    const response = await axios.post(
-      `${Url}/3ddfhhdu2`,
-      finaldata,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.post(`${Url}/3ddfhhdu2`, finaldata, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     // console.log("package response Data",response);
     return response.data;
   } catch (error) {
@@ -1008,18 +1001,14 @@ export const CreateSubscriptionPackage = async (token, finaldata) => {
   }
 };
 
-
 //list subscription package
 export const getSubscriptionPackagesList = async (token) => {
   try {
-    const response = await axios.get(
-      `${Url}/widnr27d4`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${Url}/widnr27d4`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     // console.log("package list response Data",response);
     return response.data;
   } catch (error) {
@@ -1030,7 +1019,7 @@ export const getSubscriptionPackagesList = async (token) => {
   }
 };
 
-export const getCurrenPlan = async(token,companyId)=>{
+export const getCurrenPlan = async (token, companyId) => {
   try {
     const response = await axios.get(
       `${Url}/uqwxm1p0s2?companyID=${encodeURIComponent(companyId)}`,
@@ -1040,7 +1029,7 @@ export const getCurrenPlan = async(token,companyId)=>{
         },
       }
     );
-    console.log("current plan response Data",response);
+    console.log("current plan response Data", response);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -1048,8 +1037,7 @@ export const getCurrenPlan = async(token,companyId)=>{
     }
     throw new Error("An unexpected error occurred");
   }
-}
-
+};
 
 // Super Admin Company Details
 export const getSuperAdminCompanyDetails = async (token) => {
@@ -1090,7 +1078,7 @@ export const updateSuperAdminCompanyDetails = async (token, companyData) => {
   }
 };
 
-// Get Invoice and Payments  
+// Get Invoice and Payments
 export const getInvoicePayment = async (token) => {
   try {
     const response = await axios.get(`${Url}/u127shop1s`, {
@@ -1111,15 +1099,11 @@ export const getInvoicePayment = async (token) => {
 // Update Invoice Status
 export const updateInvoicePayment = async (token, invoiceData) => {
   try {
-    const response = await axios.put(
-      `${Url}/ukjyw81ksc`,
-      invoiceData, 
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.put(`${Url}/ukjyw81ksc`, invoiceData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response;
   } catch (error) {
     if (error.response) {
@@ -1129,81 +1113,79 @@ export const updateInvoicePayment = async (token, invoiceData) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export const editSubscriptionPackages = async (token,payload) => {
+// Get Report & Analsys single comapy api
+export const getReportSingleCompany = async (
+  selectedCompany,
+  selectedBillingType,
+  startDate,
+  endDate
+) => {
   try {
-    const response = await axios.put(
-      `${Url}/ra7ystemu1`,payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    console.log("package edit response Data",response);
+    const response = await axios.get(`${Url}/6943j29s12`, {
+      // headers: {
+      //   Authorization: `Bearer ${token}`,
+      // },
+      params: {
+        companyId: selectedCompany,
+        startDate: startDate,
+        endDate: endDate,
+        planType: selectedBillingType,
+      },
+    });
+    // console.log(response.data, "login api data");
+    return response;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
+// Get Report & Analsys for all comapy api --- 
+export const getReportAllCompany = async () => {
+  try {
+    const response = await axios.get(`${Url}/6js1osj32s`, {});
+    // console.log(response.data, "login api data");
+    return response;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
+export const editSubscriptionPackages = async (token, payload) => {
+  try {
+    const response = await axios.put(`${Url}/ra7ystemu1`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("package edit response Data", response);
     return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};
+
+// Get Invoice and Payments for single company
+export const getInvoicePaymentSingleCompany = async (companyId) => {
+  try {
+    const response = await axios.get(`${Url}/jdshueh12o`, {
+      // headers: {
+      //   Authorization: `Bearer ${token}`,
+      // },
+      params: {
+        companyId: companyId,
+      },
+    });
+    // console.log(response.data, "login api data");
+    return response;
   } catch (error) {
     if (error.response) {
       return error.response.data;
