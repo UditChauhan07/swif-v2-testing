@@ -97,41 +97,41 @@ const CreateCompany = () => {
 
       setisLoading(true);
 
-      try {
-        const pricingResponse = await getPricingStructure(token);
-        if (
-          pricingResponse.status === 200 &&
-          Array.isArray(pricingResponse?.data?.data) &&
-          pricingResponse.data.data.length > 0
-        ) {
-          setcheckBillingDetails(pricingResponse.data.data);
-        } else {
-          messages.push("No data Found In Pricing Structure Please Create new");
-          hasAllData = false;
-          errorType = "pricing";
-        }
-      } catch (error) {
-        messages.push("Error fetching Pricing Structure API");
-        hasAllData = false;
-      }
+      // try {
+      //   const pricingResponse = await getPricingStructure(token);
+      //   if (
+      //     pricingResponse.status === 200 &&
+      //     Array.isArray(pricingResponse?.data?.data) &&
+      //     pricingResponse.data.data.length > 0
+      //   ) {
+      //     setcheckBillingDetails(pricingResponse.data.data);
+      //   } else {
+      //     messages.push("No data Found In Pricing Structure Please Create new");
+      //     hasAllData = false;
+      //     errorType = "pricing";
+      //   }
+      // } catch (error) {
+      //   messages.push("Error fetching Pricing Structure API");
+      //   hasAllData = false;
+      // }
 
-      try {
-        const usageResponse = await getUsageLimit(token);
-        if (
-          usageResponse.status === 200 &&
-          usageResponse?.data?.data &&
-          Object.keys(usageResponse.data.data).length > 0
-        ) {
-          setcheckBillingDetails(Object.values(usageResponse.data.data));
-        } else {
-          messages.push("No data Found In Usage Limit Please Create new");
-          hasAllData = false;
-          errorType = "usage";
-        }
-      } catch (error) {
-        messages.push("Error fetching Usage Limit API");
-        hasAllData = false;
-      }
+      // try {
+      //   const usageResponse = await getUsageLimit(token);
+      //   if (
+      //     usageResponse.status === 200 &&
+      //     usageResponse?.data?.data &&
+      //     Object.keys(usageResponse.data.data).length > 0
+      //   ) {
+      //     setcheckBillingDetails(Object.values(usageResponse.data.data));
+      //   } else {
+      //     messages.push("No data Found In Usage Limit Please Create new");
+      //     hasAllData = false;
+      //     errorType = "usage";
+      //   }
+      // } catch (error) {
+      //   messages.push("Error fetching Usage Limit API");
+      //   hasAllData = false;
+      // }
 
       try {
         const packageResponse = await getSubscriptionPackagesList(token);
@@ -164,16 +164,18 @@ const CreateCompany = () => {
             html: messages.join("<br>"),
             confirmButtonText: "Create!",
           }).then(() => {
-            if (errorType === "pricing") {
-              navigate("/billings/pricing-structure"); // Redirect to pricing page
-            } else if (errorType === "usage") {
-              navigate("/billings/usage-limit"); // Redirect to usage settings page
-            } else if (errorType === "subscription") {
+            // if (errorType === "pricing") {
+            //   navigate("/billings/pricing-structure"); // Redirect to pricing page
+            // } else if (errorType === "usage") {
+            //   navigate("/billings/usage-limit"); // Redirect to usage settings page
+            // } else 
+            if (errorType === "subscription") {
               navigate("/billings/package-List"); // Redirect to subscription plans page
-            } else {
-              navigate("/billings/pricing-structure"); // Default: redirect to dashboard
-              Swal.fire("Please create all billing structures!");
-            }
+            } 
+            // else {
+            //   navigate("/billings/pricing-structure"); // Default: redirect to dashboard
+            //   Swal.fire("Please create all billing structures!");
+            // }
           });
         }, 0);
       }

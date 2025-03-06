@@ -59,31 +59,43 @@ const ReportsAnalytics = () => {
   const { t } = useTranslation();
   const [token] = useState(localStorage.getItem("UserToken"));
 
-  const defaultInvoiceStatusData = [
-    { name: t("Paid"), value: 60 },
-    { name: t("Pending"), value: 20 },
-    { name: t("Overdue"), value: 15 },
-    { name: t("Failed"), value: 5 },
-  ];
+
 
   const billingTypeOptions = [
-    { value: "both", label: "Both" },
-    { value: "payg", label: "PAYG" },
-    { value: "subscription", label: "Subscription" },
+    { value: "All", label: "All"},
+    { value: "Default", label: "Default" },
+    { value: "Basic", label: "Basic" },
+    { value: "Premium", label: "Premium" },
+    { value: "Enterprise", label: "Enterprise" },
   ];
 
   // States for filters and API data
-  const [selectedCompany, setSelectedCompany] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState();
   const [companyError, setCompanyError] = useState("");
-  const [selectedBillingType, setSelectedBillingType] = useState("both");
+  const [selectedBillingType, setSelectedBillingType] = useState("all");
   const [companyLoader, setcompanyLoader] = useState(false);
   const [companyList, setcompanyList] = useState();
   const [getSingleCompanyData, setgetSingleCompanyData] = useState();
   const [error, setError] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const [grandTotals, setGrandTotals] = useState(null);
+  const [allbillStatusCount, setAllbillStatusCount] = useState({});
+  const [grandTotals, setGrandTotals] = useState({
+    totalCustomers: 0,
+    totalFieldUsers: 0,
+    totalOfficeUsers:0,
+    totalWorkOrders: 0,
+    totalRevenue: 0
+  });
   console.log("grandtotal", grandTotals);
 
+
+  const defaultInvoiceStatusData = [
+    { name: t("Paid"), value: allbillStatusCount?.Paid || 0 },
+    { name: t("Pending"), value:allbillStatusCount?.Pending || 0 },
+    { name: t("Overdue"), value: allbillStatusCount?.Overdue ||0 },
+    { name: t("Failed"), value:allbillStatusCount?.Failed || 0 },
+  ];
+  
   // Date calculations
   const today2 = new Date().toISOString().split("T")[0];
   const today = new Date();
@@ -91,9 +103,12 @@ const ReportsAnalytics = () => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const formattedOneMonthAgo = oneMonthAgo.toISOString().split("T")[0];
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1); // Subtract 1 year
 
+const formattedOneYearAgo = oneYearAgo.toISOString().split("T")[0];   
   const [endDate, setEndDate] = useState(formattedToday);
-  const [startDate, setStartDate] = useState(formattedOneMonthAgo);
+  const [startDate, setStartDate] = useState(formattedOneYearAgo);
 
   // Transform API data for charts when available; otherwise, use defaults.
   const featureUsageChartData = getSingleCompanyData
@@ -178,10 +193,25 @@ const ReportsAnalytics = () => {
     const fetchDefaultData = async () => {
       setAnalyticsLoading(true);
       try {
-        const response = await getReportAllCompany();
+        // const response = await getReportAllCompany();
+        const response = await getReportSingleCompany(
+          selectedCompany,
+          selectedBillingType,
+          startDate,
+          endDate
+        );
         console.log("Default response:", response);
         if (response.status === 200) {
-          setGrandTotals(response.data.grandTotals);
+          // setGrandTotals(response.data.analytics.featuresCount);
+          setGrandTotals({
+            totalCustomers: response?.data?.analytics?.featuresCount?.customersCreated  ||0,
+            totalFieldUsers: response?.data?.analytics?.featuresCount?.fieldUsersCreated  ||0,
+            totalOfficeUsers:response?.data?.analytics?.featuresCount?.usersCreated  ||0,
+            totalWorkOrders: response?.data.analytics?.featuresCount?.totalWorkOrders  ||0,
+            executedWorkOrder: response.data?.analytics?.featuresCount?.executedWorkOrders  ||0,
+            totalRevenue: response?.data?.analytics?.totalRevenue ||0
+        });
+        setAllbillStatusCount(response?.data?.analytics?.billStatusCount)
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -430,7 +460,7 @@ const ReportsAnalytics = () => {
               </Row>
 
               {/* Conditionally show Invoice Status Report (with custom legend) only if filtered data is available */}
-              {getSingleCompanyData && (
+              {invoiceStatusChartData && (
                 <Row className="mb-4">
                   <Col md={12}>
                     <Card>
