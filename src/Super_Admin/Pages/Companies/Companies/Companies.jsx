@@ -23,7 +23,12 @@ const Companies = () => {
       try {
         const response = await getCompanyListApi(token);
         if (response.status === true) {
-          setCompanyList(response?.data || []);
+          const filteredCompanies =
+            response?.data?.filter(
+              (company) => !company.company.SuperAdminCompany
+            ) || [];
+
+          setCompanyList(filteredCompanies);
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -40,6 +45,7 @@ const Companies = () => {
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = companyList.slice(indexOfFirstRow, indexOfLastRow);
+  console.log("rssss", currentRows);
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
@@ -59,6 +65,10 @@ const Companies = () => {
 
   function formatTimestamp(timestamp) {
     const { _seconds, _nanoseconds } = timestamp;
+    if (!timestamp || !timestamp._seconds || !timestamp._nanoseconds) {
+      console.error("Invalid timestamp:", timestamp);
+      return "Invalid Date";  // Return a fallback value
+    }
     const date = new Date(_seconds * 1000 + _nanoseconds / 1000000);
     const options = {
       day: "2-digit",
@@ -105,7 +115,7 @@ const Companies = () => {
 
       if (response.status === true) {
         setCompanyList((prevList) =>
-          prevList.filter((company) => company.company.id !== item)
+          prevList.filter((company) => company?.company.id !== item)
         );
         Swal.fire({
           title: t("Success!"),
@@ -223,14 +233,14 @@ const Companies = () => {
                       <p className="mt-2">Loading...</p>
                     </td>
                   </tr>
-                ) : companyList.length === 0 ? (
+                ) : companyList?.length === 0 ? (
                   <tr>
                     <td colSpan="10" className="text-center py-5">
                       No Companies found
                     </td>
                   </tr>
                 ) : (
-                  currentRows.map((item, index) => (
+                  currentRows?.map((item, index) => (
                     <tr
                       key={index}
                       style={{ backgroundColor: "#fff", borderRadius: "10px" }}
@@ -243,12 +253,12 @@ const Companies = () => {
                           color: "#4B5563",
                         }}
                       >
-                        <strong>{item.company.company_name}</strong>
+                        <strong>{item?.company?.company_name}</strong>
                         <br />
                         <span style={{ color: "gray", fontSize: "0.9rem" }}>
-                          {item.company.address_line_1},{" "}
-                          {item.company.address_line_2}, {item.company.city},{" "}
-                          {item.company.zip_postal_code}
+                          {item?.company.address_line_1},{" "}
+                          {item?.company.address_line_2}, {item?.company.city},{" "}
+                          {item?.company.zip_postal_code}
                         </span>
                       </td>
                       <td
@@ -272,7 +282,7 @@ const Companies = () => {
                           color: "#4B5563",
                         }}
                       >
-                        {formatTimestamp(item.company.created_at)}
+                        {formatTimestamp(item?.company.created_at)}
                       </td>
                       <td className="text-center">
                         {item.user_counts.field_user || 0}
@@ -329,7 +339,7 @@ const Companies = () => {
                               alignItems: "center",
                               justifyContent: "center",
                             }}
-                            onClick={() => hanldeDeleteCompany(item.company.id)}
+                            onClick={() => hanldeDeleteCompany(item?.company.id)}
                           >
                             <MdDelete />
                           </Button>
@@ -343,7 +353,7 @@ const Companies = () => {
             {/* New Pagination UI */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <span>
-                Showing {companyList.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
+                Showing {companyList?.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
                 {indexOfLastRow > companyList.length
                   ? companyList.length
                   : indexOfLastRow}{" "}

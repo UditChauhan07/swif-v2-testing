@@ -12,28 +12,30 @@ const CompanyWOreport = () => {
   const [workOrderData, setWorkOrderData] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("UserToken"));
   const [companyId, setCompanyId] = useState(localStorage.getItem("companyId"));
-  const [loading,setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await workOrderReportSingleCompany(token, companyId);
         if (response.status === true) {
-          setWorkOrderData(response.data||[]);
+          setWorkOrderData(response.data || []);
         }
       } catch (error) {
         console.error("API Error:", error);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
   }, []);
-console.log("Work Order",workOrderData)
+
+  console.log("Work Order", workOrderData);
   return (
     <>
       <Header />
-      <div className="main-header-box mt-5">
+      <div className="main-header-box mt-4">
         <div className="pages-box">
           <div
             className="form-header mb-4"
@@ -48,88 +50,86 @@ console.log("Work Order",workOrderData)
               {t("Work Order Report")}
             </h4>
           </div>
-          {loading? (
-              <BeatLoader
+          {loading ? (
+            <BeatLoader
               size={12}
               color={"#3C3C3C"}
               style={{ display: "flex", justifyContent: "center" }}
             />
           ) : (
             <>
-          {
-          Object?.entries(workOrderData)?.length>0 ? (
-            <Container className="mt-4">
-              <Card className="shadow-lg rounded p-4">
-                <div className="text-center">
-                  <h5 className="text-uppercase mb-4">
-                    {workOrderData.company_name}
-                  </h5>
-                </div>
+              {Object?.entries(workOrderData || {})?.length > 0 ? (
+                <Container className="mt-4">
+                  <Card className="shadow-lg rounded p-4">
+                    <div className="text-center">
+                      <h5 className="text-uppercase mb-4">
+                        {workOrderData.company_name}
+                      </h5>
+                    </div>
 
-                {/* Work Order Report Information */}
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Scheduled per Day")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.per_day}
-                      </div>
-                    </Card>
-                  </Col>
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Scheduled per Week")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.per_week}
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Scheduled per Month")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.per_month}
-                      </div>
-                    </Card>
-                  </Col>
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Completed Work Orders per Day")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.completed_per_day}
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Completed Work Orders per Week")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.completed_per_week}
-                      </div>
-                    </Card>
-                  </Col>
-                  <Col md={6}>
-                    <Card className="p-3 shadow-sm">
-                      <h6>{t("Completed Work Orders per Month")}</h6>
-                      <div className="text-muted fs-4">
-                        {workOrderData.completed_per_month}
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
-              </Card>
-            </Container>
-          ) : (
-        
-              <div className="text-muted fs-6 d-flex justify-content-center">
-              {t("No data found")}
-              </div>
-          )}
-          </>
+                    {/* Work Order Report Information */}
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Scheduled per Day")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.per_day}
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Scheduled per Week")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.per_week}
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Scheduled per Month")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.per_month}
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Completed Work Orders per Day")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.completed_per_day}
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Completed Work Orders per Week")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.completed_per_week}
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col md={6}>
+                        <Card className="p-3 shadow-sm">
+                          <h6>{t("Completed Work Orders per Month")}</h6>
+                          <div className="text-muted fs-4">
+                            {workOrderData.completed_per_month}
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+                  </Card>
+                </Container>
+              ) : (
+                <div className="text-muted fs-6 d-flex justify-content-center">
+                  {t("No data found")}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

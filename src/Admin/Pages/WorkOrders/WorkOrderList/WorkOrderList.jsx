@@ -288,8 +288,8 @@ const WorkOrderList = () => {
                             .join(", ")}
                         >
                           {row?.workorderDetails
-                            .slice(0, 2)
-                            .map((item, index) => {
+                            ?.slice(0, 2)
+                            .map((item, index, arr) => {
                               const truncatedText =
                                 item.workItem.length > 20
                                   ? item.workItem.slice(0, 20) + "..."
@@ -298,9 +298,7 @@ const WorkOrderList = () => {
                               return (
                                 <span key={index}>
                                   {truncatedText}
-                                  {index < 1 && row?.workorderDetails.length > 2
-                                    ? ", ..."
-                                    : ""}
+                                  {index < arr.length - 1 && ", "}
                                 </span>
                               );
                             })}

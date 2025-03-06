@@ -11,10 +11,10 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "../../../../context/PermissionContext";
+import PaginationComp from "../../../../Components/PaginationComp/PaginationComp";
 
 const FieldUserList = () => {
   const { t } = useTranslation();
-
   const [isLoading, setLoading] = useState(true);
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,11 +22,12 @@ const FieldUserList = () => {
   const company_id = localStorage.getItem("companyId") || null;
   const navigate = useNavigate();
 
-  // Pagination states
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [userRole, setuserRole] = useState(localStorage.getItem("Role"));
   const itemsPerPage = 5;
+  const [userRole] = useState(localStorage.getItem("Role"));
   const { hasPermission } = usePermissions();
+
   // Fetch data from API
   const fetchData = () => {
     fetch_FieldUserOfCompany(company_id, token)
@@ -70,26 +71,10 @@ const FieldUserList = () => {
       item.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  console.log("dataa", filteredtable);
-
   // Calculate pagination indices and current items to display
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredtable.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredtable.length / itemsPerPage);
-
-  // Pagination handlers
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePageClick = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
 
   // Navigation and action handlers
   const handleToPreview = (row) => {
@@ -137,13 +122,12 @@ const FieldUserList = () => {
           // Update state immediately by filtering out the deleted user
           setTableData((prevData) => prevData.filter((item) => item.id !== id));
 
-          // Reset the current page to 1 in case the deletion causes the current page to be empty
+          // Reset the current page to 1 in case deletion causes the current page to be empty
           setCurrentPage(1);
         } else {
           await Swal.fire("Error", result.message, "error");
         }
       } catch (error) {
-        // Close the loading alert if an error occurs
         Swal.close();
         await Swal.fire("Error", t("An unexpected error occurred."), "error");
       }
@@ -213,7 +197,10 @@ const FieldUserList = () => {
                       <BeatLoader
                         size={12}
                         color={"#3C3C3C"}
-                        style={{ display: "flex", justifyContent: "center" }}
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
                       />
                       <p className="mt-2">{t("Loading...")}</p>
                     </td>
@@ -320,10 +307,9 @@ const FieldUserList = () => {
                               }}
                               onClick={() => handleToPreview(row)}
                             >
-                              <i className="bi bi-info-circle"></i>
                               <FaInfoCircle />
                             </Button>
-                            {(userRole == "Admin" ||
+                            {(userRole === "Admin" ||
                               hasPermission(
                                 "Company Field User Module",
                                 "Edit"
@@ -341,12 +327,10 @@ const FieldUserList = () => {
                                   justifyContent: "center",
                                 }}
                               >
-                                <i className="bi bi-pencil"></i>
                                 <FaEdit />
                               </Button>
                             )}
-
-                            {(userRole == "Admin" ||
+                            {(userRole === "Admin" ||
                               hasPermission(
                                 "Company Field User Module",
                                 "Edit"
@@ -364,7 +348,6 @@ const FieldUserList = () => {
                                   justifyContent: "center",
                                 }}
                               >
-                                <i className="bi bi-trash"></i>
                                 <FaClipboardList />
                               </Button>
                             )}
@@ -385,44 +368,15 @@ const FieldUserList = () => {
                 </tbody>
               )}
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <span>
-                Showing {filteredtable.length === 0 ? 0 : indexOfFirstItem + 1}{" "}
-                to{" "}
-                {indexOfLastItem > filteredtable.length
-                  ? filteredtable.length
-                  : indexOfLastItem}{" "}
-                of {filteredtable.length} items
-              </span>
-              <div className="d-flex align-items-center">
-                <Button
-                  variant="light"
-                  className="me-1"
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                >
-                  &laquo;
-                </Button>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Button
-                    key={index}
-                    variant={currentPage === index + 1 ? "primary" : "light"}
-                    className="me-1"
-                    onClick={() => handlePageClick(index + 1)}
-                  >
-                    {index + 1}
-                  </Button>
-                ))}
-                <Button
-                  variant="light"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                >
-                  &raquo;
-                </Button>
-              </div>
-            </div>
+            {/* Render PaginationComp if there are more records than itemsPerPage */}
+            {filteredtable.length > itemsPerPage && (
+              <PaginationComp
+                totalItems={filteredtable.length}
+                currentPage={currentPage}
+                rowsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </div>
         </div>
       </div>

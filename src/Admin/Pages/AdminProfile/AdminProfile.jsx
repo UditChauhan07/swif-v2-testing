@@ -36,7 +36,7 @@ const AdminProfile = () => {
   const [token] = useState(localStorage.getItem("UserToken"));
   const [isLoading, setIsLoading] = useState(false);
   const [companyData, setcompanyData] = useState();
-  console.log("dasdsdsadsa", companyData);
+  // console.log("dasdsdsadsa", companyData);
 
   // Function to fetch company details
   const fetchCompanyData = async () => {

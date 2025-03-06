@@ -62,6 +62,11 @@ import PackagesList from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/Pac
 import TaxationSetting from "./Super_Admin/Pages/TaxationSetting/TaxationSetting";
 import EditPackage from "./Super_Admin/Pages/BillingSystem/PackageCreateSys/EditPackage ";
 import PlansPackages from "./Admin/Pages/Plans&Packages/PlansPackages";
+import PackageInvoice from "./Super_Admin/Pages/BillingSystem/PackageInvoice/PackageInvoice";
+import InvoicePayDetails from "./Super_Admin/Pages/BillingSystem/PackageInvoice/InvoiceDetails/InvoicePayDetails";
+import ReportsAnalytics from "./Super_Admin/Pages/BillingSystem/ReportsAnalytics/ReportsAnalytics";
+import SuperAdminProfile from "./Super_Admin/Pages/AdminProfile/SuperAdminProfile";
+import CompanyInvoices from "./Admin/Pages/BillingSystem/CompanyInvoices";
 
 
 function App() {
@@ -79,6 +84,9 @@ function App() {
 
           <Route path="/dashboard" element={<PrivateRoute element={Dashboard} />} /> 
           {/* <Route path="/dashboard" element={<PrivateRoute element={Dashboard} />} /> */}
+
+          {/* Super Admin Profile */}
+          <Route path="/admin/profile" element={<PrivateRoute element={SuperAdminProfile} />} />
 
           {/* Companies */}
           <Route path="/company/create" element={<PrivateRoute element={CreateCompany } />} />
@@ -109,6 +117,11 @@ function App() {
           <Route path="/billings/package-creation" element={<PackageCreateSys />} />
           <Route path="/billings/package-List" element={<PackagesList/>} />
           <Route path="/billings/package-edit" element={<EditPackage/>} />
+
+          <Route path="/billings/package-invoice" element={<PackageInvoice/>} />
+          <Route path="/billings/invoice-details" element={<InvoicePayDetails/>} />
+
+          <Route path="/billings/reports-analytics" element={<ReportsAnalytics/>} />
 
           {/*----------- Admin */}
 
@@ -170,6 +183,11 @@ function App() {
 
           {/* Plans & Packaegs */}
           <Route path="/plans-packages" element={<PrivateRoute element={PackagesList } />} />
+
+          {/* Billings System */}
+          <Route path="/billings/company-invoice" element={<CompanyInvoices />} />
+
+
         </Routes>
       </Router>
     </>

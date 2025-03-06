@@ -4,7 +4,7 @@ import {
   Row,
   Col,
   Form,
-  Card, 
+  Card,
   Badge,
   ListGroup,
   Button,
@@ -27,6 +27,7 @@ import imageCompression from "browser-image-compression";
 import Select from "react-select";
 import { getNames } from "country-list";
 import ChangePasswordModal from "../../../../../Components/ChangePasswordModal/ChangePasswordModal ";
+import { PencilSquare, Check2 } from "react-bootstrap-icons"; // Bootstrap Icons
 
 const EditCompany = () => {
   const { t, i18n } = useTranslation();
@@ -42,12 +43,39 @@ const EditCompany = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passChangeId, setpassChangeId] = useState();
   const [userId, setuserId] = useState(state?.company?.user.id);
+  const [editMode, setEditMode] = useState({}); // Track which fields are editable
+  const [isEditingTotal, setIsEditingTotal] = useState(false); // Toggle total cost edit mode
+  const [prevcharges, setPharges] = useState({
+    name: state.company?.company?.charges?.planName,
+    Interval: state.company?.company?.charges?.Interval,
+    currency: state.company?.company?.charges?.currency,
+    features: {
+      add_customers: state.company?.charges?.company?.customerCreation,
+      add_office_users: state.company?.company?.charges?.officeUserCreation,
+      add_field_users: state.company?.company?.charges?.fieldUserCreation,
+      work_order_creation: state.company?.company?.charges?.workOrderCreation,
+      work_order_execution: state.company?.company?.charges?.workOrderExecution,
+    },
+    cost_per_month: state.company?.company?.charges?.planTotalCost,
+  }); //
+
   const [imageErrors, setImageErrors] = useState({
     profilePicture: "",
     companyLogo: "",
   });
-    const [subscriptionPlanList, setsubscriptionPlanList] = useState();
-    const [selectedPlan, setselectedPlan] = useState({})
+  const [subscriptionPlanList, setsubscriptionPlanList] = useState();
+  const [selectedPlan, setselectedPlan] = useState({
+    name: state.company?.company?.charges?.planName,
+    features: {
+      add_customers: state.company?.charges?.company?.customerCreation,
+      add_office_users: state.company?.company?.charges?.officeUserCreation,
+      add_field_users: state.company?.company?.charges?.fieldUserCreation,
+      work_order_creation: state.company?.company?.charges?.workOrderCreation,
+      work_order_execution: state.company?.company?.charges?.workOrderExecution,
+    },
+    cost_per_month: state.company?.company?.charges?.planTotalCost,
+  });
+  const [featureDifferences, setFeatureDifferences] = useState(null);
 
   const [countryListDetails, setcountryListDetails] = useState();
   useEffect(() => {
@@ -67,24 +95,23 @@ const EditCompany = () => {
     };
     fetchCountry();
   }, []);
-
-    useEffect(()=>{
-      const fetchSubscriptionPlan = async () => {
-        try {
-          const response = await getSubscriptionPackagesList(token);
-          console.log('package respppppppppp',response);
-          const sortedPackages = response.packages
-            ? [...response.packages]
-                // .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
-                .sort((a, b) => a.cost_per_month - b.cost_per_month)
-            : [];
-            setsubscriptionPlanList(sortedPackages||[]);
-        } catch (error) {
-          console.error('error while fetching subscription pacakage list',error);
-        }
-      };
-      fetchSubscriptionPlan();
-    },[])
+  useEffect(() => {
+    const fetchSubscriptionPlan = async () => {
+      try {
+        const response = await getSubscriptionPackagesList(token);
+        // console.log("package respppppppppp", response);
+        const sortedPackages = response.packages
+          ? [...response.packages]
+              // .filter((pkg) => pkg.packageType !== "payg") // Exclude 'payg' packages
+              .sort((a, b) => a.cost_per_month - b.cost_per_month)
+          : [];
+        setsubscriptionPlanList(sortedPackages || []);
+      } catch (error) {
+        console.error("error while fetching subscription pacakage list", error);
+      }
+    };
+    fetchSubscriptionPlan();
+  }, []);
 
   const [formData, setFormData] = useState({
     // Step 1: Super Admin Details
@@ -111,6 +138,7 @@ const EditCompany = () => {
     certificationName: "",
     certificationNumber: "",
     additionalCertifications: [],
+    charges: {},
 
     // Step 3: Contact Information
     addressLine1: "",
@@ -176,6 +204,7 @@ const EditCompany = () => {
         taxPercentage: company.tax_percentage || "",
         certificationName: company.certificates?.[0]?.name || "",
         certificationNumber: company.certificates?.[0]?.number || "",
+        charges: company.charges || {},
         // Only show additional certifications if there are more than one.
         additionalCertifications:
           company.certificates && company.certificates.length > 1
@@ -200,8 +229,8 @@ const EditCompany = () => {
         contactPhone: company.contact_person_phone || "",
         officePhone: company.company_office_phone || "",
         officeEmail: company.company_office_email || "",
-        package: company?.package_id||"",
-        packageDescritption: company?.package_name||"",
+        package: company?.package_id || "",
+        packageDescritption: company?.package_name || "",
         // Step 4: Other Settings
         // package: company.package_id || "",
         // packageDescritption: company.package_name || [],
@@ -223,15 +252,42 @@ const EditCompany = () => {
       const selectedOption = subscriptionPlanList?.find(
         (option) => option.name === formData.packageDescritption
       );
-      
+
       if (selectedOption) {
         setselectedPlan({
-          name: selectedOption.name_es || selectedOption.name, // Use Spanish if available
+          name: selectedOption.name,
           features: selectedOption.features || [],
+          costPerMonth: selectedOption.cost_per_month,
         });
       }
     }
-  }, [formData.packageDescritption, subscriptionPlanList]);
+    // if (state.company.charges) {
+    //   const charges = state.company.charges;
+    //   // const selectedOption = subscriptionPlanList?.find(
+    //   //   (option) => option.name === formData.packageDescritption
+    //   // );
+
+    //   // if (selectedOption) {
+    //   //   setselectedPlan({
+    //   //     name:  selectedOption.name,
+    //   //     features: selectedOption.features || [],
+    //   //     costPerMonth: selectedOption.cost_per_month,
+    //   //   });
+    //   // }else{
+    //     setselectedPlan({
+    //       name:  charges?.planName,
+    //       features: {
+    //         add_customers: charges?.customerCreation,
+    //         add_office_users: charges?.officeUserCreation,
+    //         add_field_users: charges?.fieldUserCreation,
+    //         work_order_creation: charges?.workOrderCreation,
+    //         work_order_execution: charges?.workOrderExecution,
+    //       },
+    //       cost_per_month: charges?.planTotalCost,
+    //     });
+    //   // }
+    // }
+  }, [setselectedPlan]);
 
   const navigate = useNavigate();
   const [token, settoken] = useState(localStorage.getItem("UserToken"));
@@ -772,6 +828,33 @@ const EditCompany = () => {
   const handleSubmit = async () => {
     const currentErrors = validateStep(currentStep);
     console.log(currentErrors);
+    const charges = {
+      currency: formData?.currencyCode || "USD",
+      planName: selectedPlan.name || formData.packageDescritption,
+      Interval: "monthly",
+    };
+
+    if (formData.packageDescritption == "payg") {
+      charges.customerCreation = selectedPlan?.features?.add_customers || 0;
+      charges.fieldUserCreation = selectedPlan?.features?.add_field_users || 0;
+      charges.officeUserCreation =
+        selectedPlan?.features?.add_office_users || 0;
+      charges.workOrderCreation =
+        selectedPlan?.features?.work_order_creation || 0;
+      charges.workOrderExecution =
+        selectedPlan?.features?.work_order_execution || 0;
+    } else {
+      charges.customerCreation = selectedPlan?.features?.add_customers || 0;
+      charges.fieldUserCreation = selectedPlan?.features?.add_field_users || 0;
+      charges.officeUserCreation =
+        selectedPlan?.features?.add_office_users || 0;
+      charges.workOrderCreation =
+        selectedPlan?.features?.work_order_creation || 0;
+      charges.workOrderExecution =
+        selectedPlan?.features?.work_order_execution || 0;
+      charges.planTotalCost = selectedPlan?.cost_per_month || 0;
+      charges.taxAbleAmount = selectedPlan?.cost_per_month ? selectedPlan.cost_per_month + (selectedPlan.cost_per_month * (formData.taxPercentage || 0) / 100) : 0;   
+    }
     if (
       Object.keys(errors).length > 0 ||
       Object.keys(currentErrors).length > 0
@@ -828,13 +911,14 @@ const EditCompany = () => {
       companyStatus: formData.companyStatus,
       companyState: formData.companyState,
       language: languageCode,
-      package_id:formData?.package,
+      package_id: formData?.package,
       package_name: formData.packageDescritption,
       alphaCode: formData.countryName,
       companyCountryName: formData.contactCountry,
       taxName: formData.taxName,
       taxPercentage: formData.taxPercentage,
       currencyCode: formData.currencyCode,
+      charges,
     };
     const userdata = {
       first_name: formData.firstName,
@@ -854,18 +938,6 @@ const EditCompany = () => {
       companyData,
       userdata,
     };
-
-    // console.log("Transformed finalData", companyData, "\navigator", userdata);
-
-    // const formDataToSend = new FormData();
-    // formDataToSend.append("userdata", JSON.stringify(userdata)); // Stringify userdata
-    // formDataToSend.append("companyData", JSON.stringify(companyData)); // Stringify companyData
-    // if (formData.profilePicture) {
-    //   formDataToSend.append("profile_picture", formData.profilePicture);
-    // }
-    // if (formData.companyLogo) {
-    //   formDataToSend.append("company_logo", formData.companyLogo);
-    // }
 
     console.log("Final FormData: ", { companyData, userdata });
     try {
@@ -943,7 +1015,7 @@ const EditCompany = () => {
     work_order_creation: "Work Order Creation",
     work_order_execution: "Work Order Execution",
   };
-  
+
   const subscriptionPlanMapping = {
     default: "Default",
     basic: "Basic",
@@ -951,6 +1023,66 @@ const EditCompany = () => {
     enterprise: "Enterprise",
     payg: "Pay as You Go",
   };
+
+  const toggleEditMode = (featureKey) => {
+    setEditMode((prev) => ({
+      ...prev,
+      [featureKey]: !prev[featureKey],
+    }));
+  };
+
+  // Function to update feature limits dynamically
+  const handleFeatureChange = (featureKey, newValue) => {
+    const updatedFeatures = {
+      ...selectedPlan.features,
+      [featureKey]: Number(newValue),
+    };
+
+    // Example: Calculate cost dynamically (Modify as per your pricing model)
+    const newCost = Object.values(updatedFeatures).reduce(
+      (acc, val) => acc + val * 5,
+      0
+    );
+
+    setselectedPlan((prev) => ({
+      ...prev,
+      features: updatedFeatures,
+      cost_per_month:
+        selectedPlan?.name?.toLowerCase() === "payg"? 0 : prev.cost_per_month, // Only auto-update cost if PAYG
+      name: selectedPlan?.name.toLowerCase() === "payg" ? prev.name : "Custom",
+    }));
+  };
+
+  // Function to manually update total cost (for non-PAYG plans)
+  const handleTotalCostChange = (newCost) => {
+    setselectedPlan((prev) => ({
+      ...prev,
+      cost_per_month: Number(newCost),
+      name: selectedPlan?.name.toLowerCase() === "payg" ? prev.name : "Custom",
+    }));
+  };
+
+  const SubscriptionOptions = [
+    prevcharges
+      ? {
+          value: prevcharges.name || "N/A", // Prevent undefined errors
+          label: "Current Plan", // Label as "Current Plan"
+          package_id: "current_plan", // Unique identifier
+          features: prevcharges.features || [], // Default to empty array if undefined
+          cost_per_month: prevcharges.cost_per_month || 0, // Default value
+        }
+      : null, // Add null check if prevcharges is missing
+    ...(Array.isArray(subscriptionPlanList)
+      ? subscriptionPlanList.map((option) => ({
+          value: option.name || "N/A",
+          label: option.name || "Unnamed Plan",
+          package_id: option.package_id || "unknown",
+          features: option.features || [],
+          cost_per_month: option.cost_per_month || 0,
+        }))
+      : []), // If subscriptionPlanList is undefined, return an empty array instead of throwing an error
+  ].filter(Boolean); // Removes `null` values from the array
+  
 
   return (
     <>
@@ -1415,7 +1547,13 @@ const EditCompany = () => {
 
                   {/* Country Tax Details */}
                   <Form.Group className="mb-3">
-                    <Form.Label style={{display:"flex",alignItems:"center",marginBottom:"20px"}}>
+                    <Form.Label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "20px",
+                      }}
+                    >
                       <span className="text-danger">*</span>{" "}
                       {t("Country Tax Name")}:{" "}
                       <Form.Control
@@ -1680,43 +1818,120 @@ const EditCompany = () => {
               ))}
             </Form>
 
-                   {/* choose plan */}
-                   <Form.Group className="mb-3">
+            {/* choose plan */}
+            <Form.Group className="mb-3">
               <Form.Label>
                 <span className="text-danger">*</span> {t("Choose Plan")}:
               </Form.Label>
+              {/* <Select
+                options={subscriptionPlanList?.map((option) => ({
+                  value: option.name,
+                  label: option.name,
+                  package_id: option.package_id,
+                  features: option.features,
+                  cost_per_month: option?.cost_per_month,
+                }))}
+                onChange={(selectedOption) => {
+                  handleChange("package", selectedOption?.package_id);
+                  handleChange("packageDescritption", selectedOption?.value);
+                  setselectedPlan(
+                    {
+                      name: selectedOption?.value,
+                      features: selectedOption?.features,
+                      cost_per_month: selectedOption?.cost_per_month,
+                    } || {}
+                  );
+                }}
+                value={
+                  subscriptionPlanList?.find(
+                    (option) => option?.name === formData.packageDescritption
+                  ) // Directly find matching option
+                    ? {
+                        value: formData.packageDescritption,
+                        label: formData.packageDescritption,
+                      }
+                    : null
+                } // Ensure null when no match
+                styles={{
+                  menuList: (provided) => ({
+                    ...provided,
+                    maxHeight: "150px", // Limits dropdown height
+                    overflowY: "auto",
+                  }),
+                }}
+                required
+              /> */}
               <Select
-              options={subscriptionPlanList?.map((option) => ({
-                value: option.name,
-                label: option.name,
-                package_id: option.package_id,
-                features: option.features,
-              }))} 
-              onChange={(selectedOption) => {
-                handleChange("package", selectedOption?.package_id);
-                handleChange("packageDescritption", selectedOption?.value);
-                setselectedPlan({
-                  name: selectedOption?.value,
-                  features: selectedOption?.features,
-                } || {});
-              }}
-              value={subscriptionPlanList
-                ?.find((option) => option.name === formData.packageDescritption) // Directly find matching option
-                ? { 
-                    value: formData.packageDescritption, 
-                    label: formData.packageDescritption,
-                    
-                  } 
-                : null} // Ensure null when no match
-              styles={{
-                menuList: (provided) => ({
-                  ...provided,
-                  maxHeight: "150px", // Limits dropdown height
-                  overflowY: "auto",
-                }),
-              }}
-              required
-            />
+                options={
+SubscriptionOptions 
+
+                //   [
+                //   {
+                //     value: prevcharges.name, // Set name from prevcharges
+                //     // label: `${prevcharges.name} (Current Plan)`, // Label as "Current Plan"
+                //     label: `Current Plan`, // Label as "Current Plan"
+                //     package_id: "current_plan", // Set a unique identifier for the current plan
+                //     features: prevcharges.features, // Include features from prevcharges
+                //     cost_per_month: prevcharges.cost_per_month, // Cost per month from prevcharges
+                //   },
+                //   ...subscriptionPlanList?.map((option) => ({
+                //     value: option.name,
+                //     label: option.name,
+                //     package_id: option.package_id,
+                //     features: option.features,
+                //     cost_per_month: option?.cost_per_month,
+                //   })),
+                // ]
+              }
+                onChange={(selectedOption) => {
+                  if (selectedOption.package_id === "current_plan") {
+                    handleChange("package", selectedOption?.package_id);
+                    handleChange("packageDescritption", selectedOption?.value);
+                    setselectedPlan({
+                      name: selectedOption?.value,
+                      features: selectedOption?.features,
+                      cost_per_month: selectedOption?.cost_per_month,
+                    });
+                  } else {
+                    handleChange("package", selectedOption?.package_id);
+                    handleChange("packageDescritption", selectedOption?.value);
+                    setselectedPlan({
+                      name: selectedOption?.value,
+                      features: selectedOption?.features,
+                      cost_per_month: selectedOption?.cost_per_month,
+                    });
+                  }
+                }}
+                value={
+                  // subscriptionPlanList?.find(
+                  //   (option) => option?.name === formData.packageDescritption
+                  // )
+                  //   ? {
+                  //       value: formData.packageDescritption,
+                  //       label: formData.packageDescritption,
+                  //     }
+                  //   : prevcharges.name // If no matching option, default to prevcharges name
+                  subscriptionPlanList?.find(
+                    (option) => option?.name != formData?.charges.planName
+                  )
+                    ? {
+                        value: selectedPlan.name,
+                        label: selectedPlan.name,
+                      }
+                    : {
+                        value: formData?.charges.planName,
+                        label: formData?.charges.planName,
+                      }
+                }
+                styles={{
+                  menuList: (provided) => ({
+                    ...provided,
+                    maxHeight: "150px", // Limits dropdown height
+                    overflowY: "auto",
+                  }),
+                }}
+                required
+              />
 
               <Form.Control.Feedback type="invalid">
                 {errors.package}
@@ -1724,40 +1939,156 @@ const EditCompany = () => {
             </Form.Group>
 
             {/* Selected Plan Details */}
-      {selectedPlan?.name && (
-        <Card className="mt-3 mb-3 shadow-sm border-0">
-          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">
-            {t(subscriptionPlanMapping[selectedPlan.name] ||selectedPlan.name.replace(/_/g, " "))}
-              {/* {selectedPlan?.name} */}
-              </h5>
-            <Badge bg="light" text="dark">
-             { t("Selected Plan")}
-            </Badge>
-          </Card.Header>
-          <Card.Body>
-            <ListGroup variant="flush">
-              {Object.entries(selectedPlan.features).map(([key, value]) => (
-                <ListGroup.Item
-                  key={key}
-                  className="d-flex justify-content-between align-items-center"
-                >
-                  <span>
-                    {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
-                      /\b\w/g,
-                      (char) => char.toUpperCase()
-                    )} */}
-                        {t(featureMapping[key] || key.replace(/_/g, " "))}
-                  </span>
-                  <Badge bg="success" pill>
-                    {value}
+            {selectedPlan?.name && (
+              // <Card className="mt-3 mb-3 shadow-sm border-0">
+              //   <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+              //     <h5 className="mb-0">
+              //     {t(subscriptionPlanMapping[selectedPlan.name] ||selectedPlan.name.replace(/_/g, " "))}
+              //       {/* {selectedPlan?.name} */}
+              //       </h5>
+              //     <Badge bg="light" text="dark">
+              //      { t("Selected Plan")}
+              //     </Badge>
+              //   </Card.Header>
+              //   <Card.Body>
+              //     <ListGroup variant="flush">
+              //       {Object.entries(selectedPlan.features).map(([key, value]) => (
+              //         <ListGroup.Item
+              //           key={key}
+              //           className="d-flex justify-content-between align-items-center"
+              //         >
+              //           <span>
+              //             {/* {t(key.replace(/_/g, " ").toLowerCase()).replace(
+              //               /\b\w/g,
+              //               (char) => char.toUpperCase()
+              //             )} */}
+              //                 {t(featureMapping[key] || key.replace(/_/g, " "))}
+              //           </span>
+              //           <Badge bg="success" pill>
+              //             {value}
+              //           </Badge>
+              //         </ListGroup.Item>
+              //       ))}
+              //     </ListGroup>
+              //   </Card.Body>
+              // </Card>
+              <></>
+            )}
+
+            {selectedPlan?.name && (
+              <Card className="mt-3 mb-3 shadow-sm border-0">
+                <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    {t(
+                      subscriptionPlanMapping[selectedPlan.name] ||
+                        selectedPlan.name.replace(/_/g, " ")
+                    )}
+                  </h5>
+                  <Badge bg="light" text="dark">
+                    {t("Selected Plan")}
                   </Badge>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card.Body>
-        </Card>
-      )}
+                </Card.Header>
+                <Card.Body>
+                  <ListGroup variant="flush">
+                    {Object.entries(selectedPlan.features).map(
+                      ([key, value]) => (
+                        <ListGroup.Item
+                          key={key}
+                          className="d-flex justify-content-between align-items-center"
+                        >
+                          <span>
+                            {t(featureMapping[key] || key.replace(/_/g, " "))}
+                          </span>
+                          <div className="d-flex align-items-center">
+                            {editMode[key] ? (
+                              <>
+                                <Form.Control
+                                  type="number"
+                                  value={value}
+                                  min="0"
+                                  className="w-50 text-center"
+                                  onChange={(e) =>
+                                    handleFeatureChange(key, e.target.value)
+                                  }
+                                />
+                                <Check2
+                                  className="ms-2 text-success"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "1.2rem",
+                                  }}
+                                  onClick={() => toggleEditMode(key)}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                <Badge bg="success" pill>
+                                  {value}
+                                </Badge>
+                                <PencilSquare
+                                  className="ms-2 text-primary"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "1.2rem",
+                                  }}
+                                  onClick={() => toggleEditMode(key)}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </ListGroup.Item>
+                      )
+                    )}
+
+                    {/* Editable Total Cost for Non-PAYG Plans */}
+                    {selectedPlan?.name.toLowerCase() != "payg" &&
+                    <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                      <span>
+                        <p className="fw-bold">
+                          {t("Total Cost")} ({t("Per Month")})
+                        </p>
+                      </span>
+                      <div className="d-flex align-items-center">
+                        {selectedPlan?.name.toLowerCase() === "payg" ? (
+                          <p className="fw-bold">
+                            $ {selectedPlan?.cost_per_month}
+                          </p>
+                        ) : isEditingTotal ? (
+                          <>
+                            <Form.Control
+                              type="number"
+                              value={selectedPlan.cost_per_month}
+                              className="w-50 text-center"
+                              onChange={(e) =>
+                                handleTotalCostChange(e.target.value)
+                              }
+                            />
+                            <Check2
+                              className="ms-2 text-success"
+                              style={{ cursor: "pointer", fontSize: "1.2rem" }}
+                              onClick={() => setIsEditingTotal(false)}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <p className="fw-bold">
+                              $ {selectedPlan?.cost_per_month}
+                            </p>
+                            <PencilSquare
+                              className="ms-2 text-primary"
+                              style={{ cursor: "pointer", fontSize: "1.2rem" }}
+                              onClick={() => setIsEditingTotal(true)}
+                            />
+                          </>
+                        )}
+                      </div>
+                    </ListGroup.Item>
+                    }
+                  </ListGroup>
+                </Card.Body>
+              </Card>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"

@@ -447,7 +447,7 @@ const WorkOrderImport = () => {
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4 className="mb-0">{t("Import Work Orders")}</h4>
               <div className="d-flex gap-2">
-                <Button variant="primary" onClick={handleUpload}>
+                <Button variant="secondary" onClick={handleUpload}>
                   {t("Upload")}
                 </Button>
               </div>
@@ -548,68 +548,72 @@ const WorkOrderImport = () => {
           )}
 
           {/* Sample Data Table Section */}
-          <div
-            className="border p-4 rounded mb-4"
-            style={{
-              backgroundColor: "#f9f9f9",
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-              borderRadius: "10px",
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4 className="mb-0">{t("Sample Work Orders - XLSX")}</h4>
-              <Button variant="success" onClick={handleDownloadSample}>
-                {t("Download Sample")}
-              </Button>
-            </div>
-            <Table hover responsive className="align-middle">
-              <thead>
-                <tr style={{ backgroundColor: "#E7EAF3", color: "#3C3C3C" }}>
-                  {Object.keys(sampleData[0]).map((header, index) => (
-                    <th
-                      key={index}
-                      style={{
-                        textAlign: "left",
-                        padding: "15px",
-                        fontWeight: "600",
-                        fontSize: "0.9rem",
-                        color: "black",
-                        background: "#e5e5e5",
-                      }}
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sampleData.map((row, rowIndex) => (
-                  <tr
-                    key={rowIndex}
-                    style={{
-                      backgroundColor: "#fff",
-                      borderRadius: "10px",
-                      boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
-                    {Object.values(row).map((cell, cellIndex) => (
-                      <td
-                        key={cellIndex}
+          {parsedData.length > 0 ? (
+            ""
+          ) : (
+            <div
+              className="border p-4 rounded mb-4"
+              style={{
+                backgroundColor: "#f9f9f9",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                borderRadius: "10px",
+              }}
+            >
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h4 className="mb-0">{t("Sample Work Orders - XLSX")}</h4>
+                <Button variant="success" onClick={handleDownloadSample}>
+                  {t("Download Sample")}
+                </Button>
+              </div>
+              <Table hover responsive className="align-middle">
+                <thead>
+                  <tr style={{ backgroundColor: "#E7EAF3", color: "#3C3C3C" }}>
+                    {Object.keys(sampleData[0]).map((header, index) => (
+                      <th
+                        key={index}
                         style={{
                           textAlign: "left",
                           padding: "15px",
+                          fontWeight: "600",
                           fontSize: "0.9rem",
-                          color: "#4B5563",
+                          color: "black",
+                          background: "#e5e5e5",
                         }}
                       >
-                        {cell}
-                      </td>
+                        {header}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
+                </thead>
+                <tbody>
+                  {sampleData.map((row, rowIndex) => (
+                    <tr
+                      key={rowIndex}
+                      style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "10px",
+                        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+                      }}
+                    >
+                      {Object.values(row).map((cell, cellIndex) => (
+                        <td
+                          key={cellIndex}
+                          style={{
+                            textAlign: "left",
+                            padding: "15px",
+                            fontSize: "0.9rem",
+                            color: "#4B5563",
+                          }}
+                        >
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
         </div>
       </div>
     </>
