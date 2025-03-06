@@ -1062,6 +1062,28 @@ const EditCompany = () => {
     }));
   };
 
+  const SubscriptionOptions = [
+    prevcharges
+      ? {
+          value: prevcharges.name || "N/A", // Prevent undefined errors
+          label: "Current Plan", // Label as "Current Plan"
+          package_id: "current_plan", // Unique identifier
+          features: prevcharges.features || [], // Default to empty array if undefined
+          cost_per_month: prevcharges.cost_per_month || 0, // Default value
+        }
+      : null, // Add null check if prevcharges is missing
+    ...(Array.isArray(subscriptionPlanList)
+      ? subscriptionPlanList.map((option) => ({
+          value: option.name || "N/A",
+          label: option.name || "Unnamed Plan",
+          package_id: option.package_id || "unknown",
+          features: option.features || [],
+          cost_per_month: option.cost_per_month || 0,
+        }))
+      : []), // If subscriptionPlanList is undefined, return an empty array instead of throwing an error
+  ].filter(Boolean); // Removes `null` values from the array
+  
+
   return (
     <>
       <Header />
@@ -1840,23 +1862,27 @@ const EditCompany = () => {
                 required
               /> */}
               <Select
-                options={[
-                  {
-                    value: prevcharges.name, // Set name from prevcharges
-                    // label: `${prevcharges.name} (Current Plan)`, // Label as "Current Plan"
-                    label: `Current Plan`, // Label as "Current Plan"
-                    package_id: "current_plan", // Set a unique identifier for the current plan
-                    features: prevcharges.features, // Include features from prevcharges
-                    cost_per_month: prevcharges.cost_per_month, // Cost per month from prevcharges
-                  },
-                  ...subscriptionPlanList?.map((option) => ({
-                    value: option.name,
-                    label: option.name,
-                    package_id: option.package_id,
-                    features: option.features,
-                    cost_per_month: option?.cost_per_month,
-                  })),
-                ]}
+                options={
+SubscriptionOptions 
+
+                //   [
+                //   {
+                //     value: prevcharges.name, // Set name from prevcharges
+                //     // label: `${prevcharges.name} (Current Plan)`, // Label as "Current Plan"
+                //     label: `Current Plan`, // Label as "Current Plan"
+                //     package_id: "current_plan", // Set a unique identifier for the current plan
+                //     features: prevcharges.features, // Include features from prevcharges
+                //     cost_per_month: prevcharges.cost_per_month, // Cost per month from prevcharges
+                //   },
+                //   ...subscriptionPlanList?.map((option) => ({
+                //     value: option.name,
+                //     label: option.name,
+                //     package_id: option.package_id,
+                //     features: option.features,
+                //     cost_per_month: option?.cost_per_month,
+                //   })),
+                // ]
+              }
                 onChange={(selectedOption) => {
                   if (selectedOption.package_id === "current_plan") {
                     handleChange("package", selectedOption?.package_id);
@@ -2015,6 +2041,7 @@ const EditCompany = () => {
                     )}
 
                     {/* Editable Total Cost for Non-PAYG Plans */}
+                    {selectedPlan?.name.toLowerCase() != "payg" &&
                     <ListGroup.Item className="d-flex justify-content-between align-items-center">
                       <span>
                         <p className="fw-bold">
@@ -2056,6 +2083,7 @@ const EditCompany = () => {
                         )}
                       </div>
                     </ListGroup.Item>
+                    }
                   </ListGroup>
                 </Card.Body>
               </Card>
