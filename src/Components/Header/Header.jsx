@@ -227,8 +227,14 @@ const Header = () => {
   return (
     <>
       {/* Navbar */}
-      <Navbar bg="light" expand="lg" fixed="top" className="custom-navbar" style={{justifyContent:"end"}}>
-        <Nav style={{flexDirection:"row"}}>
+      <Navbar
+        bg="light"
+        expand="lg"
+        fixed="top"
+        className="custom-navbar"
+        style={{ justifyContent: "end" }}
+      >
+        <Nav style={{ flexDirection: "row" }}>
           {/* Language Dropdown */}
           <Dropdown>
             <Dropdown.Toggle variant="light" id="language-dropdown">
@@ -981,6 +987,36 @@ const Header = () => {
                     {t("Plans & Packages")}
                     <PiPackage size={20} />
                   </Link>
+
+                  {/* Billing System Dropdown */}
+                  <div
+                    className={`dropdown ${
+                      expandedDropdown === "billings" ? "expanded" : ""
+                    }`}
+                  >
+                    <div
+                      className="dropdown-title"
+                      onClick={() => toggleDropdown("billings")}
+                    >
+                      <span>{t("Billing System")}</span>
+                      <FaFileInvoiceDollar size={20} />
+                    </div>
+                    <div
+                      className={`dropdown-items ${
+                        expandedDropdown === "billings" ? "show" : ""
+                      }`}
+                    >
+                      <Link
+                        to="/billings/company-invoice"
+                        className="sidebar-link"
+                        activeClassName="active"
+                      >
+                        ▣ {t("Invoice & Payments")}
+                      </Link>
+                      
+
+                    </div>
+                  </div>
                 </>
               )}
             </Nav>

@@ -66,6 +66,7 @@ import PackageInvoice from "./Super_Admin/Pages/BillingSystem/PackageInvoice/Pac
 import InvoicePayDetails from "./Super_Admin/Pages/BillingSystem/PackageInvoice/InvoiceDetails/InvoicePayDetails";
 import ReportsAnalytics from "./Super_Admin/Pages/BillingSystem/ReportsAnalytics/ReportsAnalytics";
 import SuperAdminProfile from "./Super_Admin/Pages/AdminProfile/SuperAdminProfile";
+import CompanyInvoices from "./Admin/Pages/BillingSystem/CompanyInvoices";
 
 
 function App() {
@@ -182,6 +183,11 @@ function App() {
 
           {/* Plans & Packaegs */}
           <Route path="/plans-packages" element={<PrivateRoute element={PackagesList } />} />
+
+          {/* Billings System */}
+          <Route path="/billings/company-invoice" element={<CompanyInvoices />} />
+
+
         </Routes>
       </Router>
     </>
