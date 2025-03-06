@@ -345,9 +345,9 @@ const PackagesList = () => {
       console.log('current plan',response);
       if (response) setCurrentPlan({
         features:{
-          add_customers: response.package.customerCreation  ||0,
-        add_office_users:response.package.fieldUserCreation  || 0,
-        add_field_users:  response.package.officeUserCreation  ||0,
+        add_customers: response.package.customerCreation  ||0,
+        add_office_users:response.package.officeUserCreation  || 0,
+        add_field_users:  response.package.fieldUserCreation||0,
         work_order_creation:response.package.workOrderCreation  ||0,
         work_order_execution: response.package.workOrderExecution  || 0,
         },
@@ -486,11 +486,11 @@ const PackagesList = () => {
             <LoadingComp />
           ) : (
             <Container fluid className="py-1">
-              {decoded?.role === "SuperAdmin" && (
+              {/* {decoded?.role === "SuperAdmin" && (
                 <Button onClick={handleCreateNewPlan}>
                   {t("Create A New plan")}
                 </Button>
-              )}
+              )} */}
 
               {/* current plan if company admin */}
               {decoded?.role !== "SuperAdmin" && Object.entries(currentPlan)?.length>0 &&

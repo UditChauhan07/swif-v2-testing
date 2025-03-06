@@ -1944,4 +1944,11 @@
   "The invoice status has been updated successfully.": "El estado de la factura se ha actualizado correctamente.",
   "Update failed": "La actualización falló",
   "There was an error updating the invoice status. Please try again later.": "Hubo un error al actualizar el estado de la factura. Por favor, inténtelo de nuevo más tarde."
+  , "Clear Filter": "Borrar Filtro",
+  "Features": "Características",
+  "Usage Limit": "Límite de Uso",
+  "$ Per Usage": "Por Uso"
+ 
+  
+
 }

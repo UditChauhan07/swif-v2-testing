@@ -2043,6 +2043,10 @@ const CreateCompany = () => {
                     </Card.Header>
                     <Card.Body>
                       <ListGroup variant="flush">
+                      <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                        <span><p className="text-sm fw-bold">{t("Features")}</p></span>
+                        <p className="Text-sm fw-bold">{selectedPlan?.name.toLowerCase() !== "payg"? t("Usage Limit"):t(`$ Per Usage`)}</p>
+                      </ListGroup.Item>
                         {Object.entries(selectedPlan?.features)?.map(
                           ([key, value]) => (
                             <ListGroup.Item
