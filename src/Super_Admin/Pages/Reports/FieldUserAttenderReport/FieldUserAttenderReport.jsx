@@ -316,7 +316,11 @@ const FieldUserAttendece = () => {
                           </td>
                         </tr>
                       ) : (
-                        currentItems.map((item, index) => (
+                        currentItems.map((item, index) => {
+                          // const createdAt = yourData.created_at; // { _seconds: 1741252559, _nanoseconds: 251000000 }
+                          // const createdAtDate = createdAt?.toDate(); // Convert Timestamp to Date
+                          // const formattedDate = createdAtDate?.toLocaleString(); // You can use other formats like toLocaleDateString(), toLocaleTimeString(), etc.
+                          return(
                           <tr key={index}>
                             <td
                               style={{
@@ -332,7 +336,7 @@ const FieldUserAttendece = () => {
                                 fontSize: "0.9rem",
                               }}
                             >
-                              {item.created_at}
+                              {item.formattedDate}
                             </td>
                             <td
                               style={{
@@ -411,7 +415,8 @@ const FieldUserAttendece = () => {
                               </span>
                             </td>
                           </tr>
-                        ))
+                          )
+                        })
                       )}
                     </tbody>
                   </Table>

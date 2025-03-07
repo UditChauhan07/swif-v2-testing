@@ -456,20 +456,20 @@ const Header = () => {
                         expandedDropdown === "billings" ? "show" : ""
                       }`}
                     >
-                      <Link
+                      {/* <Link
                         to="/billings/pricing-structure"
                         className="sidebar-link"
                         activeClassName="active"
                       >
                         ▣ {t("Features & Pricing Structure")}
-                      </Link>
-                      <Link
+                      </Link> */}
+                      {/* <Link
                         to="/billings/usage-limit"
                         className="sidebar-link"
                         activeClassName="active"
                       >
                         ▣ {t("Usage Limits Per Company")}
-                      </Link>
+                      </Link> */}
                       {/* <Link
                       to="/billings/currency-management"
                       className="sidebar-link"
