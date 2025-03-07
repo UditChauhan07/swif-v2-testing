@@ -43,9 +43,22 @@ const Create = () => {
       .email(t("Invalid email address"))
       .required(t("Email is required")),
     password: Yup.string()
-      .trim()
-      .min(6, t("Password must be at least 6 characters"))
-      .required(t("Password is required")),
+      .required(t("Password is required"))
+      .min(8, t("Password must be at least 8 characters"))
+      .max(16, t("Password must not exceed 16 characters"))
+      .matches(
+        /[A-Z]/,
+        t("Password must contain at least one uppercase letter")
+      )
+      .matches(
+        /[a-z]/,
+        t("Password must contain at least one lowercase letter")
+      )
+      .matches(/[0-9]/, t("Password must contain at least one number"))
+      .matches(
+        /[\W_]/,
+        t("Password must contain at least one special character")
+      ),
     contactNumber: Yup.string()
       .trim()
       .matches(
@@ -98,8 +111,7 @@ const Create = () => {
     }
 
     alertRef.current = false; // Reset alertRef whenever the route changes
-
-  }, [location,navigate]); 
+  }, [location, navigate]);
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file, setFieldValue) => {

@@ -1852,7 +1852,7 @@
   "Rate ($)": "Tarifa ($)",
   "Fully Flexible": "Totalmente Flexible",
   "Basic": "Básico",
-  "Premium": "Premium",
+  "Premium": "De primera calidad",
   "Enterprise": "Empresa",
   "Pay as You Go": "Paga A Medida Que Lo Usas",
   "No Subscription Packages Available": "No hay paquetes de suscripción disponibles",
@@ -1954,5 +1954,6 @@
   "Create!": "¡Crear!",
   "Empty Roles List!": "¡Lista de roles vacía!",
   "Please configure roles to proceed.": "Por favor, configure los roles para continuar.",
-  "Missing WorkOrder Settings": "Configuraciones del WorkOrder Faltantes"
+  "Missing WorkOrder Settings": "Configuraciones del WorkOrder Faltantes",
+  "Reports & Analytics":"Informes y análisis"
 }

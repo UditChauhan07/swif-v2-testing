@@ -177,7 +177,10 @@ const Header = () => {
       localStorage.removeItem("companyId");
       localStorage.removeItem("guidlines");
       localStorage.removeItem("companyName");
-      localStorage.removeItem("companyLogo");
+      localStorage.removeItem("country");
+      localStorage.removeItem("currencyCode");
+      localStorage.removeItem("defaultTimezone");
+      
       localStorage.removeItem("defaultLanguage");
       localStorage.removeItem("roleID");
 
@@ -217,6 +220,7 @@ const Header = () => {
         timerProgressBar: true,
         showConfirmButton: false,
       });
+      localStorage.removeItem("companyLogo");
 
       // Redirect immediately after success notification
       Navigate("/");
@@ -326,9 +330,8 @@ const Header = () => {
 
       {/* Sidebar. */}
       <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="sidebar">
-          <div className="sidebar-links">
-            <Nav className="flex-column">
+  <div className="sidebar-links">
+    <Nav className="flex-column">
               {/* Sidebar Logo */}
               <div className="py-4 px-4" style={{ alignSelf: "center" }}>
                 <img
@@ -1041,7 +1044,6 @@ const Header = () => {
               )}
             </Nav>
           </div>
-        </div>
       </div>
     </>
   );

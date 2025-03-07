@@ -45,7 +45,21 @@ const CreateFieldUser = () => {
         .required(t("Email is required")),
       password: Yup.string()
         .required(t("Password is required"))
-        .min(6, t("Password must be at least 6 characters")),
+        .min(8, t("Password must be at least 8 characters"))
+        .max(16, t("Password must not exceed 16 characters"))
+        .matches(
+          /[A-Z]/,
+          t("Password must contain at least one uppercase letter")
+        )
+        .matches(
+          /[a-z]/,
+          t("Password must contain at least one lowercase letter")
+        )
+        .matches(/[0-9]/, t("Password must contain at least one number"))
+        .matches(
+          /[\W_]/,
+          t("Password must contain at least one special character")
+        ),
       country: Yup.string().required(t("Country is required")),
       address: Yup.string().required(t("Address is required")),
     }),
