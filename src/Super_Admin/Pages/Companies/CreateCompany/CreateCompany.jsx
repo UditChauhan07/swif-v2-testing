@@ -46,9 +46,6 @@ const CreateCompany = () => {
   const [editMode, setEditMode] = useState({}); // Track which fields are editable
   const [isEditingTotal, setIsEditingTotal] = useState(false); // Toggle total cost edit mode
 
-  // console.log("checkBillingDetails", checkBillingDetails);
-  console.log("isLoading", isLoading);
-
   useEffect(() => {
     const fetchCountry = async () => {
       try {
@@ -168,10 +165,10 @@ const CreateCompany = () => {
             //   navigate("/billings/pricing-structure"); // Redirect to pricing page
             // } else if (errorType === "usage") {
             //   navigate("/billings/usage-limit"); // Redirect to usage settings page
-            // } else 
+            // } else
             if (errorType === "subscription") {
               navigate("/billings/package-List"); // Redirect to subscription plans page
-            } 
+            }
             // else {
             //   navigate("/billings/pricing-structure"); // Default: redirect to dashboard
             //   Swal.fire("Please create all billing structures!");
@@ -260,7 +257,6 @@ const CreateCompany = () => {
     label: country.countryName,
   }));
 
-  // console.log("countryListDetails", countryListDetails,countryOptions2)
   const handleNext = () => {
     // Check if there's an email error indicating a duplicate
     if (
@@ -272,7 +268,7 @@ const CreateCompany = () => {
         text: t("Please change the email address before proceeding."),
         icon: "warning",
       });
-      return; // prevent advancing to the next step
+      return;
     }
 
     const currentErrors = validateStep(currentStep);
@@ -281,6 +277,14 @@ const CreateCompany = () => {
       if (currentStep < 2) setCurrentStep((prev) => prev + 1);
     } else {
       setErrors(currentErrors);
+      // Wait a tick for the error fields to update in the DOM, then scroll
+      setTimeout(() => {
+        const errorElement = document.querySelector(".is-invalid");
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          errorElement.focus();
+        }
+      }, 100);
     }
   };
 
@@ -857,9 +861,23 @@ const CreateCompany = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-  // console.log('-----------------------errors', errors)
   const handleSubmit = async () => {
     const currentErrors = validateStep(currentStep);
+    if (
+      Object.keys(errors).length > 0 ||
+      Object.keys(currentErrors).length > 0
+    ) {
+      setErrors(currentErrors);
+      // Scroll to the first error element after errors are set
+      setTimeout(() => {
+        const errorElement = document.querySelector(".is-invalid");
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          errorElement.focus();
+        }
+      }, 100);
+      return;
+    }
     // currency: formData.currencyCode ||"USD",
     // Interval: 'monthly',
     // customerCreation:selectedPlan.features?.add_customers || 0,
@@ -894,8 +912,11 @@ const CreateCompany = () => {
       charges.workOrderExecution =
         selectedPlan?.features?.work_order_execution || 0;
       charges.planTotalCost = selectedPlan?.cost_per_month || 0;
-      charges.taxAbleAmount = selectedPlan?.cost_per_month ? selectedPlan.cost_per_month + (selectedPlan.cost_per_month * (formData.taxPercentage || 0) / 100) : 0;   
-     }
+      charges.taxAbleAmount = selectedPlan?.cost_per_month
+        ? selectedPlan.cost_per_month +
+          (selectedPlan.cost_per_month * (formData.taxPercentage || 0)) / 100
+        : 0;
+    }
 
     // console.log(currentErrors);
     if (
@@ -1052,7 +1073,6 @@ const CreateCompany = () => {
       });
     }
   };
-  console.log("selectedPlan", selectedPlan);
 
   const featureMapping = {
     add_customers: "Add Customers",
@@ -1110,7 +1130,8 @@ const CreateCompany = () => {
     setselectedPlan((prev) => ({
       ...prev,
       features: updatedFeatures,
-      cost_per_month:selectedPlan.name.toLowerCase() === "payg"? 0: prev.cost_per_month, // Only auto-update cost if PAYG
+      cost_per_month:
+        selectedPlan.name.toLowerCase() === "payg" ? 0 : prev.cost_per_month, // Only auto-update cost if PAYG
       name: selectedPlan.name.toLowerCase() === "payg" ? prev.name : "Custom",
     }));
   };
@@ -2043,10 +2064,16 @@ const CreateCompany = () => {
                     </Card.Header>
                     <Card.Body>
                       <ListGroup variant="flush">
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center">
-                        <span><p className="text-sm fw-bold">{t("Features")}</p></span>
-                        <p className="Text-sm fw-bold">{selectedPlan?.name.toLowerCase() !== "payg"? t("Usage Limit"):t(`$ Per Usage`)}</p>
-                      </ListGroup.Item>
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                          <span>
+                            <p className="text-sm fw-bold">{t("Features")}</p>
+                          </span>
+                          <p className="Text-sm fw-bold">
+                            {selectedPlan?.name.toLowerCase() !== "payg"
+                              ? t("Usage Limit")
+                              : t(`$ Per Usage`)}
+                          </p>
+                        </ListGroup.Item>
                         {Object.entries(selectedPlan?.features)?.map(
                           ([key, value]) => (
                             <ListGroup.Item

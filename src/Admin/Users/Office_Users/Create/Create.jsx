@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useTransition,useRef} from "react";
+import React, { useState, useEffect, useTransition, useRef } from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import { Formik, Field, Form as FormikForm, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -6,7 +6,7 @@ import Header from "../../../../Components/Header/Header";
 import { usePermissions } from "../../../../context/PermissionContext";
 import { createOfficeUser, fetchRolesList } from "../../../../lib/store";
 import Swal from "sweetalert2";
-import { useNavigate,useLocation  } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import imageCompression from "browser-image-compression";
 import Select from "react-select";
@@ -15,7 +15,6 @@ import { getNames } from "country-list";
 const Create = () => {
   const { t } = useTranslation();
   const [roles, setRoles] = useState([]);
-  console.log("dads", roles);
   const token = localStorage.getItem("UserToken");
   const userid = localStorage.getItem("companyId");
   const company_id = localStorage.getItem("companyId") || null;
@@ -24,7 +23,6 @@ const Create = () => {
   const alertRef = useRef(false); // useRef to persist across renders
   const navigate = useNavigate();
   const location = useLocation(); // Hook to detect route changes
-
 
   const countryOptions = getNames().map((country) => ({
     value: country,
@@ -63,7 +61,6 @@ const Create = () => {
     role: Yup.string().trim().required(t("Role is required")),
   });
 
-
   useEffect(() => {
     if (userid) {
       fetchRolesList(userid, token).then((response) => {
@@ -90,7 +87,7 @@ const Create = () => {
 
   useEffect(() => {
     alertRef.current = false; // Reset alertRef whenever the route changes
-  }, [location]); 
+  }, [location]);
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file, setFieldValue) => {
@@ -260,8 +257,11 @@ const Create = () => {
                           name="firstName"
                           maxLength={40}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                        }}
+                            e.target.value = e.target.value.replace(
+                              /[^a-zA-Z\s]/g,
+                              ""
+                            );
+                          }}
                         />
                         <ErrorMessage
                           name="firstName"
@@ -280,8 +280,11 @@ const Create = () => {
                           name="lastName"
                           maxLength={40}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                        }}
+                            e.target.value = e.target.value.replace(
+                              /[^a-zA-Z\s]/g,
+                              ""
+                            );
+                          }}
                         />
                         <ErrorMessage
                           name="lastName"
@@ -426,7 +429,6 @@ const Create = () => {
                         <Select
                           options={countryOptions}
                           placeholder={t("Select a country")}
-
                           onChange={(selectedOption) =>
                             setFieldValue("country", selectedOption.value)
                           }

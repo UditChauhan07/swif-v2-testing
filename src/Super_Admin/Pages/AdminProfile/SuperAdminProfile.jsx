@@ -146,6 +146,7 @@ const SuperAdminProfile = () => {
       Swal.close();
 
       if (response.success === true) {
+        localStorage.setItem("companyLogo", companyLogoBase64);
         await Swal.fire({
           title: t("Success!"),
           text: t("Company updated successfully."),

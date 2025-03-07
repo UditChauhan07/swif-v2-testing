@@ -68,6 +68,24 @@ const FieldUserAttendece = () => {
     setSearchQuery("");
   };
 
+  const formatTimeStamp = (timestamp) => {
+    // Extract seconds and nanoseconds
+    const { _seconds, _nanoseconds } = timestamp;
+
+    // Create a Date object
+    const date = new Date(_seconds * 1000 + _nanoseconds / 1000000);
+
+    // Define options for formatting (date only)
+    const options = {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    };
+
+    // Format the date (without time)
+    return date.toLocaleDateString("en-US", options);
+  };
+
   return (
     <>
       <Header />
@@ -112,7 +130,7 @@ const FieldUserAttendece = () => {
                     </th>
                     <th
                       style={{
-                        width: "10%",
+                        width: "14%",
                         textAlign: "left",
                         background: "#e5e5e5",
                       }}
@@ -195,7 +213,7 @@ const FieldUserAttendece = () => {
                         <td
                           style={{ padding: "15px 10px", fontSize: "0.9rem" }}
                         >
-                          {item.created_at}
+                          {formatTimeStamp(item.created_at)}
                         </td>
                         <td
                           style={{ padding: "15px 10px", fontSize: "0.9rem" }}

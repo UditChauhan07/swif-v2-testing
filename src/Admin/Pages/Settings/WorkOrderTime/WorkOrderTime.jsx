@@ -12,6 +12,71 @@ import {
 import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 import { workOrderTimeApi, workOrderTimeGetApi } from "../../../../lib/store";
+import Select from "react-select";
+
+// Helper component for time dropdowns using react-select
+const TimeDropdown = ({ label, time, setTime }) => {
+  const { t } = useTranslation();
+  const hoursOptions = Array.from({ length: 24 }, (_, i) => {
+    const value = i.toString().padStart(2, "0");
+    return { value, label: value };
+  });
+  const minutesOptions = Array.from({ length: 60 }, (_, i) => {
+    const value = i.toString().padStart(2, "0");
+    return { value, label: value };
+  });
+
+  // Parse the current time string ("HH:MM") or default to "00:00"
+  const [hours, minutes] =
+    time && time.includes(":") ? time.split(":") : ["--", "--"];
+
+  const selectedHoursOption = hoursOptions.find(
+    (option) => option.value === hours
+  );
+  const selectedMinutesOption = minutesOptions.find(
+    (option) => option.value === minutes
+  );
+
+  return (
+    <div>
+      <Form.Label>{label}:</Form.Label>
+      <div className="d-flex">
+        <div>
+          <div>
+            <small>{t("Hours")}</small>
+          </div>
+          <Select
+            options={hoursOptions}
+            placeholder={t("--")}
+            value={selectedHoursOption}
+            onChange={(selectedOption) =>
+              setTime(`${selectedOption.value}:${minutes}`)
+            }
+            styles={{
+              container: (provided) => ({ ...provided, width: 100 }),
+            }}
+          />
+        </div>
+        <div className="ms-3">
+          <div>
+            <small>{t("Minutes")}</small>
+          </div>
+          <Select
+            options={minutesOptions}
+            placeholder={t("--")}
+            value={selectedMinutesOption}
+            onChange={(selectedOption) =>
+              setTime(`${hours}:${selectedOption.value}`)
+            }
+            styles={{
+              container: (provided) => ({ ...provided, width: 100 }),
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const WorkOrderTime = () => {
   const [intervalTime, setIntervalTime] = useState("");
@@ -23,10 +88,17 @@ const WorkOrderTime = () => {
   const [token] = useState(localStorage.getItem("UserToken"));
   const { t } = useTranslation();
 
+  // Helper: convert "HH:MM" to total minutes
+  const convertTimeToMinutes = (timeStr) => {
+    if (!timeStr || !timeStr.includes(":")) return 0;
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  };
+
   const fetchWorkOrderTime = async () => {
     if (!companyId || !token) return;
 
-    setIsInitialLoading(true); // Start initial loading
+    setIsInitialLoading(true);
     try {
       const response = await workOrderTimeGetApi(companyId, token);
       console.log("API Response:", response);
@@ -43,14 +115,13 @@ const WorkOrderTime = () => {
     } catch (error) {
       console.error("Error fetching work order time:", error);
     } finally {
-      setIsInitialLoading(false); // Stop initial loading regardless of outcome
+      setIsInitialLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWorkOrderTime()
-  }, [companyId,token])
-  
+    fetchWorkOrderTime();
+  }, [companyId, token]);
 
   // Validate the form fields
   const validateForm = () => {
@@ -59,6 +130,33 @@ const WorkOrderTime = () => {
         icon: "error",
         title: t("Validation Error"),
         text: t("All fields are required!"),
+      });
+      return false;
+    }
+
+    // Minimum duration is 10 minutes (i.e. more than 00:00)
+    const minMinutes = 10;
+    if (convertTimeToMinutes(intervalTime) < minMinutes) {
+      Swal.fire({
+        icon: "error",
+        title: t("Validation Error"),
+        text: t("Interval Time must be more than 10 minutes."),
+      });
+      return false;
+    }
+    if (convertTimeToMinutes(defaultWorkTime) < minMinutes) {
+      Swal.fire({
+        icon: "error",
+        title: t("Validation Error"),
+        text: t("Default Work Time must be more than 10 minutes."),
+      });
+      return false;
+    }
+    if (convertTimeToMinutes(bufferTime) < minMinutes) {
+      Swal.fire({
+        icon: "error",
+        title: t("Validation Error"),
+        text: t("Buffer Time must be more than 10 minutes."),
       });
       return false;
     }
@@ -98,6 +196,7 @@ const WorkOrderTime = () => {
         Swal.showLoading();
       },
     });
+    console.log("finalData", finalData);
 
     setIsLoading(true);
     try {
@@ -128,7 +227,6 @@ const WorkOrderTime = () => {
     }
   };
 
-  // Show loader until the initial API call is complete
   if (isInitialLoading) {
     return (
       <>
@@ -139,9 +237,7 @@ const WorkOrderTime = () => {
               <Spinner animation="border" role="status">
                 <span className="visually-hidden">{t("Loading")}...</span>
               </Spinner>
-              <p>
-                {t("Loading")}...
-              </p>
+              <p>{t("Loading")}...</p>
             </div>
           </div>
         </div>
@@ -149,11 +245,16 @@ const WorkOrderTime = () => {
     );
   }
 
-  
-
   return (
     <>
       <Header />
+      <style>
+        {`
+          .css-l9r7pz-container {
+            width: 115px;
+          }
+        `}
+      </style>
       <div className="main-header-box mt-4">
         <div className="pages-box">
           <div
@@ -170,45 +271,30 @@ const WorkOrderTime = () => {
           <Form onSubmit={handleSubmit}>
             <Row className="mb-4">
               <Col md={4}>
-                <Card className="p-3">
-                  <Form.Group controlId="intervalTime">
-                    <Form.Label>{t("Interval Time")}:</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={intervalTime}
-                      onChange={(e) => setIntervalTime(e.target.value)}
-                      placeholder={t("Enter Interval Time")}
-                      required
-                    />
-                  </Form.Group>
+                <Card className="p-3" style={{ minWidth: "350px" }}>
+                  <TimeDropdown
+                    label={t("Interval Time")}
+                    time={intervalTime}
+                    setTime={setIntervalTime}
+                  />
                 </Card>
               </Col>
               <Col md={4}>
-                <Card className="p-3">
-                  <Form.Group controlId="defaultWorkTime">
-                    <Form.Label>{t("Default Work Time (Hours)")}:</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={defaultWorkTime}
-                      onChange={(e) => setDefaultWorkTime(e.target.value)}
-                      placeholder={t("Enter Default Work Time")}
-                      required
-                    />
-                  </Form.Group>
+                <Card className="p-3" style={{ minWidth: "350px" }}>
+                  <TimeDropdown
+                    label={t("Default Work Time (Hours)")}
+                    time={defaultWorkTime}
+                    setTime={setDefaultWorkTime}
+                  />
                 </Card>
               </Col>
               <Col md={4}>
-                <Card className="p-3">
-                  <Form.Group controlId="bufferTime">
-                    <Form.Label>{t("Buffer Time")}:</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={bufferTime}
-                      onChange={(e) => setBufferTime(e.target.value)}
-                      placeholder={t("Enter Buffer Time")}
-                      required
-                    />
-                  </Form.Group>
+                <Card className="p-3" style={{ minWidth: "350px" }}>
+                  <TimeDropdown
+                    label={t("Buffer Time")}
+                    time={bufferTime}
+                    setTime={setBufferTime}
+                  />
                 </Card>
               </Col>
             </Row>
@@ -223,6 +309,5 @@ const WorkOrderTime = () => {
     </>
   );
 };
-// ..
 
 export default WorkOrderTime;

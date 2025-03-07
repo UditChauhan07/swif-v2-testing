@@ -14,13 +14,12 @@ import { BeatLoader } from "react-spinners";
 const CreateFieldUser = () => {
   const { t } = useTranslation();
   const countries = getNames();
-  
   const navigate = useNavigate();
   const token = localStorage.getItem("UserToken");
   const company_id = localStorage.getItem("companyId") || null;
   const created_by = localStorage.getItem("name") || null;
   const created_by_id = localStorage.getItem("userId") || null;
-  // Formik initial values and validation schema
+
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -52,13 +51,13 @@ const CreateFieldUser = () => {
     }),
     onSubmit: async (values) => {
       Swal.fire({
-      title: t("Processing..."),
-      text: t("Creating field user, please wait."),
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+        title: t("Processing..."),
+        text: t("Creating field user, please wait."),
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       const formData = new FormData();
       for (const key in values) {
         if (key === "profilePicture") {
@@ -70,14 +69,14 @@ const CreateFieldUser = () => {
       console.log("Form", values);
 
       const response = await create_FieldUser(values, token);
-        Swal.close();
+      Swal.close();
       if (response.success) {
         Swal.fire({
           title: t("Success"),
           text: t("Field User Created Successfully"),
           icon: "success",
-          timer: 1400, // Time in milliseconds (1400 ms = 1.4 seconds)
-          showConfirmButton: false, // Optional: Hide the confirm button
+          timer: 1400,
+          showConfirmButton: false,
         });
         formik.resetForm();
         formik.values.profilePicture = null;
@@ -90,14 +89,38 @@ const CreateFieldUser = () => {
       console.log("Response", response);
     },
   });
-  // console.log('formik.errors',formik.errors)
+
+  // Custom submit handler that scrolls to the first error field if validation fails.
+  const handleSubmitWithScroll = async (e) => {
+    e.preventDefault();
+    const errors = await formik.validateForm();
+    if (Object.keys(errors).length > 0) {
+      // Mark all fields as touched so that error messages appear.
+      formik.setTouched(
+        Object.keys(errors).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+      );
+      // Wait for error messages to render, then scroll to the first field with an error.
+      setTimeout(() => {
+        const firstErrorFieldName = Object.keys(errors)[0];
+        const errorElement = document.querySelector(
+          `[name="${firstErrorFieldName}"]`
+        );
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          errorElement.focus();
+        }
+      }, 100);
+    } else {
+      formik.handleSubmit(e);
+    }
+  };
+
   return (
     <>
       <Header />
       <div className="main-header-box mt-4">
         <div className="pages-box">
-      
-          <div className="">
+          <div>
             <div
               className="form-header mb-4"
               style={{
@@ -109,7 +132,7 @@ const CreateFieldUser = () => {
             >
               <h4 className="mb-0">{t("Enter Field Agent Details")}</h4>
             </div>
-            <Form onSubmit={formik.handleSubmit}>
+            <Form onSubmit={handleSubmitWithScroll}>
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3" controlId="formName">
@@ -126,8 +149,11 @@ const CreateFieldUser = () => {
                       onChange={formik.handleChange}
                       isInvalid={formik.touched.name && formik.errors.name}
                       onInput={(e) => {
-                        e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                    }}
+                        e.target.value = e.target.value.replace(
+                          /[^a-zA-Z\s]/g,
+                          ""
+                        );
+                      }}
                     />
                     <Form.Control.Feedback type="invalid">
                       {formik.errors.name}
@@ -140,7 +166,6 @@ const CreateFieldUser = () => {
                     <Form.Label>
                       {t("Email")}
                       <span className="text-danger">*</span>
-
                     </Form.Label>
                     <Form.Control
                       type="email"
@@ -155,7 +180,7 @@ const CreateFieldUser = () => {
                       {formik.errors.email}
                     </Form.Control.Feedback>
                     <Form.Text className="d-block mb-1 text-muted">
-                   {t("Field User can login via this Email")}
+                      {t("Field User can login via this Email")}
                     </Form.Text>
                   </Form.Group>
                 </Col>
@@ -192,7 +217,6 @@ const CreateFieldUser = () => {
                       {t("Password")}
                       <span className="text-danger">*</span>
                     </Form.Label>
-                    
                     <Form.Control
                       type="password"
                       placeholder={t("Enter Password")}
@@ -238,17 +262,6 @@ const CreateFieldUser = () => {
                   </Form.Group>
                 </Col>
 
-                {/* <Col md={6}>
-                  <Form.Group className="mb-3" controlId="formProfilePicture">
-                    <Form.Label>Profile Picture</Form.Label>
-                    <Form.Control
-                      type="file"
-                      name="profilePicture"
-                      onChange={(e) => formik.setFieldValue("profilePicture", e.target.files[0])}
-                    />
-                  </Form.Group>
-                </Col> */}
-
                 <Col md={6}>
                   <Form.Group className="mb-4" controlId="formCountry">
                     <Form.Label>
@@ -274,19 +287,14 @@ const CreateFieldUser = () => {
                       styles={{
                         menuList: (provided) => ({
                           ...provided,
-                          maxHeight: "150px", // Limits dropdown height
+                          maxHeight: "150px",
                           overflowY: "auto",
                         }),
                       }}
-                      isInvalid={
-                        formik.touched.country && !!formik.errors.country
-                      }
                     />
-
                     {formik.touched.country && formik.errors.country && (
                       <div className="text-danger">{formik.errors.country}</div>
                     )}
-
                     <Form.Control.Feedback type="invalid">
                       {formik.errors.country}
                     </Form.Control.Feedback>
@@ -336,7 +344,6 @@ const CreateFieldUser = () => {
               </div>
             </Form>
           </div>
-         
         </div>
       </div>
     </>

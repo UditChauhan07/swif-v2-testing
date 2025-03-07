@@ -39,7 +39,6 @@ const Header = () => {
   const [companyLogo, setcompanyLogo] = useState(
     localStorage.getItem("companyLogo")
   );
-  // console.log("companyLogo", companyLogo);
   const [companyId, setcompanyId] = useState(localStorage.getItem("companyId"));
   const [sessionId, setsessionId] = useState(localStorage.getItem("SessionId"));
   const [userId, setuserId] = useState(localStorage.getItem("userId"));
@@ -132,6 +131,29 @@ const Header = () => {
       }
     };
   }, [userId, t]);
+
+  useEffect(() => {
+    // Listen for changes from other tabs
+    const handleStorageChange = (e) => {
+      if (e.key === "companyLogo") {
+        setcompanyLogo(e.newValue);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    // Poll every 500ms to catch changes in the same tab
+    const intervalId = setInterval(() => {
+      const newLogo = localStorage.getItem("companyLogo");
+      if (newLogo !== companyLogo) {
+        setcompanyLogo(newLogo);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, [companyLogo]);
 
   const handleLogOut = async () => {
     const result = await Swal.fire({
@@ -1013,8 +1035,6 @@ const Header = () => {
                       >
                         ▣ {t("Invoice & Payments")}
                       </Link>
-                      
-
                     </div>
                   </div>
                 </>
