@@ -127,7 +127,7 @@ const AdminProfile = () => {
       return;
     }
 
-    // Show loading alert
+    // Show loading alertt
     Swal.fire({
       title: t("Processing..."),
       text: t("Updating company details, please wait."),
