@@ -26,6 +26,7 @@ const SuperAdminProfile = () => {
   const [companyData, setCompanyData] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState(localStorage.getItem("userId"));
 
   const [formData, setFormData] = useState({
     company_name: "",
@@ -97,7 +98,7 @@ const SuperAdminProfile = () => {
 
     // Build payload in the required structure
     const updatePayload = {
-      userId: companyData.userId, // from fetched data
+      userId, // from fetched data
       companyData: {
         company_name: formData.company_name,
         company_logo: companyLogoBase64,
