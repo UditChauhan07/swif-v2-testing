@@ -517,7 +517,7 @@ const ReportsAnalytics = () => {
                             ? getSingleCompanyData.featuresCount
                                 .executedWorkOrders
                             : grandTotals
-                            ? grandTotals.executedWorkOrder || "2"
+                            ? grandTotals.executedWorkOrder || "0"
                             : "20"}
                         </strong>
                       </Card.Text>

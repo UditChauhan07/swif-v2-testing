@@ -26,6 +26,8 @@ const InvoiceReport = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [newStatus, setNewStatus] = useState("");
+  const [remarks, setRemarks] = useState(null);
+
 
   const fetchInvoices = async () => {
     setIsLoading(true);
@@ -96,6 +98,7 @@ const InvoiceReport = () => {
     const paymentData = {
       invoiceNo: selectedInvoice.invoiceNo,
       status: newStatus,
+      remarks,
     };
     // console.log("paymentData", paymentData);
 
@@ -155,6 +158,7 @@ const InvoiceReport = () => {
           confirmButtonText: t("OK"),
         });
         console.error("Error updating invoice status:", error);
+      }finally{    setRemarks(null);
       }
     }
   };
@@ -170,8 +174,15 @@ const InvoiceReport = () => {
   const options = [
     { value: "Paid", label: t("Paid") },
     { value: "Failed", label: t("Failed") },
+    { value: "Overdue", label: t("Overdue") },
+    { value: "Pending", label: t("Pending") },
   ];
-
+  const handleClose = () => {
+    setShowModal(false);
+    setNewStatus("");
+    setRemarks(null);
+  };
+ 
   return (
     <>
       <Header />
@@ -241,9 +252,48 @@ const InvoiceReport = () => {
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.dueDate}
                     </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
+                    {/* <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.payment_status}
-                    </td>
+                    </td> */}
+               <td style={{ padding: "15px", fontSize: "0.9rem" }}>
+                {item.payment_status === "Paid" ? (
+                  <span
+                    className="badge bg-success"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                    {t("Paid")}
+                  </span>
+                ) : item.payment_status === "Pending" ? (
+                  <span
+                    className="badge bg-warning text-dark"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                    {t("Pending")}
+                  </span>
+                ) : item.payment_status === "Failed" ? (
+                  <span
+                    className="badge bg-danger"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                  {t("Failed")} 
+                  </span>
+                ) : item.payment_status === "Overdue" ? (
+                  <span
+                    className="badge"
+                    style={{
+                      backgroundColor: "orangered",
+                      width: "70px",
+                      textAlign: "center",
+                      color: "white"
+                    }}
+                  >
+                     {t("Overdue")}
+                  </span>
+                ) : (
+                  item.payment_status
+                )}
+              </td>
+   
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item?.total} ({item?.currencyCode})
                     </td>
@@ -316,7 +366,7 @@ const InvoiceReport = () => {
         </div>
       </div>
       {/* Modal for updating invoice status */}
-      <Modal
+      {/* <Modal
         show={showModal}
         onHide={() => {
           setShowModal(false);
@@ -359,7 +409,49 @@ const InvoiceReport = () => {
             {t("Update")}
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
+      <Modal show={showModal} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{t("Update Invoice Status")}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group>
+            <Form.Label>{t("Select Status")}</Form.Label>
+            <Select
+              options={options}
+              onChange={(selectedOption) => setNewStatus(selectedOption.value)}
+              placeholder={t("Select a status")}
+            />
+          </Form.Group>
+          {newStatus === "Overdue" && (
+            <Form.Group className="mt-3">
+              <Form.Label>{t("Enter Remarks")}</Form.Label>
+              <Form.Control
+                as="textarea"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder={t("Please enter remarks here...")}
+              />
+            </Form.Group>
+          )}
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose}>
+          {t("Close")}
+        </Button>
+        <Button
+          style={{ background: "#2e2e32", color: "white", border: "none" }}
+          onClick={() => handleSaveStatus(newStatus === "Overdue" ? remarks : null)}
+          disabled={
+            !newStatus || (newStatus === "Overdue" && remarks?.trim() === "" || newStatus ==null)
+          }
+        >
+          {t("Update")}
+        </Button>
+      </Modal.Footer>
+    </Modal>
     </>
   );
 };
