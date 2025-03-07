@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import {
   Container,
   Row,
-  Col,
-  Form,
-  Button,
-  Spinner,
   Card,
+  Button,
+  Form,
+  InputGroup,
+  Spinner,
 } from "react-bootstrap";
 import "./Login.css";
-import axios from "axios";
 import { LoginApi } from "../../lib/store";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../context/PermissionContext";
 import { useTranslation } from "react-i18next";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const { i18n } = useTranslation();
@@ -24,8 +24,8 @@ const Login = () => {
     email: "",
     password: "",
   });
-
   const [errors, setErrors] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,18 +51,21 @@ const Login = () => {
         localStorage.setItem("language", "en");
         localStorage.setItem("currencyCode", response?.currencyCode);
 
-        if(response.skipTutorial || response.skipTutorial=='true'){
+        if (response.skipTutorial || response.skipTutorial === "true") {
           localStorage.setItem("guidlines", "unactive");
-        }
-        else{
+        } else {
           localStorage.setItem("guidlines", "active");
         }
         localStorage.setItem("companyName", response.company_name);
         localStorage.setItem("companyLogo", response.company_logo);
         localStorage.setItem("defaultTimezone", response.company_timezone);
         localStorage.setItem("roleID", response.roleID);
-        if (response.user.role === "Admin" || response.user.role === "SuperAdmin") {
-        localStorage.setItem("SessionId", response.sessionId);}
+        if (
+          response.user.role === "Admin" ||
+          response.user.role === "SuperAdmin"
+        ) {
+          localStorage.setItem("SessionId", response.sessionId);
+        }
         localStorage.setItem("defaultLanguage", response.company_language);
         if (
           response.user.role === "Admin" ||
@@ -88,13 +91,11 @@ const Login = () => {
           navigate("/dashboard");
         }
       } else {
-        // Assume the API returns a message that contains either "user" or "password" to indicate the field.
         if (response.message.toLowerCase().includes("user")) {
           setErrors({ email: response.message, password: "" });
         } else if (response.message.toLowerCase().includes("password")) {
           setErrors({ email: "", password: response.message });
         } else {
-          // Fallback: assign the error to the email field.
           setErrors({ email: response.message, password: "" });
         }
       }
@@ -143,23 +144,31 @@ const Login = () => {
               )}
             </Form.Group>
 
-            {/* Password Field */}
+            {/* Password Field with Eye Toggle */}
             <Form.Group className="mb-3" controlId="formPassword">
               <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Enter your password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                isInvalid={!!errors.password}
-                required
-              />
-              {errors.password && (
-                <Form.Control.Feedback type="invalid">
-                  {errors.password}
-                </Form.Control.Feedback>
-              )}
+              <InputGroup>
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  isInvalid={!!errors.password}
+                  required
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </Button>
+                {errors.password && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password}
+                  </Form.Control.Feedback>
+                )}
+              </InputGroup>
             </Form.Group>
 
             <div className="d-grid">
@@ -180,20 +189,6 @@ const Login = () => {
               </Button>
             </div>
           </Form>
-
-          {/* <div className="text-center mt-4">
-            <small className="text-muted">
-              By signing in or clicking "Login", you agree to our{" "}
-              <a href="#terms" className="text-decoration-none">
-                Terms of Service
-              </a>
-              . Please also read our{" "}
-              <a href="#privacy" className="text-decoration-none">
-                Privacy Policy
-              </a>
-              .
-            </small>
-          </div> */}
         </Card>
       </Container>
     </div>

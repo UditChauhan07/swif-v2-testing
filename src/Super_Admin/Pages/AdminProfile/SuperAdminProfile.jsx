@@ -24,6 +24,7 @@ const SuperAdminProfile = () => {
   const [token] = useState(localStorage.getItem("UserToken"));
 
   const [companyData, setCompanyData] = useState({});
+  console.log("companyData",companyData)
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
@@ -113,6 +114,8 @@ const SuperAdminProfile = () => {
         companyState: formData.companyState,
       },
     };
+
+    console.log("dadadasd",updatePayload)
 
     // Show confirmation dialogg
     const result = await Swal.fire({
