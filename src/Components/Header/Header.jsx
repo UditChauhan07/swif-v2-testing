@@ -341,7 +341,7 @@ const Header = () => {
                 width={"40px"}
                 src={
                   userRole === "SuperAdmin"
-                    ? superAdminLogo
+                    ? "https://swif.truet.net/public/swifCompany/logo/logo.png"
                     : companyLogo == "null"
                     ? "https://swif.truet.net/public/swifCompany/noLogo.jpg"
                     : companyLogo
