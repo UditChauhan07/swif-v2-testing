@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useRef } from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import { Formik, Field, Form as FormikForm, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -6,7 +6,7 @@ import Header from "../../../../Components/Header/Header";
 import { usePermissions } from "../../../../context/PermissionContext";
 import { createOfficeUser, fetchRolesList } from "../../../../lib/store";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import imageCompression from "browser-image-compression";
 import Select from "react-select";
@@ -15,12 +15,14 @@ import { getNames } from "country-list";
 const Create = () => {
   const { t } = useTranslation();
   const [roles, setRoles] = useState([]);
-  console.log("dads", roles);
   const token = localStorage.getItem("UserToken");
   const userid = localStorage.getItem("companyId");
   const company_id = localStorage.getItem("companyId") || null;
   const [profile, setProfile] = useState(null);
+  const [alertShown, setAlertShown] = useState(false);
+  const alertRef = useRef(false); // useRef to persist across renders
   const navigate = useNavigate();
+  const location = useLocation(); // Hook to detect route changes
 
   const countryOptions = getNames().map((country) => ({
     value: country,
@@ -41,9 +43,22 @@ const Create = () => {
       .email(t("Invalid email address"))
       .required(t("Email is required")),
     password: Yup.string()
-      .trim()
-      .min(6, t("Password must be at least 6 characters"))
-      .required(t("Password is required")),
+      .required(t("Password is required"))
+      .min(8, t("Password must be at least 8 characters"))
+      .max(16, t("Password must not exceed 16 characters"))
+      .matches(
+        /[A-Z]/,
+        t("Password must contain at least one uppercase letter")
+      )
+      .matches(
+        /[a-z]/,
+        t("Password must contain at least one lowercase letter")
+      )
+      .matches(/[0-9]/, t("Password must contain at least one number"))
+      .matches(
+        /[\W_]/,
+        t("Password must contain at least one special character")
+      ),
     contactNumber: Yup.string()
       .trim()
       .matches(
@@ -63,9 +78,40 @@ const Create = () => {
     if (userid) {
       fetchRolesList(userid, token).then((response) => {
         setRoles(response?.data);
+
+        if (response?.status === false && !alertRef.current) {
+          alertRef.current = true; // Mark that the alert is triggered
+
+          Swal.fire({
+            icon: "error",
+            title: t("Empty Roles List!"), // Translated title
+            text: t("Please configure roles to proceed."), // Professional translated text
+            confirmButtonText: t("Create!"), // Translated button text
+            showCancelButton: true, // Show "Close" button (cancel button)
+            cancelButtonText: t("Close"), // Translated button text for Close
+            allowOutsideClick: false, // Disable closing by clicking outside
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // If the user clicks the "Create!" button
+              navigate("/settings/admin/roles/create");
+            } else if (result.isDismissed) {
+              // If the user clicks the "Close" button
+              navigate(-1); // Navigate to the previous page (back in history)
+            }
+          });
+        }
       });
     }
-  }, [userid]);
+  }, [userid, navigate]);
+
+  useEffect(() => {
+    // Check if Swal is open before calling Swal.close()
+    if (Swal.isVisible()) {
+      Swal.close(); // Close the modal if it's open
+    }
+
+    alertRef.current = false; // Reset alertRef whenever the route changes
+  }, [location, navigate]);
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file, setFieldValue) => {
@@ -235,8 +281,11 @@ const Create = () => {
                           name="firstName"
                           maxLength={40}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                        }}
+                            e.target.value = e.target.value.replace(
+                              /[^a-zA-Z\s]/g,
+                              ""
+                            );
+                          }}
                         />
                         <ErrorMessage
                           name="firstName"
@@ -255,8 +304,11 @@ const Create = () => {
                           name="lastName"
                           maxLength={40}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                        }}
+                            e.target.value = e.target.value.replace(
+                              /[^a-zA-Z\s]/g,
+                              ""
+                            );
+                          }}
                         />
                         <ErrorMessage
                           name="lastName"
@@ -401,7 +453,6 @@ const Create = () => {
                         <Select
                           options={countryOptions}
                           placeholder={t("Select a country")}
-
                           onChange={(selectedOption) =>
                             setFieldValue("country", selectedOption.value)
                           }

@@ -144,9 +144,47 @@ const CompanyInvoices = () => {
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.dueDate}
                     </td>
-                    <td style={{ padding: "15px", fontSize: "0.9rem" }}>
+                    {/* <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item.payment_status}
-                    </td>
+                    </td> */}
+                      <td style={{ padding: "15px", fontSize: "0.9rem" }}>
+                {item.payment_status === "Paid" ? (
+                  <span
+                    className="badge bg-success"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                    {t("Paid")}
+                  </span>
+                ) : item.payment_status === "Pending" ? (
+                  <span
+                    className="badge bg-warning text-dark"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                    {t("Pending")}
+                  </span>
+                ) : item.payment_status === "Failed" ? (
+                  <span
+                    className="badge bg-danger"
+                    style={{ width: "70px", textAlign: "center" }}
+                  >
+                  {t("Failed")} 
+                  </span>
+                ) : item.payment_status === "Overdue" ? (
+                  <span
+                    className="badge"
+                    style={{
+                      backgroundColor: "orangered",
+                      width: "70px",
+                      textAlign: "center",
+                      color: "white"
+                    }}
+                  >
+                     {t("Overdue")}
+                  </span>
+                ) : (
+                  item.payment_status
+                )}
+              </td>
                     <td style={{ padding: "15px", fontSize: "0.9rem" }}>
                       {item?.total} ({item?.currencyCode})
                     </td>

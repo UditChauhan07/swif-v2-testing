@@ -110,6 +110,24 @@ const FieldUserAttendece = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
+  const formatTimeStamp = (timestamp) => {
+    // Extract seconds and nanoseconds
+    const { _seconds, _nanoseconds } = timestamp;
+
+    // Create a Date object
+    const date = new Date(_seconds * 1000 + _nanoseconds / 1000000);
+
+    // Define options for formatting (date only)
+    const options = {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    };
+
+    // Format the date (without time)
+    return date.toLocaleDateString("en-US", options);
+  };
+
   return (
     <>
       <Header />
@@ -240,7 +258,7 @@ const FieldUserAttendece = () => {
                         </th>
                         <th
                           style={{
-                            width: "10%",
+                            width: "14%",
                             textAlign: "left",
                             background: "#e5e5e5",
                           }}
@@ -316,7 +334,11 @@ const FieldUserAttendece = () => {
                           </td>
                         </tr>
                       ) : (
-                        currentItems.map((item, index) => (
+                        currentItems.map((item, index) => {
+                          // const createdAt = yourData.created_at; // { _seconds: 1741252559, _nanoseconds: 251000000 }
+                          // const createdAtDate = createdAt?.toDate(); // Convert Timestamp to Date
+                          // const formattedDate = createdAtDate?.toLocaleString(); // You can use other formats like toLocaleDateString(), toLocaleTimeString(), etc.
+                          return(
                           <tr key={index}>
                             <td
                               style={{
@@ -332,7 +354,7 @@ const FieldUserAttendece = () => {
                                 fontSize: "0.9rem",
                               }}
                             >
-                              {item.created_at}
+                              {formatTimeStamp(item.created_at)}
                             </td>
                             <td
                               style={{
@@ -411,7 +433,8 @@ const FieldUserAttendece = () => {
                               </span>
                             </td>
                           </tr>
-                        ))
+                          )
+                        })
                       )}
                     </tbody>
                   </Table>

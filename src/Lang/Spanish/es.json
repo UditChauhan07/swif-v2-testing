@@ -1852,7 +1852,7 @@
   "Rate ($)": "Tarifa ($)",
   "Fully Flexible": "Totalmente Flexible",
   "Basic": "Básico",
-  "Premium": "Premium",
+  "Premium": "De primera calidad",
   "Enterprise": "Empresa",
   "Pay as You Go": "Paga A Medida Que Lo Usas",
   "No Subscription Packages Available": "No hay paquetes de suscripción disponibles",
@@ -1943,5 +1943,17 @@
   "Status updated": "Estado actualizado",
   "The invoice status has been updated successfully.": "El estado de la factura se ha actualizado correctamente.",
   "Update failed": "La actualización falló",
-  "There was an error updating the invoice status. Please try again later.": "Hubo un error al actualizar el estado de la factura. Por favor, inténtelo de nuevo más tarde."
+  "There was an error updating the invoice status. Please try again later.": "Hubo un error al actualizar el estado de la factura. Por favor, inténtelo de nuevo más tarde.",
+  "Clear Filter": "Borrar Filtro",
+  "Features": "Características",
+  "Usage Limit": "Límite de Uso",
+  "$ Per Usage": "Por Uso",
+  "Minutes": "Minutos",
+  "WorkOrder Default Settings not Set!": "¡Configuraciones predeterminadas del WorkOrder no establecidas!",
+  "Please configure the default settings to proceed.": "Por favor, configure las configuraciones predeterminadas para continuar.",
+  "Create!": "¡Crear!",
+  "Empty Roles List!": "¡Lista de roles vacía!",
+  "Please configure roles to proceed.": "Por favor, configure los roles para continuar.",
+  "Missing WorkOrder Settings": "Configuraciones del WorkOrder Faltantes",
+  "Reports & Analytics":"Informes y análisis"
 }

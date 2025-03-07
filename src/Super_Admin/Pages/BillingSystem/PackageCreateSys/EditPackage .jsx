@@ -181,7 +181,7 @@ const EditPackage = ({ initialValues, onSubmit }) => {
                     <>
                       <div className="mb-4">
                         <label className="form-label fw-semibold">{t("Package Name")}</label>
-                        <Field type="text" name="name" className="form-control" maxLength={50} />
+                        <Field type="text" name="name" className="form-control" maxLength={50} disabled />
                       </div>
                       <div className="mb-4">
                         <label className="form-label fw-semibold">{t("Cost Per Month")} ($)</label>

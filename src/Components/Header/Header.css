@@ -125,7 +125,6 @@
 /* Medium Screens (Tablets) */
 @media screen and (max-width: 992px) {
   .sidebar {
-    /* width: 250px; */
     left: -260px; 
   }
 
@@ -181,7 +180,7 @@
   .sidebar-toggle-btn {
     display: block;
     position: fixed;
-    top: 20px;
+    /* top: 20px; */
     left: 20px;
     z-index: 1100;
     background: transparent;

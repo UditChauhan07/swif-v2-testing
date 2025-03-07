@@ -59,30 +59,43 @@ const ReportsAnalytics = () => {
   const { t } = useTranslation();
   const [token] = useState(localStorage.getItem("UserToken"));
 
-  const defaultInvoiceStatusData = [
-    { name: t("Paid"), value: 60 },
-    { name: t("Pending"), value: 20 },
-    { name: t("Overdue"), value: 15 },
-    { name: t("Failed"), value: 5 },
-  ];
-
   const billingTypeOptions = [
-    { value: "both", label: "Both" },
-    { value: "payg", label: "PAYG" },
-    { value: "subscription", label: "Subscription" },
+    { value: "All", label: "All" },
+    { value: "Default", label: "Default" },
+    { value: "Basic", label: "Basic" },
+    { value: "Premium", label: "Premium" },
+    { value: "Enterprise", label: "Enterprise" },
+    { value: "Payg", label: "Payg" },
+    { value: "Custom", label: "Custom" },
   ];
 
   // States for filters and API data
-  const [selectedCompany, setSelectedCompany] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState();
   const [companyError, setCompanyError] = useState("");
-  const [selectedBillingType, setSelectedBillingType] = useState("both");
+  const [selectedBillingType, setSelectedBillingType] = useState("all");
   const [companyLoader, setcompanyLoader] = useState(false);
   const [companyList, setcompanyList] = useState();
   const [getSingleCompanyData, setgetSingleCompanyData] = useState();
   const [error, setError] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const [grandTotals, setGrandTotals] = useState(null);
+  const [allbillStatusCount, setAllbillStatusCount] = useState({});
+  const [clearFilter, SetclearFilter] = useState(false);
+  const [topCompaniesData, setTopCompaniesData] = useState([]);
+  const [grandTotals, setGrandTotals] = useState({
+    totalCustomers: 0,
+    totalFieldUsers: 0,
+    totalOfficeUsers: 0,
+    totalWorkOrders: 0,
+    totalRevenue: 0,
+  });
   console.log("grandtotal", grandTotals);
+
+  const defaultInvoiceStatusData = [
+    { name: t("Paid"), value: allbillStatusCount?.Paid || 0 },
+    { name: t("Pending"), value: allbillStatusCount?.Pending || 0 },
+    // { name: t("Overdue"), value: allbillStatusCount?.Overdue || 0 },
+    { name: t("Failed"), value: allbillStatusCount?.Failed || 0 },
+  ];
 
   // Date calculations
   const today2 = new Date().toISOString().split("T")[0];
@@ -91,9 +104,13 @@ const ReportsAnalytics = () => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const formattedOneMonthAgo = oneMonthAgo.toISOString().split("T")[0];
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1); // Subtract 1 year
 
+  const formattedOneYearAgo = oneYearAgo.toISOString().split("T")[0];
   const [endDate, setEndDate] = useState(formattedToday);
-  const [startDate, setStartDate] = useState(formattedOneMonthAgo);
+  const [startDate, setStartDate] = useState(formattedOneYearAgo);
+  const [invoices, setInvoices] = useState();
 
   // Transform API data for charts when available; otherwise, use defaults.
   const featureUsageChartData = getSingleCompanyData
@@ -127,7 +144,7 @@ const ReportsAnalytics = () => {
         },
         {
           feature: t("Executed Work Orders"),
-          usage: grandTotals.executedWorkOrder || "2",
+          usage: grandTotals.executedWorkOrder,
         },
         {
           feature: t("Users Created"),
@@ -178,10 +195,31 @@ const ReportsAnalytics = () => {
     const fetchDefaultData = async () => {
       setAnalyticsLoading(true);
       try {
-        const response = await getReportAllCompany();
+        // const response = await getReportAllCompany();
+        const response = await getReportSingleCompany(
+          selectedCompany,
+          selectedBillingType,
+          startDate,
+          endDate
+        );
         console.log("Default response:", response);
         if (response.status === 200) {
-          setGrandTotals(response.data.grandTotals);
+          // setGrandTotals(response.data.analytics.featuresCount);
+          setGrandTotals({
+            totalCustomers:
+              response?.data?.analytics?.featuresCount?.customersCreated || 0,
+            totalFieldUsers:
+              response?.data?.analytics?.featuresCount?.fieldUsersCreated || 0,
+            totalOfficeUsers:
+              response?.data?.analytics?.featuresCount?.usersCreated || 0,
+            totalWorkOrders:
+              response?.data.analytics?.featuresCount?.totalWorkOrders || 0,
+            executedWorkOrder:
+              response.data?.analytics?.featuresCount?.executedWorkOrders || 0,
+            totalRevenue: response?.data?.analytics?.totalRevenue || 0,
+          });
+          setAllbillStatusCount(response?.data?.analytics?.billStatusCount);
+          setInvoices(response?.data?.analytics?.invoices);
         }
       } catch (error) {
         console.error("API Error:", error);
@@ -190,16 +228,16 @@ const ReportsAnalytics = () => {
       }
     };
     fetchDefaultData();
-  }, []);
-
+  }, [clearFilter]);
+  console.log(clearFilter);
   // Handle filter change and API call
   const handleFilterChange = async () => {
-    if (!selectedCompany) {
-      setCompanyError(t("Company is required"));
-      return;
-    } else {
-      setCompanyError("");
-    }
+    // if (!selectedCompany) {
+    //   setCompanyError(t("Company is required"));
+    //   return;
+    // } else {
+    //   setCompanyError("");
+    // }
     setAnalyticsLoading(true);
     setError(null);
     try {
@@ -225,6 +263,36 @@ const ReportsAnalytics = () => {
     }
   };
 
+  useEffect(() => {
+    if (invoices && invoices.length > 0) {
+      const getTopPayingCompanies = (invoiceList) => {
+        const companyRevenue = invoiceList.reduce((acc, invoice) => {
+          if (invoice.payment_status === "Paid") {
+            const company_name = invoice.company_name || "Unknown";
+            acc[company_name] =
+              (acc[company_name] || 0) + Number(invoice.USDTotal || 0);
+          }
+          return acc;
+        }, {});
+        const sortedCompanies = Object.entries(companyRevenue)
+          .map(([company_name, totalRevenue]) => ({
+            company_name,
+            totalRevenue,
+          }))
+          .sort((a, b) => b.totalRevenue - a.totalRevenue); //
+        console.log("sortedCompanies", sortedCompanies);
+        console.log("Top 3 Companies:", sortedCompanies.slice(0, 3));
+
+        return sortedCompanies.slice(0, 3);
+      };
+
+      const topCompanies = getTopPayingCompanies(invoices);
+      console.log("Top Paying Companies:", topCompanies);
+
+      setTopCompaniesData(topCompanies);
+    }
+  }, [invoices]);
+
   return (
     <>
       <Header />
@@ -246,7 +314,19 @@ const ReportsAnalytics = () => {
                   <div className="d-flex justify-content-between">
                     <h5 className="mb-3">{t("Filter Options")}</h5>
                     <div>
-                      <Button variant="secondary" onClick={handleFilterChange}>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setEndDate(formattedToday);
+                          setStartDate(formattedOneYearAgo);
+                          setSelectedCompany();
+                          SetclearFilter((prev) => !prev);
+                        }}
+                        className="me-2"
+                      >
+                        {t("Clear Filter")}
+                      </Button>
+                      <Button variant="primary" onClick={handleFilterChange}>
                         {t("Apply Filters")}
                       </Button>
                     </div>
@@ -257,7 +337,8 @@ const ReportsAnalytics = () => {
                       <Col md={3}>
                         <Form.Group controlId="filterCompany">
                           <Form.Label>{t("Company")}</Form.Label>
-                          <Select
+
+                          {/* <Select
                             isLoading={companyLoader}
                             options={companyList?.map((company) => ({
                               value: company.id,
@@ -277,7 +358,43 @@ const ReportsAnalytics = () => {
                             }}
                             classNamePrefix="react-select"
                             styles={customSelectStyles}
+                          /> */}
+                          <Select
+                            isLoading={companyLoader}
+                            options={[
+                              { value: "all", label: "All Companies" }, 
+                              ...(Array.isArray(companyList)
+                                ? companyList.map((company) => ({
+                                    value: company.id,
+                                    label: company.company_name,
+                                  }))
+                                : []), 
+                            ]}
+                            value={
+                              [
+                                { value: "all", label: "All Companies" },
+                                ...(Array.isArray(companyList)
+                                  ? companyList.map((company) => ({
+                                      value: company.id,
+                                      label: company.company_name,
+                                    }))
+                                  : []),
+                              ].find(
+                                (opt) => opt.value === selectedCompany
+                              ) || { value: "all", label: "All Companies" }
+                            }
+                            onChange={(selected) => {
+                              setSelectedCompany(
+                                selected?.value === "all"
+                                  ? undefined
+                                  : selected?.value
+                              ); 
+                              if (selected) setCompanyError("");
+                            }}
+                            classNamePrefix="react-select"
+                            styles={customSelectStyles}
                           />
+
                           {companyError && (
                             <div className="text-danger mt-1">
                               {companyError}
@@ -400,7 +517,7 @@ const ReportsAnalytics = () => {
                             ? getSingleCompanyData.featuresCount
                                 .executedWorkOrders
                             : grandTotals
-                            ? grandTotals.executedWorkOrder || "2"
+                            ? grandTotals.executedWorkOrder || "0"
                             : "20"}
                         </strong>
                       </Card.Text>
@@ -430,7 +547,7 @@ const ReportsAnalytics = () => {
               </Row>
 
               {/* Conditionally show Invoice Status Report (with custom legend) only if filtered data is available */}
-              {getSingleCompanyData && (
+              {invoiceStatusChartData && (
                 <Row className="mb-4">
                   <Col md={12}>
                     <Card>
@@ -478,6 +595,35 @@ const ReportsAnalytics = () => {
                   </Col>
                 </Row>
               )}
+
+              {/* Top Paying Companies Table */}
+              <Row className="mb-4">
+                <Col md={12}>
+                  <Card>
+                    <Card.Body>
+                      <Card.Title>{t("Top Paying Companies")}</Card.Title>
+                      <table className="table table-striped">
+                        <thead>
+                          <tr>
+                            <th>{t("Company Name")}</th>
+                            <th>{t("Total Paid Amount")}{' ( in $ )'}</th>
+                            {/* <th>{t("Last Invoice Date")}</th> */}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {topCompaniesData.map((item, index) => (
+                            <tr key={index}>
+                              <td>{item.company_name}</td>
+                              <td>{item.totalRevenue}</td>
+                              {/* <td>{item.lastInvoiceDate}</td> */}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
             </>
           )}
         </div>

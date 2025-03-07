@@ -43,6 +43,7 @@ const AdminProfile = () => {
     try {
       setIsLoading(true);
       const response = await getCompanyDetail(companyId, token);
+      console.log("resssss",response)
       if (response.status === true) {
         setFormData(response?.data);
         setcompanyData(response?.data);
@@ -111,7 +112,6 @@ const AdminProfile = () => {
       companyState: formData.companyState,
     };
 
-    console.log("companyData", companyData);
 
     // Show confirmation dialog
     const result = await Swal.fire({
@@ -127,7 +127,7 @@ const AdminProfile = () => {
       return;
     }
 
-    // Show loading alert
+    // Show loading alertt
     Swal.fire({
       title: t("Processing..."),
       text: t("Updating company details, please wait."),
@@ -139,9 +139,11 @@ const AdminProfile = () => {
 
     try {
       const response = await updateSingleCompany(companyId, token, companyData);
+      
       Swal.close();
 
       if (response.status) {
+        localStorage.setItem("companyLogo", companyLogoBase64);
         await Swal.fire({
           title: t("Success!"),
           text: t("Company updated successfully."),
@@ -223,11 +225,11 @@ const AdminProfile = () => {
                     </Col>
                     <Col>
                       <Image
-                        src={companyData?.company_logo}
+                        src={companyData?.company_logo || "https://swif.truet.net/public/swifCompany/noLogo.jpg"}
                         alt="Logo"
                         fluid
                         rounded
-                        style={{ height: "150px", width: "150px" }}
+                        style={{ height: "150px", width: "150px",objectFit:"contain" }}
                       />
                     </Col>
                   </Row>
