@@ -74,13 +74,19 @@ const Create = () => {
 
           Swal.fire({
             icon: "error",
-            title: "Empty Roles List!",
-            confirmButtonText: "Create!",
+            title: t("Empty Roles List!"), // Translated title
+            text: t("Please configure roles to proceed."), // Professional translated text
+            confirmButtonText: t("Create!"), // Translated button text
+            showCancelButton: true, // Show "Close" button (cancel button)
+            cancelButtonText: t("Close"), // Translated button text for Close
             allowOutsideClick: false, // Disable closing by clicking outside
           }).then((result) => {
             if (result.isConfirmed) {
-              // Only navigate when the user clicks the "Create!" button
+              // If the user clicks the "Create!" button
               navigate("/settings/admin/roles/create");
+            } else if (result.isDismissed) {
+              // If the user clicks the "Close" button
+              navigate(-1); // Navigate to the previous page (back in history)
             }
           });
         }
@@ -89,8 +95,14 @@ const Create = () => {
   }, [userid, navigate]);
 
   useEffect(() => {
+    // Check if Swal is open before calling Swal.close()
+    if (Swal.isVisible()) {
+      Swal.close(); // Close the modal if it's open
+    }
+
     alertRef.current = false; // Reset alertRef whenever the route changes
-  }, [location]); 
+
+  }, [location,navigate]); 
 
   // New: Compress image files before updating state
   const handleImageChange = async (field, file, setFieldValue) => {

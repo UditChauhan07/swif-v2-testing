@@ -1947,7 +1947,15 @@
   , "Clear Filter": "Borrar Filtro",
   "Features": "Características",
   "Usage Limit": "Límite de Uso",
-  "$ Per Usage": "Por Uso"
+  "$ Per Usage": "Por Uso",
+  "WorkOrder Default Settings not Set!": "¡Configuraciones predeterminadas del WorkOrder no establecidas!",
+  "Please configure the default settings to proceed.": "Por favor, configure las configuraciones predeterminadas para continuar.",
+  "Create!": "¡Crear!",
+  "Empty Roles List!": "¡Lista de roles vacía!",
+  "Please configure roles to proceed.": "Por favor, configure los roles para continuar.",
+  "Missing WorkOrder Settings": "Configuraciones del WorkOrder Faltantes"
+
+ 
  
   
 

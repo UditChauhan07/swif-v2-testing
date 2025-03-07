@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import {
   Container,
   Row,
@@ -28,7 +28,7 @@ const CreateWorkOrder = () => {
   const [copmanyId] = useState(localStorage.getItem("companyId"));
   const [token] = useState(localStorage.getItem("UserToken"));
   const company_id = localStorage.getItem("companyId") || null;
-
+  const alertRef = useRef(false); 
   const getCurrentTimeHHMM = () => {
     const now = new Date();
     const hours = now.getHours().toString().padStart(2, "0");
@@ -123,14 +123,37 @@ const CreateWorkOrder = () => {
         const response = await workOrderTimeGetApi(company_id, token);
         console.log("API Response:", response);
 
-        if (response?.workOrderSettings) {
+        if (Object.values(response?.workOrderSettings).length > 0) {
+          console.log('innside')
           setIntervalTime(response.workOrderSettings.intervalTime || "");
           setDefaultWorkTime(
             response.workOrderSettings.defaultWorkOrderTime || ""
           );
           // setBufferTime(response.workOrderSettings.bufferTime || "");
         } else {
+          // console.log('else')
           console.log("Work order settings not found in response");
+          if (Object.values(response?.workOrderSettings).length <= 0 && !alertRef.current) {
+                    alertRef.current = true; // Mark that the alert is triggered
+                    console.log("Work order settings not found in response2");
+                    Swal.fire({
+                      icon: "error",
+                      title: t("Missing WorkOrder Settings"), // Translated title
+                      text: t("Please configure the default settings to proceed."), // Translated text
+                      confirmButtonText: t("Create!"),
+                      showCancelButton: true,
+                      cancelButtonText: t("Close"), // Translated button text
+                      allowOutsideClick: false,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        // If the user clicks the "Create!" button
+                        navigate("/settings/admin/workOrderTime");
+                      } else if (result.isDismissed) {
+                        // If the user clicks the "Close" button
+                        navigate(-1); // Navigate to the previous page (back in history)
+                      }
+                    });
+                  }
         }
       } catch (error) {
         console.error("Error fetching work order time:", error);
@@ -138,7 +161,7 @@ const CreateWorkOrder = () => {
     };
 
     getWorkOrderTime();
-  }, [company_id, token]);
+  }, [company_id, token,navigate]);
 
   useEffect(() => {
     if (defaultWorkTime) {
@@ -346,6 +369,8 @@ const CreateWorkOrder = () => {
     }),
   };
 
+
+  
   return (
     <>
       <Header />
@@ -450,9 +475,31 @@ const CreateWorkOrder = () => {
                         <Form.Control
                           type="time"
                           value={startTime}
+                          min={
+                            startDate === new Date().toISOString().split("T")[0]  
+                              ? getCurrentTimeHHMM()
+                              : "00:00"
+                          }
                           onChange={(e) => {
-                            setStartTime(e.target.value);
-                            if (e.target.value) clearError("startTime");
+                            const inputTime = e.target.value;
+                            // Check if start date is today and the selected time is before current time
+                            if (
+                              startDate ===
+                                new Date().toISOString().split("T")[0] &&
+                              inputTime < getCurrentTimeHHMM()
+                            ) {
+                              // Set an error and reset the time to the current time
+                              setErrors((prev) => ({
+                                ...prev,
+                                startTime: t(
+                                  "Start time cannot be in the past"
+                                ),
+                              }));
+                              setStartTime(getCurrentTimeHHMM());
+                            } else {
+                              setStartTime(inputTime);
+                              clearError("startTime");
+                            }
                           }}
                         />
                         {errors.startTime && (
@@ -627,3 +674,10 @@ const CreateWorkOrder = () => {
 };
 
 export default CreateWorkOrder;
+
+const getCurrentTimeHHMM = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};

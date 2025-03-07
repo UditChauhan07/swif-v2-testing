@@ -93,7 +93,7 @@ const ReportsAnalytics = () => {
   const defaultInvoiceStatusData = [
     { name: t("Paid"), value: allbillStatusCount?.Paid || 0 },
     { name: t("Pending"), value: allbillStatusCount?.Pending || 0 },
-    { name: t("Overdue"), value: allbillStatusCount?.Overdue || 0 },
+    // { name: t("Overdue"), value: allbillStatusCount?.Overdue || 0 },
     { name: t("Failed"), value: allbillStatusCount?.Failed || 0 },
   ];
 
@@ -270,7 +270,7 @@ const ReportsAnalytics = () => {
           if (invoice.payment_status === "Paid") {
             const company_name = invoice.company_name || "Unknown";
             acc[company_name] =
-              (acc[company_name] || 0) + Number(invoice.total || 0);
+              (acc[company_name] || 0) + Number(invoice.USDTotal || 0);
           }
           return acc;
         }, {});
@@ -606,7 +606,7 @@ const ReportsAnalytics = () => {
                         <thead>
                           <tr>
                             <th>{t("Company Name")}</th>
-                            <th>{t("Total Paid Amount")}</th>
+                            <th>{t("Total Paid Amount")}{' ( in $ )'}</th>
                             {/* <th>{t("Last Invoice Date")}</th> */}
                           </tr>
                         </thead>
