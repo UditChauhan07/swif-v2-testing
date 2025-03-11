@@ -58,23 +58,48 @@ const PackagesList = () => {
   const fetchSubscriptionPackages = async () => {
     try {
       const response = await getSubscriptionPackagesList(token);
-
+      console.log('-----resp',response.packages);
+      const predefinedFeatureOrder = [
+        "add_customers",
+        "add_field_users",
+        "add_office_users",
+        "work_order_creation",
+        "work_order_execution"
+      ];
+      
       const sortedPackages = response.packages
         ? [...response.packages]
             .filter((pkg) => pkg.packageType !== "payg")
             .sort((a, b) => a.cost_per_month - b.cost_per_month)
+            .map((pkg) => ({
+              ...pkg,
+              features: Object.fromEntries(
+                predefinedFeatureOrder
+                  .filter((key) => key in pkg.features) // Keep only existing keys
+                  .map((key) => [key, pkg.features[key]]) // Maintain order
+              )
+            }))
         : [];
+      
+      console.log('-----sort', sortedPackages); 
       setSubscriptionPackages(sortedPackages);
-
-      const paygPlan = response.packages.filter(
-        (pkg) => pkg.packageType === "payg"
-      );
-      setpaygPlan({
-        packageType: paygPlan[0].packageType || "payg",
-        package_id: paygPlan[0].package_id || 0,
-        name: paygPlan[0].name || "",
-        rates: paygPlan[0].features || 0 || {},
-      });
+      
+      // ✅ Ensure PAYG Plan Features are Sorted
+      const paygPlan = response.packages.find((pkg) => pkg.packageType === "payg");
+      
+      if (paygPlan) {
+        setpaygPlan({
+          packageType: paygPlan.packageType || "payg",
+          package_id: paygPlan.package_id || 0,
+          name: paygPlan.name || "",
+          rates: Object.fromEntries(
+            predefinedFeatureOrder
+              .filter((key) => key in paygPlan.features) // Keep only existing keys
+              .map((key) => [key, paygPlan.features[key]]) // Maintain order
+          )
+        });
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error(error);
@@ -639,7 +664,7 @@ const PackagesList = () => {
                                     </Button>
                                   )}
                                 </Card.Body>
-                                <Card.Footer className="text-center py-3 bg-white">
+                              {/* <Card.Footer className="text-center py-3 bg-white">
                                   <Badge
                                     bg="primary"
                                     className="fw-normal"
@@ -651,7 +676,7 @@ const PackagesList = () => {
                                     <Check2Circle className="me-1" />{" "}
                                     {t("Fully Flexible")}
                                   </Badge>
-                                </Card.Footer>
+                                </Card.Footer> */}
                               </Card>
                             </Col>
                           )}
