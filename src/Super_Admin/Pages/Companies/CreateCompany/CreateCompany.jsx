@@ -1698,6 +1698,7 @@ const CreateCompany = () => {
                             {t("Country Tax %")}:{" "}
                             <Form.Control
                               type="number"
+                              disabled
                               value={formData.taxPercentage || ""}
                               onChange={(e) =>
                                 handleChange(
