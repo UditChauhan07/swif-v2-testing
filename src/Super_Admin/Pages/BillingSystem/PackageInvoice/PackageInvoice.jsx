@@ -195,7 +195,7 @@ const InvoiceReport = () => {
                 type="text"
                 placeholder={t("Search by Invoice No or Company Name...")}
                 className="me-2"
-                style={{ width: "250px" }}
+                style={{ width: "250px" ,fontSize: "12px",}}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

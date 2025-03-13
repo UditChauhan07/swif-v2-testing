@@ -1849,7 +1849,7 @@
   "Pay As You Go": "Paga A Medida Que Lo Usas",
   "Flexible Pricing—Pay Only For What You Use , When You Use It .": "Precios flexibles: paga solo por lo que usas, cuando lo usas.",
   "Feature": "Característica",
-  "Rate ($)": "Tarifa ($)",
+  "Rate": "Tarifa",
   "Fully Flexible": "Totalmente Flexible",
   "Basic": "Básico",
   "Premium": "De primera calidad",
@@ -1955,5 +1955,10 @@
   "Empty Roles List!": "¡Lista de roles vacía!",
   "Please configure roles to proceed.": "Por favor, configure los roles para continuar.",
   "Missing WorkOrder Settings": "Configuraciones del WorkOrder Faltantes",
-  "Reports & Analytics":"Informes y análisis"
+  "Reports & Analytics":"Informes y análisis",
+  "Plan Cost": "Costo del Plan",
+  "Net Payable": "Pago Neto",
+  "Limit": "Límite",
+  "partialSuccessful": "Partial Successful"
+
 }

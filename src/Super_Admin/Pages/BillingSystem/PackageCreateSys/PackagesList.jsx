@@ -36,6 +36,7 @@ const PackagesList = () => {
   const decoded = jwtDecode(token);
   const [loading, setLoading] = useState(true);
   const [currencyData, setCurrencyData] = useState(null);
+  const [countryTax,setCountryTax]=useState(0);
   const [currentPlan, setCurrentPlan] = useState({
     features: {},
   });
@@ -112,7 +113,7 @@ const PackagesList = () => {
     try {
       const response = await getCurrenPlan(token, companyId);
       console.log("current plan", response);
-      if (response)
+      if (response.success)
         setCurrentPlan({
           features: {
             add_customers: response.package.customerCreation || 0,
@@ -125,6 +126,7 @@ const PackagesList = () => {
           planTotalCost: response.package.planTotalCost || 0,
           cost_per_month: response.package.taxAbleAmount || 0,
         });
+      setCountryTax(response.taxpercentage);
     } catch (error) {
       console.error(error);
     }
@@ -285,7 +287,7 @@ const PackagesList = () => {
                                         <Tooltip id="tooltip-service-tax">
                                           {" "}
                                           {t("Service Tax Included")} - (
-                                          {taxPercentage.toFixed(2)})%{" "}
+                                          {countryTax?.toFixed(2)})%{" "}
                                         </Tooltip>
                                       }
                                     >
@@ -412,7 +414,7 @@ const PackagesList = () => {
                           {subscriptionPackages?.map((pkg, index) => {
                             const taxableLimit = calculateTaxableLimit(
                               pkg?.cost_per_month,
-                              taxPercentage
+                              countryTax
                             );
                             return (
                               <Col
@@ -468,6 +470,7 @@ const PackagesList = () => {
                                       </Badge>
                                     )}
                                   </Card.Header>
+                                  
                                   <Card.Body className="d-flex flex-column p-4">
                                     <h2
                                       className="text-center mb-4 fw-bold"
@@ -492,12 +495,13 @@ const PackagesList = () => {
                                           "default" && (
                                           <>
                                             <span>/mo</span>
+                                            {decoded?.role !== "SuperAdmin" &&
                                             <OverlayTrigger
                                               placement="bottom"
                                               overlay={
                                                 <Tooltip id="tooltip-service-tax">
                                                   {t("Service Tax Included")} -
-                                                  ({taxPercentage.toFixed(2)})%
+                                                  ({countryTax?.toFixed(2)})%
                                                 </Tooltip>
                                               }
                                             >
@@ -508,6 +512,7 @@ const PackagesList = () => {
                                                 }}
                                               />
                                             </OverlayTrigger>
+                                           }
                                           </>
                                         )}
                                       </small>
@@ -517,6 +522,24 @@ const PackagesList = () => {
                                       borderless
                                       size="sm"
                                     >
+                                         <thead>
+                                      <tr
+                                        style={{ backgroundColor: "#ecf0f1" }}
+                                      >
+                                        <th
+                                          className="py-2"
+                                          style={{ color: "#34495e" }}
+                                        >
+                                          {t("Features")}
+                                        </th>
+                                        <th
+                                          className="text-end py-2"
+                                          style={{ color: "#34495e" }}
+                                        >
+                                          {t("Limit")}
+                                        </th>
+                                      </tr>
+                                    </thead>
                                       <tbody>
                                         {Object.entries(pkg.features).map(
                                           ([feature, limit]) => (
@@ -608,13 +631,15 @@ const PackagesList = () => {
                                           className="py-2"
                                           style={{ color: "#34495e" }}
                                         >
-                                          {t("Feature")}
+                                          {t("Features")}
                                         </th>
                                         <th
                                           className="text-end py-2"
                                           style={{ color: "#34495e" }}
                                         >
-                                          {t("Rate ($)")}
+                                          {t("Rate")} ({getSymbolFromCurrency(
+                                                currencyData?.target_currency
+                                              ) || "$"})
                                         </th>
                                       </tr>
                                     </thead>

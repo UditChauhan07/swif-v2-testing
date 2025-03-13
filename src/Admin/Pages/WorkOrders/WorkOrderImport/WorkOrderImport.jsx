@@ -387,7 +387,7 @@ const WorkOrderImport = () => {
           Swal.close();
           console.log("Response:", response);
 
-          if (response.success) {
+          if (response.success && response.insertedWorkOrders>0 && response.failedWorkOrders.length ==0) {
             Swal.fire({
               icon: "success",
               title: t("Upload Successful"),
@@ -398,25 +398,37 @@ const WorkOrderImport = () => {
               }</p>
                 <p><strong>${t(
                   "Failed Work Orders"
-                )}</strong>: ${failedCount}</p>
+                )}</strong>: ${response.failedWorkOrders.length}</p>
               `,
             }).then(() => {
               navigate("/workorder/list");
             });
           } else {
-            Swal.fire({
-              icon: "error",
-              title: t("Upload Failed"),
-              html: `
+            if(response.insertedWorkOrders>0 && response.failedWorkOrders.length >0){
+              let failedWorkOrdersErrors = '';
+  
+              // Loop through the failed work orders and append each error message to the string
+              response.failedWorkOrders.forEach((item, index) => {
+                failedWorkOrdersErrors += `<p><strong>${t("Error")} ${index + 1}:</strong> ${item.error}</p>`;
+              });
+              Swal.fire({
+                icon: "success",
+                title: t("Partial Successful"),
+                html: `
                 <p>${response.message}</p>
-                <p><strong>${t("Inserted Work Orders")}</strong>: ${
-                response.insertedWorkOrders
-              }</p>
-                <p><strong>${t("Failed Work Orders")}</strong>: ${
-                response.failedWorkOrders.length
-              }</p>
+                <p><strong>${t("Inserted Work Orders")}</strong>: ${response.insertedWorkOrders}</p>
+                <p><strong>${t("Failed Work Orders")}</strong>: ${response.failedWorkOrders.length}</p>
+                ${failedWorkOrdersErrors}
               `,
-            });
+              });
+            }else{
+              Swal.fire({
+                icon: "error",
+                title: t("Upload Failed"),
+                html:response.message
+              });
+            }
+           
           }
         } catch (error) {
           console.error("Upload error:", error);

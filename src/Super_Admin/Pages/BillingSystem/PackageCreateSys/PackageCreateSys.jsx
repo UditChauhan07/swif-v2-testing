@@ -518,7 +518,7 @@ const PackageCreateSys = () => {
 
                       {/* Feature Limits */}
                       <div className="mb-4">
-                        <h5 className="fw-semibold mb-3" style={{ color: "#2c3e50" }}>{t("Feature Limits")}</h5>
+                        <h5 className="fw-semibold mb-3" style={{ color: "#2c3e50" }}>{t("Feature Limits")} ( {t("Per Month")})</h5>
                         <Row>
                           {Object.keys(values.features).map((feature) => (
                             <Col md={6} key={feature} className="mb-3">

@@ -67,7 +67,7 @@ const EditCompany = () => {
   const [selectedPlan, setselectedPlan] = useState({
     name: state.company?.company?.charges?.planName,
     features: {
-      add_customers: state.company?.charges?.company?.customerCreation,
+      add_customers: state.company?.company?.charges?.customerCreation,
       add_office_users: state.company?.company?.charges?.officeUserCreation,
       add_field_users: state.company?.company?.charges?.fieldUserCreation,
       work_order_creation: state.company?.company?.charges?.workOrderCreation,
@@ -1007,7 +1007,7 @@ const EditCompany = () => {
       });
     }
   };
-
+  console.log(selectedPlan)
   const featureMapping = {
     add_customers: "Add Customers",
     add_office_users: "Add Office Users",
@@ -1083,7 +1083,9 @@ const EditCompany = () => {
       : []), // If subscriptionPlanList is undefined, return an empty array instead of throwing an error
   ].filter(Boolean); // Removes `null` values from the array
   
-
+  function calculateTaxableLimit(limit, taxPercentage) {
+    return limit * (1 + taxPercentage / 100);
+  }
   return (
     <>
       <Header />
@@ -1577,6 +1579,7 @@ const EditCompany = () => {
                         {t("Country Tax %")}:{" "}
                         <Form.Control
                           type="number"
+                          disabled
                           value={formData.taxPercentage || ""}
                           onChange={(e) =>
                             handleChange(
@@ -2046,7 +2049,9 @@ SubscriptionOptions
 
                     {/* Editable Total Cost for Non-PAYG Plans */}
                     {selectedPlan?.name.toLowerCase() != "payg" &&
+                    <>
                     <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                      
                       <span>
                         <p className="fw-bold">
                           {t("Total Cost")} ({t("Per Month")})
@@ -2087,8 +2092,36 @@ SubscriptionOptions
                         )}
                       </div>
                     </ListGroup.Item>
+
+                    <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                                               <span>
+                                                 <p className="fw-bold">
+                                                   {t("Tax")}
+                                                 </p>
+                                               </span>
+                                               <div className="d-flex align-items-center">
+                                               <p className="fw-bold">
+                                                  {formData?.taxPercentage} %
+                                                </p>
+                                                </div>
+                    </ListGroup.Item>
+                    
+                    <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                    <span>
+                      <p className="fw-bold">
+                        {t("Net Payable")} ({t("Per Month")})
+                      </p>
+                    </span>
+                    <div className="d-flex align-items-center">
+                    <p className="fw-bold">
+                      $ {calculateTaxableLimit(selectedPlan?.cost_per_month,formData?.taxPercentage).toFixed(2)}
+                      </p>
+                    </div>
+                    </ListGroup.Item>
+                    </>
                     }
-                  </ListGroup>
+                    
+                    </ListGroup>
                 </Card.Body>
               </Card>
             )}

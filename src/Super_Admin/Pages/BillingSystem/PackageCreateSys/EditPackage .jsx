@@ -185,10 +185,12 @@ const EditPackage = ({ initialValues, onSubmit }) => {
                       </div>
                       <div className="mb-4">
                         <label className="form-label fw-semibold">{t("Cost Per Month")} ($)</label>
-                        <Field type="text" name="cost_per_month" className="form-control" />
+                        <Field type="text" name="cost_per_month" className="form-control" maxLength={9} onInput={(e) => {
+                                  e.target.value = e.target.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                                }}/>
                       </div>
                       <div className="mb-4">
-                        <h5 className="fw-semibold">{t("Feature Limits")}</h5>
+                        <h5 className="fw-semibold">{t("Feature Limits")} ( {t("Per Month")})</h5>
                         <Row>
                           {Object.keys(values.features).map((feature) => (
                             <Col md={6} key={feature} className="mb-3">
@@ -196,7 +198,9 @@ const EditPackage = ({ initialValues, onSubmit }) => {
                                 {/* {feature.replace(/_/g, " ")} */}
                                 {t(featureMapping[feature] || feature.replace(/_/g, " "))}
                                 </label>
-                              <Field type="text " name={`features.${feature}`} className="form-control" />
+                              <Field type="text " name={`features.${feature}`} className="form-control"maxLength={9}  onInput={(e) => {
+                                  e.target.value = e.target.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                                }}/>
                             </Col>
                           ))}
                         </Row>
